@@ -71,6 +71,9 @@ import { useAuthStore } from '../stores/auth'
 import LoginView from '../views/LoginView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import NotFoundView from '../views/NotFoundView.vue'
+import UsuariosView from '../views/UsuariosView.vue'
+import RolesView from '../views/RolesView.vue'
 
 const routes = [
   {
@@ -91,6 +94,23 @@ const routes = [
     component: ProfileView,
     meta: { requiereAuth: true },
   },
+  {
+    path: '/admin/usuarios',
+    name: 'usuarios',
+    component: UsuariosView,
+    meta: { requiereAuth: true, permisos: ['usuarios.ver'] },
+  },
+  {
+    path: '/admin/roles',
+    name: 'roles',
+    component: RolesView,
+    meta: { requiereAuth: true, permisos: ['roles.ver'] },
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: NotFoundView,
+  },
 ]
 
 const router = createRouter({
@@ -100,13 +120,24 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const auth = useAuthStore()
+  
   if (to.meta.requiereAuth !== false && !auth.token) {
-    next({ name: 'login' })
-  } else if (to.name === 'login' && auth.token) {
-    next({ name: 'dashboard' })
-  } else {
-    next()
+    return next({ name: 'login' })
   }
+  
+  if (to.name === 'login' && auth.token) {
+    return next({ name: 'dashboard' })
+  }
+
+  if (to.meta.permisos) {
+    const permisosRequeridos = to.meta.permisos
+    const tienePermisos = permisosRequeridos.every((p) => auth.tienePermiso(p))
+    if (!tienePermisos) {
+      return next({ name: 'dashboard' })
+    }
+  }
+
+  next()
 })
 
 export default router
@@ -226,6 +257,16 @@ export default {
             Dashboard
           </router-link>
         </li>
+        <li class="nav-item" v-if="auth.tienePermiso('usuarios.ver')">
+          <router-link to="/admin/usuarios" class="nav-link text-white" @click="closeOnMobile">
+            Usuarios
+          </router-link>
+        </li>
+        <li class="nav-item" v-if="auth.tienePermiso('roles.ver')">
+          <router-link to="/admin/roles" class="nav-link text-white" @click="closeOnMobile">
+            Roles
+          </router-link>
+        </li>
         <li class="nav-item">
           <router-link to="/perfil" class="nav-link text-white" @click="closeOnMobile">
             Mi Perfil
@@ -237,12 +278,17 @@ export default {
 </template>
 
 <script>
+import { useAuthStore } from '../../stores/auth'
+
 export default {
   name: 'Sidebar',
   props: {
     visible: { type: Boolean, default: false },
   },
   emits: ['close'],
+  data() {
+    return { auth: useAuthStore() }
+  },
   computed: {
     isMobile() {
       return window.innerWidth < 768
@@ -301,13 +347,28 @@ export const useAuthStore = defineStore('auth', {
     token: localStorage.getItem('token') || null,
     usuario: JSON.parse(localStorage.getItem('usuario') || 'null'),
   }),
+  getters: {
+    roles() {
+      return this.usuario?.roles || []
+    },
+    permisos() {
+      return this.usuario?.permisos || []
+    },
+    esAdmin() {
+      return this.roles.includes('ADMIN')
+    },
+    tienePermiso() {
+      return (permiso) => this.permisos.includes(permiso)
+    },
+  },
   actions: {
     async login(username, password) {
-      const { data } = await api.post('/auth/login', { username, password })
-      this.token = data.token
-      this.usuario = data.usuario
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('usuario', JSON.stringify(data.usuario))
+      const { data: body } = await api.post('/auth/login', { username, password })
+      if (!body.status) throw new Error(body.error)
+      this.token = body.data.token
+      this.usuario = body.data.usuario
+      localStorage.setItem('token', body.data.token)
+      localStorage.setItem('usuario', JSON.stringify(body.data.usuario))
     },
     logout() {
       this.token = null
@@ -316,14 +377,16 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('usuario')
     },
     async fetchPerfil() {
-      const { data } = await api.get('/auth/perfil')
-      this.usuario = { id: data.id, username: data.username }
-      localStorage.setItem('usuario', JSON.stringify(this.usuario))
+      const { data: body } = await api.get('/auth/perfil')
+      if (!body.status) throw new Error(body.error)
+      this.usuario = body.data
+      localStorage.setItem('usuario', JSON.stringify(body.data))
     },
     async actualizarPerfil(datos) {
-      await api.put('/auth/perfil', datos)
+      const { data: body } = await api.put('/auth/perfil', datos)
+      if (!body.status) throw new Error(body.error)
       if (datos.username) {
-        this.usuario.username = datos.username
+        this.usuario = { ...this.usuario, username: datos.username }
         localStorage.setItem('usuario', JSON.stringify(this.usuario))
       }
     },
@@ -384,10 +447,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('usuario')
-      window.location.href = '/login'
+    if (error.response) {
+      const body = error.response.data
+      if (body && body.status === false && (body.error === 'Token requerido' || body.error === 'Token invalido o expirado')) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('usuario')
+        window.location.href = '/login'
+      }
     }
     console.error('[API Error]', error.message)
     return Promise.reject(error)
@@ -464,7 +530,9 @@ export default {
     <h1 class="mb-4">Dashboard</h1>
     <div class="alert alert-info">
       Bienvenido, <strong>{{ auth.usuario?.username }}</strong>.
+      <span class="ms-2 badge bg-secondary">{{ roles.join(', ') }}</span>
     </div>
+    <p class="text-muted">Hoy es {{ new Date().toLocaleDateString() }}.</p>
   </div>
 </template>
 
@@ -475,6 +543,11 @@ export default {
   name: 'DashboardView',
   data() {
     return { auth: useAuthStore() }
+  },
+  computed: {
+    roles() {
+      return this.auth.roles || []
+    },
   },
 }
 </script>
@@ -504,6 +577,10 @@ export default {
         <label class="form-label">Nueva contraseña</label>
         <input v-model="form.passwordNuevo" type="password" class="form-control" autocomplete="new-password" />
       </div>
+      <div class="col-12">
+        <label class="form-label">Confirmar nueva contraseña</label>
+        <input v-model="form.confirmarPassword" type="password" class="form-control" autocomplete="new-password" />
+      </div>
 
       <div v-if="mensaje" class="alert" :class="mensajeTipo" role="alert">{{ mensaje }}</div>
 
@@ -529,6 +606,7 @@ export default {
         username: auth.usuario?.username || '',
         passwordActual: '',
         passwordNuevo: '',
+        confirmarPassword: '',
       },
       mensaje: '',
       mensajeTipo: '',
@@ -538,6 +616,12 @@ export default {
   methods: {
     async guardar() {
       this.mensaje = ''
+      if (this.form.passwordNuevo && this.form.passwordNuevo !== this.form.confirmarPassword) {
+        this.mensaje = 'Las contrasenas no coinciden'
+        this.mensajeTipo = 'alert-danger'
+        this.cargando = false
+        return
+      }
       this.cargando = true
       try {
         await this.auth.actualizarPerfil({
@@ -547,6 +631,7 @@ export default {
         })
         this.form.passwordActual = ''
         this.form.passwordNuevo = ''
+        this.form.confirmarPassword = ''
         this.mensaje = 'Perfil actualizado correctamente'
         this.mensajeTipo = 'alert-success'
       } catch (err) {
@@ -556,6 +641,350 @@ export default {
         this.cargando = false
       }
     },
+  },
+}
+</script>
+```
+
+## 13B. Vista 404 — `src/views/NotFoundView.vue`
+
+```javascript
+<template>
+  <div class="d-flex align-items-center justify-content-center" style="min-height: 100vh; background: #f5f5f5;">
+    <div class="text-center">
+      <h1 class="display-1 fw-bold text-muted">404</h1>
+      <p class="fs-4">Pagina no encontrada</p>
+      <router-link to="/" class="btn btn-dark">Volver al inicio</router-link>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'NotFoundView',
+}
+</script>
+```
+
+## 13C. Vista Usuarios — `src/views/UsuariosView.vue`
+
+```javascript
+<template>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="mb-0">Usuarios</h1>
+      <button class="btn btn-primary" @click="abrirModal()">Nuevo Usuario</button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Roles</th>
+            <th>Creado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="u in usuarios" :key="u.id">
+            <td>{{ u.id }}</td>
+            <td>{{ u.username }}</td>
+            <td>
+              <span v-for="r in u.roles" :key="r.id" class="badge bg-secondary me-1">{{ r.nombre }}</span>
+            </td>
+            <td>{{ new Date(u.created_at).toLocaleDateString() }}</td>
+            <td>
+              <button class="btn btn-sm btn-warning me-1" @click="abrirModal(u)">Editar</button>
+              <button class="btn btn-sm btn-danger" @click="eliminar(u)">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="usuarioModal" tabindex="-1" ref="modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ editando ? 'Editar Usuario' : 'Nuevo Usuario' }}</h5>
+            <button type="button" class="btn-close" @click="cerrarModal"></button>
+          </div>
+          <form @submit.prevent="guardar">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input v-model="form.username" type="text" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">{{ editando ? 'Nueva contraseña (dejar vacio para mantener)' : 'Contraseña' }}</label>
+                <input v-model="form.password" type="password" class="form-control" :required="!editando" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Roles</label>
+                <div v-for="rol in rolesDisponibles" :key="rol.id" class="form-check">
+                  <input type="checkbox" :value="rol.id" v-model="form.rolIds" class="form-check-input" :id="'rol-' + rol.id" />
+                  <label class="form-check-label" :for="'rol-' + rol.id">{{ rol.nombre }}</label>
+                </div>
+              </div>
+              <div v-if="errorModal" class="alert alert-danger py-2">{{ errorModal }}</div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="cerrarModal">Cancelar</button>
+              <button type="submit" class="btn btn-primary" :disabled="cargando">
+                {{ cargando ? 'Guardando...' : 'Guardar' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { Modal } from 'bootstrap'
+import api from '../api/axios'
+
+export default {
+  name: 'UsuariosView',
+  data() {
+    return {
+      usuarios: [],
+      rolesDisponibles: [],
+      editando: null,
+      form: { username: '', password: '', rolIds: [] },
+      errorModal: '',
+      cargando: false,
+      modalInstance: null,
+    }
+  },
+  methods: {
+    async fetchUsuarios() {
+      const { data: body } = await api.get('/admin/usuarios')
+      if (body.status) this.usuarios = body.data
+    },
+    async fetchRoles() {
+      const { data: body } = await api.get('/admin/roles')
+      if (body.status) this.rolesDisponibles = body.data
+    },
+    abrirModal(usuario) {
+      this.errorModal = ''
+      if (usuario) {
+        this.editando = usuario
+        this.form = {
+          username: usuario.username,
+          password: '',
+          rolIds: usuario.roles.map((r) => r.id),
+        }
+      } else {
+        this.editando = null
+        this.form = { username: '', password: '', rolIds: [] }
+      }
+      this.modalInstance.show()
+    },
+    cerrarModal() {
+      this.modalInstance.hide()
+    },
+    async guardar() {
+      this.errorModal = ''
+      this.cargando = true
+      try {
+        if (this.editando) {
+          const payload = { username: this.form.username, rolIds: this.form.rolIds }
+          if (this.form.password) payload.password = this.form.password
+          await api.put(`/admin/usuarios/${this.editando.id}`, payload)
+        } else {
+          await api.post('/admin/usuarios', this.form)
+        }
+        await this.fetchUsuarios()
+        this.cerrarModal()
+      } catch (err) {
+        this.errorModal = err.response?.data?.error || 'Error al guardar'
+      } finally {
+        this.cargando = false
+      }
+    },
+    async eliminar(usuario) {
+      if (!confirm(`Eliminar usuario "${usuario.username}"?`)) return
+      try {
+        await api.delete(`/admin/usuarios/${usuario.id}`)
+        await this.fetchUsuarios()
+      } catch (err) {
+        alert(err.response?.data?.error || 'Error al eliminar')
+      }
+    },
+  },
+  mounted() {
+    this.modalInstance = new Modal(this.$refs.modal)
+    this.fetchUsuarios()
+    this.fetchRoles()
+  },
+  beforeUnmount() {
+    this.modalInstance?.dispose()
+  },
+}
+</script>
+```
+
+## 13D. Vista Roles — `src/views/RolesView.vue`
+
+```javascript
+<template>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="mb-0">Roles</h1>
+      <button class="btn btn-primary" @click="abrirModal()">Nuevo Rol</button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripcion</th>
+            <th>Permisos</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="rol in roles" :key="rol.id">
+            <td>{{ rol.id }}</td>
+            <td>{{ rol.nombre }}</td>
+            <td>{{ rol.descripcion }}</td>
+            <td>
+              <span v-for="p in rol.permisos" :key="p.id" class="badge bg-info me-1 text-dark">{{ p.nombre }}</span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-warning me-1" @click="abrirModal(rol)">Editar</button>
+              <button class="btn btn-sm btn-danger" @click="eliminar(rol)">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="rolModal" tabindex="-1" ref="modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ editando ? 'Editar Rol' : 'Nuevo Rol' }}</h5>
+            <button type="button" class="btn-close" @click="cerrarModal"></button>
+          </div>
+          <form @submit.prevent="guardar">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input v-model="form.nombre" type="text" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Descripcion</label>
+                <input v-model="form.descripcion" type="text" class="form-control" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Permisos</label>
+                <div v-for="perm in permisosDisponibles" :key="perm.id" class="form-check">
+                  <input type="checkbox" :value="perm.id" v-model="form.permisoIds" class="form-check-input" :id="'perm-' + perm.id" />
+                  <label class="form-check-label" :for="'perm-' + perm.id">{{ perm.nombre }}</label>
+                </div>
+              </div>
+              <div v-if="errorModal" class="alert alert-danger py-2">{{ errorModal }}</div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="cerrarModal">Cancelar</button>
+              <button type="submit" class="btn btn-primary" :disabled="cargando">
+                {{ cargando ? 'Guardando...' : 'Guardar' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { Modal } from 'bootstrap'
+import api from '../api/axios'
+
+export default {
+  name: 'RolesView',
+  data() {
+    return {
+      roles: [],
+      permisosDisponibles: [],
+      editando: null,
+      form: { nombre: '', descripcion: '', permisoIds: [] },
+      errorModal: '',
+      cargando: false,
+      modalInstance: null,
+    }
+  },
+  methods: {
+    async fetchRoles() {
+      const { data: body } = await api.get('/admin/roles')
+      if (body.status) this.roles = body.data
+    },
+    async fetchPermisos() {
+      const { data: body } = await api.get('/admin/permisos')
+      if (body.status) this.permisosDisponibles = body.data
+    },
+    abrirModal(rol) {
+      this.errorModal = ''
+      if (rol) {
+        this.editando = rol
+        this.form = {
+          nombre: rol.nombre,
+          descripcion: rol.descripcion || '',
+          permisoIds: rol.permisos.map((p) => p.id),
+        }
+      } else {
+        this.editando = null
+        this.form = { nombre: '', descripcion: '', permisoIds: [] }
+      }
+      this.modalInstance.show()
+    },
+    cerrarModal() {
+      this.modalInstance.hide()
+    },
+    async guardar() {
+      this.errorModal = ''
+      this.cargando = true
+      try {
+        if (this.editando) {
+          await api.put(`/admin/roles/${this.editando.id}`, this.form)
+        } else {
+          await api.post('/admin/roles', this.form)
+        }
+        await this.fetchRoles()
+        this.cerrarModal()
+      } catch (err) {
+        this.errorModal = err.response?.data?.error || 'Error al guardar'
+      } finally {
+        this.cargando = false
+      }
+    },
+    async eliminar(rol) {
+      if (!confirm(`Eliminar rol "${rol.nombre}"?`)) return
+      try {
+        await api.delete(`/admin/roles/${rol.id}`)
+        await this.fetchRoles()
+      } catch (err) {
+        alert(err.response?.data?.error || 'Error al eliminar')
+      }
+    },
+  },
+  mounted() {
+    this.modalInstance = new Modal(this.$refs.modal)
+    this.fetchRoles()
+    this.fetchPermisos()
+  },
+  beforeUnmount() {
+    this.modalInstance?.dispose()
   },
 }
 </script>
@@ -616,7 +1045,10 @@ dist/
 │   └── views/
 │       ├── LoginView.vue
 │       ├── DashboardView.vue
-│       └── ProfileView.vue
+│       ├── NotFoundView.vue
+│       ├── ProfileView.vue
+│       ├── RolesView.vue
+│       └── UsuariosView.vue
 └── node_modules/
 ```
 
@@ -676,6 +1108,9 @@ Ver archivo `.env.example` para referencia.
 | `/login` | `LoginView` | Inicio de sesion | No |
 | `/` | `DashboardView` | Panel principal | Si |
 | `/perfil` | `ProfileView` | Configuracion de perfil (username / password) | Si |
+| `/admin/usuarios` | `UsuariosView` | Gestion de usuarios (solo ADMIN) | Si |
+| `/admin/roles` | `RolesView` | Gestion de roles y permisos (solo ADMIN) | Si |
+| `/:pathMatch(.*)*` | `NotFoundView` | Pagina 404 | No |
 
 ## ESTRUCTURA
 
@@ -705,7 +1140,10 @@ Ver archivo `.env.example` para referencia.
 │   └── views/
 │       ├── LoginView.vue
 │       ├── DashboardView.vue
-│       └── ProfileView.vue
+│       ├── NotFoundView.vue
+│       ├── ProfileView.vue
+│       ├── RolesView.vue
+│       └── UsuariosView.vue
 └── node_modules/
 ```
 
