@@ -9,12 +9,36 @@ Usar cuando el usuario pida **crear un frontend desde cero** con Vue.js 3, Vite,
 
 ---
 
+## 0. Preguntar nombre del proyecto
+
+Usar la herramienta `question` para preguntar al usuario qué nombre desea para el paquete del frontend. La respuesta se usará como `<nombre-proyecto>` en todos los pasos siguientes.
+
+Ejemplo de pregunta:
+
+```
+<question>
+Pregunta: ¿Qué nombre deseas para el paquete del frontend?
+Header: Nombre del frontend
+```
+
+> El valor ingresado reemplaza `<nombre-proyecto>` en el resto de la receta (nombre del directorio, carpeta del proyecto, package.json, etc.).
+
 ## 1. Crear el proyecto con Vite
 
 ```bash
 npm create vite@latest <nombre-proyecto> -- --template vue
 cd <nombre-proyecto>
 npm install
+```
+
+Fijar la versión inicial en `package.json` a `1.0.0`:
+
+```json
+{
+  "name": "<nombre-proyecto>",
+  "version": "1.0.0",
+  ...
+}
 ```
 
 ## 2. Instalar dependencias

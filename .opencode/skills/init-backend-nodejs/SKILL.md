@@ -9,6 +9,20 @@ Usar cuando el usuario pida **crear un backend Node.js desde cero** con Express,
 
 ---
 
+## 0. Preguntar nombre del proyecto
+
+Usar la herramienta `question` para preguntar al usuario qué nombre desea para el paquete del backend. La respuesta se usará como `<nombre-proyecto>` en todos los pasos siguientes.
+
+Ejemplo de pregunta:
+
+```
+<question>
+Pregunta: ¿Qué nombre deseas para el paquete del backend?
+Header: Nombre del backend
+```
+
+> El valor ingresado reemplaza `<nombre-proyecto>` en el resto de la receta (nombre del directorio, carpeta del proyecto, package.json, etc.).
+
 ## 1. Crear estructura del proyecto
 
 ```bash
@@ -18,6 +32,16 @@ npm init -y
 ```
 
 Agregar `"type": "module"` en `package.json` para usar ESM.
+
+Fijar la versión inicial del proyecto editando `package.json` para que quede:
+
+```json
+{
+  "name": "<nombre-proyecto>",
+  "version": "1.0.0",
+  ...
+}
+```
 
 ## 2. Instalar dependencias
 
