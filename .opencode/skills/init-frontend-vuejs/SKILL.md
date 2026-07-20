@@ -44,7 +44,7 @@ Fijar la versión inicial en `package.json` a `1.0.0`:
 ## 2. Instalar dependencias
 
 ```bash
-npm install bootstrap @popperjs/core pinia axios vue-router
+npm install bootstrap @popperjs/core bootstrap-icons pinia axios vue-router
 ```
 
 ## 3. Configurar Bootstrap global — `src/main.js`
@@ -55,6 +55,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap-icons/font/bootstrap-icons.css'
 import 'bootstrap'
 
 const app = createApp(App)
@@ -666,46 +667,307 @@ export default {
 </script>
 ```
 
-## 13C. Vista Usuarios — `src/views/UsuariosView.vue`
+## 13C. Componente de tabla reutilizable — `src/components/TableEditor.vue`
+
+Componente de tabla Bootstrap con toolbar, ordenamiento, busqueda global, paginacion, seleccion de filas y acciones por fila.
 
 ```javascript
 <template>
-  <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1 class="mb-0">Usuarios</h1>
-      <button class="btn btn-primary" @click="abrirModal()">Nuevo Usuario</button>
+  <div class="te-wrapper">
+    <!-- Toolbar -->
+    <div v-if="!config?.hideToolbar" class="te-toolbar">
+      <div class="te-toolbar-start">
+        <button v-for="btn in toolbarBtns" :key="btn.key" :class="['btn', 'btn-sm', btn.severity, btn.class]"
+          :disabled="btn.disabled" @click="btn.action" :title="btn.label">
+          <i v-if="btn.icon" :class="btn.icon" class="me-1"></i>{{ btn.label }}
+        </button>
+      </div>
+      <div class="te-toolbar-end">
+        <div class="dropdown d-inline-block me-2">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            Columnas
+          </button>
+          <div class="dropdown-menu p-2" style="min-width:200px">
+            <div v-for="col in allColumns" :key="col.field" class="form-check">
+              <input type="checkbox" :id="'tc-'+col.field" :value="col" v-model="visibleCols"
+                class="form-check-input" @change="emitCols" />
+              <label :for="'tc-'+col.field" class="form-check-label">{{ col.headerName }}</label>
+            </div>
+          </div>
+        </div>
+        <div class="input-group input-group-sm" style="width:200px">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" v-model="search" @input="debouncedSearch" placeholder="Buscar..." />
+        </div>
+      </div>
     </div>
 
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
+    <!-- Tabla -->
+    <div class="te-scroll" :style="scrollHeight ? { maxHeight: scrollHeight } : {}">
+      <table class="table te-table" :class="{ 'table-striped': striped }">
+        <colgroup>
+          <col v-if="selectable" style="width:40px" />
+          <col v-if="actions?.length" style="width:1%" />
+          <col v-for="col in columns" :key="col.field" :style="col.width ? { width: col.width } : {}" />
+        </colgroup>
+        <thead class="table-light">
           <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Roles</th>
-            <th>Creado</th>
-            <th>Acciones</th>
+            <th v-if="selectable" class="te-th">
+              <input type="checkbox" class="form-check-input" :checked="allSelected" @change="toggleAll" />
+            </th>
+            <th v-if="actions?.length" class="te-th">Acciones</th>
+            <th v-for="col in columns" :key="col.field" class="te-th" :class="{ 'te-sortable': col.sortable !== false }"
+              @click="col.sortable !== false && toggleSort(col.field)">
+              {{ col.headerName }}
+              <span v-if="col.sortable !== false" class="te-sort-icon">
+                {{ sortField === col.field ? (sortDir === 'asc' ? '▲' : '▼') : '⇅' }}
+              </span>
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="u in usuarios" :key="u.id">
-            <td>{{ u.id }}</td>
-            <td>{{ u.username }}</td>
-            <td>
-              <span v-for="r in u.roles" :key="r.id" class="badge bg-secondary me-1">{{ r.nombre }}</span>
+          <tr v-for="(row, ri) in displayRows" :key="ri"
+            :class="{ 'table-active': isSelected(row), 'te-row-click': selectable }"
+            @click="selectable && selectRow(row)">
+            <td v-if="selectable" class="te-td" @click.stop>
+              <input type="checkbox" class="form-check-input" :checked="isSelected(row)" @change="toggleRow(row)" />
             </td>
-            <td>{{ new Date(u.created_at).toLocaleDateString() }}</td>
-            <td>
-              <button class="btn btn-sm btn-warning me-1" @click="abrirModal(u)">Editar</button>
-              <button class="btn btn-sm btn-danger" @click="eliminar(u)">Eliminar</button>
+            <td v-if="actions?.length" class="te-td te-actions">
+              <button v-for="act in actions" :key="act.key" :class="['btn', 'btn-sm', act.severity || 'btn-outline-primary', 'me-1']"
+                :disabled="act.disabled?.(row)" @click.stop="act.action(row)" :title="act.label">
+                <i v-if="act.icon" :class="act.icon"></i> {{ act.label }}
+              </button>
             </td>
+            <td v-for="col in columns" :key="col.field" class="te-td" :class="col.css">
+              <template v-if="col.formatter">
+                <span v-html="col.formatter(row, col.field)"></span>
+              </template>
+              <template v-else-if="col.field === 'roles' && row.roles">
+                <span v-for="r in row.roles" :key="r.id || r" class="badge bg-secondary me-1">{{ r.nombre || r }}</span>
+              </template>
+              <template v-else-if="col.type === 'color' && row[col.field]">
+                <span class="te-color-badge" :style="{ background: '#'+row[col.field], color: invertColor('#'+row[col.field]) }">
+                  {{ row[col.field] }}
+                </span>
+              </template>
+              <template v-else>
+                {{ formatVal(row[col.field], col) }}
+              </template>
+            </td>
+          </tr>
+          <tr v-if="!displayRows.length">
+            <td :colspan="colspan" class="text-center text-muted py-4">Sin registros</td>
           </tr>
         </tbody>
       </table>
     </div>
 
+    <!-- Paginador -->
+    <div v-if="showPaginator" class="te-paginator">
+      <span class="text-muted small">
+        Mostrando {{ pageStart }}-{{ pageEnd }} de {{ totalRows }}
+      </span>
+      <div class="te-page-controls">
+        <button class="btn btn-sm btn-outline-secondary" :disabled="page<=1" @click="goPage(1)">««</button>
+        <button class="btn btn-sm btn-outline-secondary" :disabled="page<=1" @click="goPage(page-1)">«</button>
+        <span class="mx-2 small">{{ page }}/{{ totalPages }}</span>
+        <button class="btn btn-sm btn-outline-secondary" :disabled="page>=totalPages" @click="goPage(page+1)">»</button>
+        <button class="btn btn-sm btn-outline-secondary" :disabled="page>=totalPages" @click="goPage(totalPages)">»»</button>
+      </div>
+      <select class="form-select form-select-sm" style="width:auto" v-model="pageSize" @change="page=1">
+        <option :value="25">25</option>
+        <option :value="50">50</option>
+        <option :value="100">100</option>
+        <option :value="200">200</option>
+      </select>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'TableEditor',
+  props: {
+    columns: { type: Array, required: true },
+    data: { type: Array, default: () => [] },
+    config: { type: Object, default: () => ({}) },
+    actions: { type: Array, default: () => [] },
+    selectable: { type: Boolean, default: false },
+    striped: { type: Boolean, default: true },
+    showPaginator: { type: Boolean, default: true },
+    scrollHeight: { type: String, default: null },
+  },
+  emits: ['rowSelected', 'rowDoubleClick', 'columnsChange'],
+  data() {
+    return {
+      visibleCols: [...this.columns],
+      allColumns: [...this.columns],
+      search: '',
+      sortField: null,
+      sortDir: 'asc',
+      page: 1,
+      pageSize: 25,
+      selected: [],
+      filterTimer: null,
+    }
+  },
+  computed: {
+    columns() {
+      return this.visibleCols
+    },
+    filtered() {
+      let r = [...this.data]
+      const q = this.search.toLowerCase().trim()
+      if (q) {
+        r = r.filter(row => this.columns.some(c => {
+          const v = row[c.field]
+          return v != null && String(v).toLowerCase().includes(q)
+        }))
+      }
+      if (this.sortField) {
+        r.sort((a, b) => {
+          let va = a[this.sortField], vb = b[this.sortField]
+          if (va == null) va = ''
+          if (vb == null) vb = ''
+          if (typeof va === 'number' && typeof vb === 'number')
+            return this.sortDir === 'asc' ? va - vb : vb - va
+          va = String(va).toLowerCase()
+          vb = String(vb).toLowerCase()
+          return this.sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va)
+        })
+      }
+      return r
+    },
+    totalRows() { return this.filtered.length },
+    totalPages() { return Math.max(1, Math.ceil(this.totalRows / this.pageSize)) },
+    displayRows() {
+      const s = (this.page - 1) * this.pageSize
+      return this.filtered.slice(s, s + this.pageSize)
+    },
+    pageStart() { return (this.page - 1) * this.pageSize + 1 },
+    pageEnd() { return Math.min(this.page * this.pageSize, this.totalRows) },
+    colspan() {
+      let n = this.columns.length
+      if (this.selectable) n++
+      if (this.actions?.length) n++
+      return n
+    },
+    allSelected() {
+      return this.displayRows.length > 0 && this.displayRows.every(r => this.isSelected(r))
+    },
+    toolbarBtns() {
+      const cfg = this.config.toolbar || []
+      const btns = []
+      for (const b of cfg) {
+        btns.push({
+          key: b.key,
+          label: b.label,
+          icon: b.icon || null,
+          severity: b.severity || 'btn-outline-primary',
+          class: b.class || '',
+          disabled: b.disabled?.(this) || false,
+          action: () => b.action(this),
+        })
+      }
+      return btns
+    },
+  },
+  methods: {
+    toggleSort(field) {
+      if (this.sortField === field) {
+        this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc'
+      } else {
+        this.sortField = field
+        this.sortDir = 'asc'
+      }
+      this.page = 1
+    },
+    debouncedSearch() {
+      if (this.filterTimer) clearTimeout(this.filterTimer)
+      this.filterTimer = setTimeout(() => { this.page = 1 }, 300)
+    },
+    goPage(p) { this.page = Math.max(1, Math.min(p, this.totalPages)) },
+    isSelected(row) { return this.selected.includes(row) },
+    selectRow(row) {
+      if (!this.selectable) return
+      if (this.config.singleSelect) {
+        this.selected = [row]
+      } else {
+        const i = this.selected.indexOf(row)
+        if (i >= 0) this.selected.splice(i, 1)
+        else this.selected.push(row)
+      }
+      this.$emit('rowSelected', this.config.singleSelect ? this.selected[0] : [...this.selected])
+    },
+    toggleRow(row) { this.selectRow(row) },
+    toggleAll() {
+      if (this.allSelected) {
+        this.selected = this.selected.filter(r => !this.displayRows.includes(r))
+      } else {
+        for (const r of this.displayRows) {
+          if (!this.selected.includes(r)) this.selected.push(r)
+        }
+      }
+      this.$emit('rowSelected', [...this.selected])
+    },
+    clearSelection() { this.selected = []; this.$emit('rowSelected', []) },
+    emitCols() { this.$emit('columnsChange', this.visibleCols) },
+    formatVal(val, col) {
+      if (val == null || val === '') return '-'
+      if (col.type === 'date' || col.field?.endsWith('_at') || col.field?.endsWith('At')) {
+        try { return new Date(val).toLocaleDateString() } catch { return val }
+      }
+      if (col.type === 'datetime') {
+        try { return new Date(val).toLocaleString() } catch { return val }
+      }
+      if (col.type === 'boolean' || col.type === 'bool') return val ? 'Si' : 'No'
+      return val
+    },
+    invertColor(hex) {
+      if (!hex || hex.length < 7) return '#fff'
+      const r = 255 - parseInt(hex.slice(1, 3), 16)
+      const g = 255 - parseInt(hex.slice(3, 5), 16)
+      const b = 255 - parseInt(hex.slice(5, 7), 16)
+      return `rgb(${r},${g},${b})`
+    },
+  },
+}
+</script>
+
+<style scoped>
+.te-wrapper { display: flex; flex-direction: column; height: 100%; font-size: 0.875rem; }
+.te-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: #fff; border: 1px solid #dee2e6; border-radius: 0.375rem 0.375rem 0 0; padding: 0.5rem 0.75rem; flex-wrap: wrap; }
+.te-toolbar-start { display: flex; align-items: center; gap: 0.25rem; }
+.te-toolbar-end { display: flex; align-items: center; }
+.te-scroll { overflow: auto; border: 1px solid #dee2e6; border-top: 0; border-bottom: 0; background: #fff; }
+.te-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.te-scroll::-webkit-scrollbar-thumb { background: #c1c7cd; border-radius: 4px; }
+.te-table { margin-bottom: 0; width: 100%; }
+.te-table > :not(caption) > * > * { padding: 0.4rem 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.te-th { position: sticky; top: 0; background: #f0f2f5; z-index: 1; user-select: none; font-weight: 600; }
+.te-sortable { cursor: pointer; }
+.te-sortable:hover { color: #0d6efd; }
+.te-sort-icon { font-size: 0.65rem; margin-left: 0.25rem; color: #adb5bd; }
+.te-td { max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+.te-actions { white-space: nowrap; }
+.te-row-click { cursor: pointer; }
+.te-paginator { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0 0 0.375rem 0.375rem; padding: 0.35rem 0.75rem; flex-wrap: wrap; }
+.te-page-controls { display: flex; align-items: center; }
+.te-color-badge { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(0,0,0,0.1); }
+</style>
+```
+
+## 13D. Vista Usuarios — `src/views/UsuariosView.vue`
+
+```javascript
+<template>
+  <div class="container py-4">
+    <h1 class="mb-4">Usuarios</h1>
+    <TableEditor ref="table" :columns="columnDefs" :data="usuarios" :config="tableConfig" selectable
+      :actions="rowActions" @rowSelected="onRowSelected" />
+
     <!-- Modal -->
-    <div class="modal fade" id="usuarioModal" tabindex="-1" ref="modal">
+    <div class="modal fade" tabindex="-1" ref="modal">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -719,7 +981,7 @@ export default {
                 <input v-model="form.username" type="text" class="form-control" required />
               </div>
               <div class="mb-3">
-                <label class="form-label">{{ editando ? 'Nueva contraseña (dejar vacio para mantener)' : 'Contraseña' }}</label>
+                <label class="form-label">{{ editando ? 'Nueva contrasena (dejar vacio para mantener)' : 'Contrasena' }}</label>
                 <input v-model="form.password" type="password" class="form-control" :required="!editando" />
               </div>
               <div class="mb-3">
@@ -733,9 +995,7 @@ export default {
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" @click="cerrarModal">Cancelar</button>
-              <button type="submit" class="btn btn-primary" :disabled="cargando">
-                {{ cargando ? 'Guardando...' : 'Guardar' }}
-              </button>
+              <button type="submit" class="btn btn-primary" :disabled="cargando">{{ cargando ? 'Guardando...' : 'Guardar' }}</button>
             </div>
           </form>
         </div>
@@ -747,13 +1007,16 @@ export default {
 <script>
 import { Modal } from 'bootstrap'
 import api from '../api/axios'
+import TableEditor from '../components/TableEditor.vue'
 
 export default {
   name: 'UsuariosView',
+  components: { TableEditor },
   data() {
     return {
       usuarios: [],
       rolesDisponibles: [],
+      selectedRow: null,
       editando: null,
       form: { username: '', password: '', rolIds: [] },
       errorModal: '',
@@ -761,7 +1024,37 @@ export default {
       modalInstance: null,
     }
   },
+  computed: {
+    columnDefs() {
+      return [
+        { field: 'id', headerName: 'ID', width: '70px', sortable: false },
+        { field: 'username', headerName: 'Username' },
+        { field: 'roles', headerName: 'Roles' },
+        { field: 'created_at', headerName: 'Creado', type: 'date' },
+      ]
+    },
+    tableConfig() {
+      return {
+        toolbar: [
+          { key: 'refresh', label: '', icon: 'bi bi-arrow-clockwise', severity: 'btn-outline-info', action: () => this.fetchUsuarios() },
+          { key: 'csv', label: 'CSV', icon: 'bi bi-download', severity: 'btn-outline-info', action: () => this.exportCsv() },
+          { key: 'crear', label: 'Nuevo', icon: 'bi bi-plus-lg', severity: 'btn-success', action: () => this.abrirModal() },
+          { key: 'editar', label: 'Editar', icon: 'bi bi-pencil', severity: 'btn-primary', disabled: () => !this.selectedRow, action: () => this.abrirModal(this.selectedRow) },
+          { key: 'eliminar', label: 'Eliminar', icon: 'bi bi-trash', severity: 'btn-danger', disabled: () => !this.selectedRow, action: () => this.eliminar(this.selectedRow) },
+        ],
+      }
+    },
+    rowActions() {
+      return [
+        { key: 'edit', label: 'Editar', severity: 'btn-warning', icon: 'bi bi-pencil', action: (r) => this.abrirModal(r) },
+        { key: 'delete', label: 'Eliminar', severity: 'btn-danger', icon: 'bi bi-trash', action: (r) => this.eliminar(r) },
+      ]
+    },
+  },
   methods: {
+    onRowSelected(rows) {
+      this.selectedRow = Array.isArray(rows) ? rows[0] : rows
+    },
     async fetchUsuarios() {
       const { data: body } = await api.get('/admin/usuarios')
       if (body.status) this.usuarios = body.data
@@ -799,8 +1092,9 @@ export default {
         } else {
           await api.post('/admin/usuarios', this.form)
         }
+        this.modalInstance.hide()
         await this.fetchUsuarios()
-        this.cerrarModal()
+        this.$refs.table.clearSelection()
       } catch (err) {
         this.errorModal = err.response?.data?.error || 'Error al guardar'
       } finally {
@@ -808,13 +1102,30 @@ export default {
       }
     },
     async eliminar(usuario) {
-      if (!confirm(`Eliminar usuario "${usuario.username}"?`)) return
+      if (!usuario || !confirm(`Eliminar usuario "${usuario.username}"?`)) return
       try {
         await api.delete(`/admin/usuarios/${usuario.id}`)
         await this.fetchUsuarios()
+        this.$refs.table.clearSelection()
       } catch (err) {
         alert(err.response?.data?.error || 'Error al eliminar')
       }
+    },
+    exportCsv() {
+      if (!this.usuarios.length) return
+      const cols = this.columnDefs
+      let csv = cols.map(c => this.csvEsc(c.headerName)).join(',') + '\n'
+      for (const r of this.usuarios) {
+        csv += cols.map(c => this.csvEsc(r[c.field] != null ? String(r[c.field]) : '')).join(',') + '\n'
+      }
+      const a = document.createElement('a')
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent('\uFEFF' + csv)
+      a.download = 'usuarios.csv'
+      a.click()
+    },
+    csvEsc(v) {
+      v = String(v).replace(/"/g, '""')
+      return v.includes(',') || v.includes('"') || v.includes('\n') ? '"' + v + '"' : v
     },
   },
   mounted() {
@@ -822,53 +1133,21 @@ export default {
     this.fetchUsuarios()
     this.fetchRoles()
   },
-  beforeUnmount() {
-    this.modalInstance?.dispose()
-  },
 }
 </script>
 ```
 
-## 13D. Vista Roles — `src/views/RolesView.vue`
+## 13E. Vista Roles — `src/views/RolesView.vue`
 
 ```javascript
 <template>
   <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1 class="mb-0">Roles</h1>
-      <button class="btn btn-primary" @click="abrirModal()">Nuevo Rol</button>
-    </div>
-
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Descripcion</th>
-            <th>Permisos</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="rol in roles" :key="rol.id">
-            <td>{{ rol.id }}</td>
-            <td>{{ rol.nombre }}</td>
-            <td>{{ rol.descripcion }}</td>
-            <td>
-              <span v-for="p in rol.permisos" :key="p.id" class="badge bg-info me-1 text-dark">{{ p.nombre }}</span>
-            </td>
-            <td>
-              <button class="btn btn-sm btn-warning me-1" @click="abrirModal(rol)">Editar</button>
-              <button class="btn btn-sm btn-danger" @click="eliminar(rol)">Eliminar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <h1 class="mb-4">Roles</h1>
+    <TableEditor ref="table" :columns="columnDefs" :data="roles" :config="tableConfig" selectable
+      :actions="rowActions" @rowSelected="onRowSelected" />
 
     <!-- Modal -->
-    <div class="modal fade" id="rolModal" tabindex="-1" ref="modal">
+    <div class="modal fade" tabindex="-1" ref="modal">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -896,9 +1175,7 @@ export default {
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" @click="cerrarModal">Cancelar</button>
-              <button type="submit" class="btn btn-primary" :disabled="cargando">
-                {{ cargando ? 'Guardando...' : 'Guardar' }}
-              </button>
+              <button type="submit" class="btn btn-primary" :disabled="cargando">{{ cargando ? 'Guardando...' : 'Guardar' }}</button>
             </div>
           </form>
         </div>
@@ -910,13 +1187,16 @@ export default {
 <script>
 import { Modal } from 'bootstrap'
 import api from '../api/axios'
+import TableEditor from '../components/TableEditor.vue'
 
 export default {
   name: 'RolesView',
+  components: { TableEditor },
   data() {
     return {
       roles: [],
       permisosDisponibles: [],
+      selectedRow: null,
       editando: null,
       form: { nombre: '', descripcion: '', permisoIds: [] },
       errorModal: '',
@@ -924,7 +1204,36 @@ export default {
       modalInstance: null,
     }
   },
+  computed: {
+    columnDefs() {
+      return [
+        { field: 'id', headerName: 'ID', width: '70px', sortable: false },
+        { field: 'nombre', headerName: 'Nombre' },
+        { field: 'descripcion', headerName: 'Descripcion' },
+        { field: 'permisos', headerName: 'Permisos' },
+      ]
+    },
+    tableConfig() {
+      return {
+        toolbar: [
+          { key: 'refresh', label: '', icon: 'bi bi-arrow-clockwise', severity: 'btn-outline-info', action: () => this.fetchRoles() },
+          { key: 'crear', label: 'Nuevo', icon: 'bi bi-plus-lg', severity: 'btn-success', action: () => this.abrirModal() },
+          { key: 'editar', label: 'Editar', icon: 'bi bi-pencil', severity: 'btn-primary', disabled: () => !this.selectedRow, action: () => this.abrirModal(this.selectedRow) },
+          { key: 'eliminar', label: 'Eliminar', icon: 'bi bi-trash', severity: 'btn-danger', disabled: () => !this.selectedRow, action: () => this.eliminar(this.selectedRow) },
+        ],
+      }
+    },
+    rowActions() {
+      return [
+        { key: 'edit', label: 'Editar', severity: 'btn-warning', icon: 'bi bi-pencil', action: (r) => this.abrirModal(r) },
+        { key: 'delete', label: 'Eliminar', severity: 'btn-danger', icon: 'bi bi-trash', action: (r) => this.eliminar(r) },
+      ]
+    },
+  },
   methods: {
+    onRowSelected(rows) {
+      this.selectedRow = Array.isArray(rows) ? rows[0] : rows
+    },
     async fetchRoles() {
       const { data: body } = await api.get('/admin/roles')
       if (body.status) this.roles = body.data
@@ -960,8 +1269,9 @@ export default {
         } else {
           await api.post('/admin/roles', this.form)
         }
+        this.modalInstance.hide()
         await this.fetchRoles()
-        this.cerrarModal()
+        this.$refs.table.clearSelection()
       } catch (err) {
         this.errorModal = err.response?.data?.error || 'Error al guardar'
       } finally {
@@ -969,10 +1279,11 @@ export default {
       }
     },
     async eliminar(rol) {
-      if (!confirm(`Eliminar rol "${rol.nombre}"?`)) return
+      if (!rol || !confirm(`Eliminar rol "${rol.nombre}"?`)) return
       try {
         await api.delete(`/admin/roles/${rol.id}`)
         await this.fetchRoles()
+        this.$refs.table.clearSelection()
       } catch (err) {
         alert(err.response?.data?.error || 'Error al eliminar')
       }
@@ -982,9 +1293,6 @@ export default {
     this.modalInstance = new Modal(this.$refs.modal)
     this.fetchRoles()
     this.fetchPermisos()
-  },
-  beforeUnmount() {
-    this.modalInstance?.dispose()
   },
 }
 </script>
@@ -1034,9 +1342,10 @@ dist/
 │   ├── api/
 │   │   └── axios.js
 │   ├── components/
-│   │   └── layout/
-│   │       ├── Topbar.vue
-│   │       └── Sidebar.vue
+│   │   ├── layout/
+│   │   │   ├── Topbar.vue
+│   │   │   └── Sidebar.vue
+│   │   └── TableEditor.vue
 │   ├── router/
 │   │   └── index.js
 │   ├── stores/
@@ -1129,9 +1438,10 @@ Ver archivo `.env.example` para referencia.
 │   ├── api/
 │   │   └── axios.js
 │   ├── components/
-│   │   └── layout/
-│   │       ├── Topbar.vue
-│   │       └── Sidebar.vue
+│   │   ├── layout/
+│   │   │   ├── Topbar.vue
+│   │   │   └── Sidebar.vue
+│   │   └── TableEditor.vue
 │   ├── router/
 │   │   └── index.js
 │   ├── stores/
@@ -1154,6 +1464,7 @@ Ver archivo `.env.example` para referencia.
 | vue | ^3 | Framework frontend |
 | vite | ^5 | Bundler / dev server |
 | bootstrap | ^5 | UI components / estilos |
+| bootstrap-icons | ^1 | Iconos para la interfaz |
 | @popperjs/core | ^2 | Tooltips / popovers de Bootstrap |
 | pinia | ^2 | Estado global |
 | vue-router | ^4 | Enrutamiento SPA |
