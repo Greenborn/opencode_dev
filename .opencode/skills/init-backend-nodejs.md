@@ -197,6 +197,124 @@ node_modules/
 └── node_modules/
 ```
 
+## 12. Documentación básica — `DOCUMENTACION.md`
+
+Generar o actualizar el archivo `DOCUMENTACION.md` en la raíz del proyecto con la siguiente estructura. Este documento debe ser legible por humanos y fácilmente parseable por IA, usando secciones claras, metadatos estructurados y tablas consistentes.
+
+```markdown
+---
+title: <nombre-proyecto>
+type: backend
+framework: Express + Knex + MariaDB
+language: Node.js (ESM)
+created: <fecha-actual>
+---
+
+# <nombre-proyecto>
+
+Backend Node.js con Express, Knex y MariaDB.
+
+---
+
+## REQUISITOS
+
+- Node.js >= 18
+- MariaDB >= 10.6 / MySQL >= 8.0
+- npm >= 9
+
+## CONFIGURACION
+
+| Paso | Accion |
+|------|--------|
+| 1 | `git clone <repo>` |
+| 2 | `npm install` |
+| 3 | Copiar `.env.example` a `.env` y completar variables |
+| 4 | `npm run migrate` |
+| 5 | `npm run seed` (opcional) |
+| 6 | `npm run dev` |
+
+## VARIABLES DE ENTORNO
+
+| Variable | Descripcion | Valor ejemplo |
+|----------|-------------|---------------|
+| `PORT` | Puerto del servidor | `3000` |
+| `CORS_ORIGIN` | Origenes permitidos CORS | `*` |
+| `DB_HOST` | Host de base de datos | `localhost` |
+| `DB_PORT` | Puerto de base de datos | `3306` |
+| `DB_USER` | Usuario de base de datos | `root` |
+| `DB_PASSWORD` | Contrasena de base de datos | |
+| `DB_NAME` | Nombre de base de datos | `mi_app` |
+
+Ver archivo `.env.example` para referencia.
+
+## SCRIPTS
+
+| Comando | Descripcion |
+|---------|-------------|
+| `npm run dev` | Inicia servidor con recarga automatica |
+| `npm start` | Inicia servidor en produccion |
+| `npm run migrate` | Ejecuta migraciones pendientes |
+| `npm run migrate:rollback` | Revierte ultima migracion |
+| `npm run seed` | Ejecuta seeders |
+
+## ENDPOINTS
+
+### Sistema
+
+| Metodo | Ruta | Descripcion | Auth |
+|--------|------|-------------|------|
+| GET | `/health` | Health check del servidor | No |
+
+### API
+
+<!-- Listar aqui los endpoints de la API a medida que se agreguen rutas en src/routes/ -->
+
+> Formato para agregar nuevos endpoints:
+> | Metodo | Ruta | Descripcion | Auth |
+> | GET | `/api/recurso` | Descripcion del recurso | Si/No |
+
+## ESTRUCTURA
+
+```
+<proyecto>/
+├── .env
+├── .env.example
+├── .gitignore
+├── DOCUMENTACION.md
+├── knexfile.js
+├── package.json
+├── src/
+│   ├── index.js
+│   ├── config/
+│   │   ├── cors.js
+│   │   └── db.js
+│   ├── controllers/
+│   ├── middleware/
+│   ├── migrations/
+│   │   └── <timestamp>_init.js
+│   └── routes/
+└── node_modules/
+```
+
+## DEPENDENCIAS
+
+| Paquete | Version | Uso |
+|---------|---------|-----|
+| express | - | Framework web |
+| cors | - | Middleware CORS |
+| knex | - | Query builder / migraciones |
+| mysql2 | - | Driver MariaDB/MySQL |
+| dotenv | - | Variables de entorno |
+| nodemon | - (dev) | Recarga automatica |
+```
+
+Reglas para la documentación:
+- El archivo `DOCUMENTACION.md` debe crearse **siempre** al generar el proyecto desde cero.
+- Al agregar nuevas rutas/controladores, **insertar** los nuevos endpoints en la tabla `### API` manteniendo el formato uniforme.
+- Mantener la sección `ESTRUCTURA` sincronizada con los directorios reales del proyecto.
+- No eliminar secciones ni contenido agregado manualmente por el usuario.
+- No usar acentos ni caracteres especiales en los titulos de seccion para facilitar el parseo automatico.
+
 ## Reglas obligatorias
 
 - **Usar ESM** (`import`/`export`) con `"type": "module"` en package.json.
