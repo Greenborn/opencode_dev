@@ -67,19 +67,46 @@ app.mount('#app')
 
 ```javascript
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import { useAuthStore } from '../stores/auth'
+import LoginView from '../views/LoginView.vue'
+import DashboardView from '../views/DashboardView.vue'
+import ProfileView from '../views/ProfileView.vue'
 
 const routes = [
   {
+    path: '/login',
+    name: 'login',
+    component: LoginView,
+    meta: { requiereAuth: false },
+  },
+  {
     path: '/',
-    name: 'home',
-    component: HomeView,
+    name: 'dashboard',
+    component: DashboardView,
+    meta: { requiereAuth: true },
+  },
+  {
+    path: '/perfil',
+    name: 'perfil',
+    component: ProfileView,
+    meta: { requiereAuth: true },
   },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+})
+
+router.beforeEach((to, from, next) => {
+  const auth = useAuthStore()
+  if (to.meta.requiereAuth !== false && !auth.token) {
+    next({ name: 'login' })
+  } else if (to.name === 'login' && auth.token) {
+    next({ name: 'dashboard' })
+  } else {
+    next()
+  }
 })
 
 export default router
@@ -90,19 +117,25 @@ export default router
 ```javascript
 <template>
   <div id="app">
-    <Topbar @toggle-sidebar="toggleSidebar" />
-    <div class="d-flex">
-      <Sidebar :visible="sidebarVisible" @close="sidebarVisible = false" />
-      <main class="flex-grow-1 p-3" :class="{ 'ms-0': !sidebarVisible, 'ms-250': sidebarVisible }">
-        <router-view />
-      </main>
-    </div>
+    <template v-if="logueado">
+      <Topbar @toggle-sidebar="toggleSidebar" />
+      <div class="d-flex">
+        <Sidebar :visible="sidebarVisible" @close="sidebarVisible = false" />
+        <main class="flex-grow-1 p-3" :class="{ 'ms-0': !sidebarVisible, 'ms-250': sidebarVisible }">
+          <router-view />
+        </main>
+      </div>
+    </template>
+    <template v-else>
+      <router-view />
+    </template>
   </div>
 </template>
 
 <script>
 import Topbar from './components/layout/Topbar.vue'
 import Sidebar from './components/layout/Sidebar.vue'
+import { useAuthStore } from './stores/auth'
 
 export default {
   name: 'App',
@@ -111,6 +144,11 @@ export default {
     return {
       sidebarVisible: window.innerWidth >= 768,
     }
+  },
+  computed: {
+    logueado() {
+      return useAuthStore().token
+    },
   },
   methods: {
     toggleSidebar() {
@@ -147,13 +185,28 @@ html, body, #app { height: 100%; margin: 0; }
       <span class="navbar-toggler-icon"></span>
     </button>
     <span class="navbar-brand mb-0 ms-2 h5">Mi App</span>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <span class="text-light small">{{ auth.usuario?.username }}</span>
+      <button class="btn btn-outline-light btn-sm" @click="logout">Salir</button>
+    </div>
   </nav>
 </template>
 
 <script>
+import { useAuthStore } from '../../stores/auth'
+
 export default {
   name: 'Topbar',
   emits: ['toggle-sidebar'],
+  data() {
+    return { auth: useAuthStore() }
+  },
+  methods: {
+    logout() {
+      this.auth.logout()
+      this.$router.push({ name: 'login' })
+    },
+  },
 }
 </script>
 ```
@@ -163,14 +216,20 @@ export default {
 ```javascript
 <template>
   <div>
-    <!-- overlay para móvil -->
     <div v-if="visible && isMobile" class="sidebar-overlay" @click="$emit('close')"></div>
 
     <div class="sidebar bg-dark text-white p-3" :class="{ open: visible }">
       <h5 class="text-center mb-4">Menú</h5>
       <ul class="nav flex-column">
         <li class="nav-item">
-          <router-link to="/" class="nav-link text-white" @click="closeOnMobile">Inicio</router-link>
+          <router-link to="/" class="nav-link text-white" @click="closeOnMobile">
+            Dashboard
+          </router-link>
+        </li>
+        <li class="nav-item">
+          <router-link to="/perfil" class="nav-link text-white" @click="closeOnMobile">
+            Mi Perfil
+          </router-link>
         </li>
       </ul>
     </div>
@@ -231,7 +290,48 @@ export default {
 </style>
 ```
 
-## 8. Store Pinia de ejemplo — `src/stores/ejemplo.js`
+## 8. Store de autenticación — `src/stores/auth.js`
+
+```javascript
+import { defineStore } from 'pinia'
+import api from '../api/axios'
+
+export const useAuthStore = defineStore('auth', {
+  state: () => ({
+    token: localStorage.getItem('token') || null,
+    usuario: JSON.parse(localStorage.getItem('usuario') || 'null'),
+  }),
+  actions: {
+    async login(username, password) {
+      const { data } = await api.post('/auth/login', { username, password })
+      this.token = data.token
+      this.usuario = data.usuario
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('usuario', JSON.stringify(data.usuario))
+    },
+    logout() {
+      this.token = null
+      this.usuario = null
+      localStorage.removeItem('token')
+      localStorage.removeItem('usuario')
+    },
+    async fetchPerfil() {
+      const { data } = await api.get('/auth/perfil')
+      this.usuario = { id: data.id, username: data.username }
+      localStorage.setItem('usuario', JSON.stringify(this.usuario))
+    },
+    async actualizarPerfil(datos) {
+      await api.put('/auth/perfil', datos)
+      if (datos.username) {
+        this.usuario.username = datos.username
+        localStorage.setItem('usuario', JSON.stringify(this.usuario))
+      }
+    },
+  },
+})
+```
+
+## 9. Store Pinia de ejemplo — `src/stores/ejemplo.js`
 
 ```javascript
 import { defineStore } from 'pinia'
@@ -260,7 +360,7 @@ export const useEjemploStore = defineStore('ejemplo', {
 })
 ```
 
-## 9. Instancia de Axios — `src/api/axios.js`
+## 10. Instancia de Axios — `src/api/axios.js`
 
 ```javascript
 import axios from 'axios'
@@ -270,9 +370,25 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('usuario')
+      window.location.href = '/login'
+    }
     console.error('[API Error]', error.message)
     return Promise.reject(error)
   }
@@ -281,24 +397,171 @@ api.interceptors.response.use(
 export default api
 ```
 
-## 10. Vista de ejemplo — `src/views/HomeView.vue`
+## 11. Vista de Login — `src/views/LoginView.vue`
 
 ```javascript
 <template>
-  <div class="container py-4">
-    <h1 class="mb-4">Inicio</h1>
-    <p class="text-muted">Bienvenido a la aplicación.</p>
+  <div class="d-flex align-items-center justify-content-center" style="min-height: 100vh; background: #f5f5f5;">
+    <div class="card shadow-sm" style="width: 100%; max-width: 400px;">
+      <div class="card-body p-4">
+        <h3 class="text-center mb-4">Iniciar Sesión</h3>
+
+        <form @submit.prevent="handleLogin">
+          <div class="mb-3">
+            <label class="form-label">Usuario</label>
+            <input v-model="username" type="text" class="form-control" required autocomplete="username" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Contraseña</label>
+            <input v-model="password" type="password" class="form-control" required autocomplete="current-password" />
+          </div>
+          <div v-if="error" class="alert alert-danger py-2">{{ error }}</div>
+          <button type="submit" class="btn btn-dark w-100" :disabled="cargando">
+            {{ cargando ? 'Ingresando...' : 'Ingresar' }}
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import { useAuthStore } from '../stores/auth'
+
 export default {
-  name: 'HomeView',
+  name: 'LoginView',
+  data() {
+    return {
+      username: '',
+      password: '',
+      error: '',
+      cargando: false,
+    }
+  },
+  methods: {
+    async handleLogin() {
+      this.error = ''
+      this.cargando = true
+      try {
+        await useAuthStore().login(this.username, this.password)
+        this.$router.push({ name: 'dashboard' })
+      } catch (err) {
+        this.error = err.response?.data?.error || 'Error al iniciar sesión'
+      } finally {
+        this.cargando = false
+      }
+    },
+  },
 }
 </script>
 ```
 
-## 11. Archivo `.env` y `.env.example`
+## 12. Vista Dashboard — `src/views/DashboardView.vue`
+
+```javascript
+<template>
+  <div class="container py-4">
+    <h1 class="mb-4">Dashboard</h1>
+    <div class="alert alert-info">
+      Bienvenido, <strong>{{ auth.usuario?.username }}</strong>.
+    </div>
+  </div>
+</template>
+
+<script>
+import { useAuthStore } from '../stores/auth'
+
+export default {
+  name: 'DashboardView',
+  data() {
+    return { auth: useAuthStore() }
+  },
+}
+</script>
+```
+
+## 13. Vista de Perfil — `src/views/ProfileView.vue`
+
+```javascript
+<template>
+  <div class="container py-4">
+    <h1 class="mb-4">Mi Perfil</h1>
+
+    <form @submit.prevent="guardar" class="row g-3" style="max-width: 500px;">
+      <div class="col-12">
+        <label class="form-label">Nombre de usuario</label>
+        <input v-model="form.username" type="text" class="form-control" required />
+      </div>
+
+      <hr class="my-2" />
+      <p class="text-muted small mb-0">Cambiar contraseña (dejar en blanco para mantenerla)</p>
+
+      <div class="col-12">
+        <label class="form-label">Contraseña actual</label>
+        <input v-model="form.passwordActual" type="password" class="form-control" autocomplete="current-password" />
+      </div>
+      <div class="col-12">
+        <label class="form-label">Nueva contraseña</label>
+        <input v-model="form.passwordNuevo" type="password" class="form-control" autocomplete="new-password" />
+      </div>
+
+      <div v-if="mensaje" class="alert" :class="mensajeTipo" role="alert">{{ mensaje }}</div>
+
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary" :disabled="cargando">
+          {{ cargando ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</template>
+
+<script>
+import { useAuthStore } from '../stores/auth'
+
+export default {
+  name: 'ProfileView',
+  data() {
+    const auth = useAuthStore()
+    return {
+      auth,
+      form: {
+        username: auth.usuario?.username || '',
+        passwordActual: '',
+        passwordNuevo: '',
+      },
+      mensaje: '',
+      mensajeTipo: '',
+      cargando: false,
+    }
+  },
+  methods: {
+    async guardar() {
+      this.mensaje = ''
+      this.cargando = true
+      try {
+        await this.auth.actualizarPerfil({
+          username: this.form.username,
+          passwordActual: this.form.passwordActual || undefined,
+          passwordNuevo: this.form.passwordNuevo || undefined,
+        })
+        this.form.passwordActual = ''
+        this.form.passwordNuevo = ''
+        this.mensaje = 'Perfil actualizado correctamente'
+        this.mensajeTipo = 'alert-success'
+      } catch (err) {
+        this.mensaje = err.response?.data?.error || 'Error al actualizar'
+        this.mensajeTipo = 'alert-danger'
+      } finally {
+        this.cargando = false
+      }
+    },
+  },
+}
+</script>
+```
+
+## 14. Archivo `.env` y `.env.example`
 
 ```
 VITE_API_URL=http://localhost:3000
@@ -306,7 +569,7 @@ VITE_API_URL=http://localhost:3000
 
 Crear `.env.example` con el mismo contenido y agregar `.env` al `.gitignore`.
 
-## 12. Scripts en `package.json`
+## 15. Scripts en `package.json`
 
 ```json
 {
@@ -318,7 +581,7 @@ Crear `.env.example` con el mismo contenido y agregar `.env` al `.gitignore`.
 }
 ```
 
-## 13. `.gitignore`
+## 16. `.gitignore`
 
 ```
 node_modules/
@@ -326,7 +589,7 @@ node_modules/
 dist/
 ```
 
-## 14. Estructura final
+## 17. Estructura final
 
 ```
 <proyecto>/
@@ -348,13 +611,16 @@ dist/
 │   ├── router/
 │   │   └── index.js
 │   ├── stores/
+│   │   ├── auth.js
 │   │   └── ejemplo.js
 │   └── views/
-│       └── HomeView.vue
+│       ├── LoginView.vue
+│       ├── DashboardView.vue
+│       └── ProfileView.vue
 └── node_modules/
 ```
 
-## 15. Documentación básica — `DOCUMENTACION.md`
+## 18. Documentación básica — `DOCUMENTACION.md`
 
 Generar o actualizar el archivo `DOCUMENTACION.md` en la raíz del proyecto con la siguiente estructura. Este documento debe ser legible por humanos y fácilmente parseable por IA, usando secciones claras, metadatos estructurados y tablas consistentes.
 
@@ -405,9 +671,11 @@ Ver archivo `.env.example` para referencia.
 
 ## RUTAS
 
-| Ruta | Vista | Descripcion |
-|------|-------|-------------|
-| `/` | `HomeView` | Pagina de inicio |
+| Ruta | Vista | Descripcion | Requiere Auth |
+|------|-------|-------------|-------------|
+| `/login` | `LoginView` | Inicio de sesion | No |
+| `/` | `DashboardView` | Panel principal | Si |
+| `/perfil` | `ProfileView` | Configuracion de perfil (username / password) | Si |
 
 ## ESTRUCTURA
 
@@ -432,9 +700,12 @@ Ver archivo `.env.example` para referencia.
 │   ├── router/
 │   │   └── index.js
 │   ├── stores/
+│   │   ├── auth.js
 │   │   └── ejemplo.js
 │   └── views/
-│       └── HomeView.vue
+│       ├── LoginView.vue
+│       ├── DashboardView.vue
+│       └── ProfileView.vue
 └── node_modules/
 ```
 

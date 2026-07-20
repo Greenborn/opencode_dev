@@ -26,7 +26,7 @@ Header: Nombre del backend
 ## 1. Crear estructura del proyecto
 
 ```bash
-mkdir -p src/{config,routes,controllers,middleware}
+mkdir -p src/{config,routes,controllers,middleware,scripts}
 cd <nombre-proyecto>
 npm init -y
 ```
@@ -46,7 +46,7 @@ Fijar la versión inicial del proyecto editando `package.json` para que quede:
 ## 2. Instalar dependencias
 
 ```bash
-npm install express cors knex mysql2 dotenv
+npm install express cors knex mysql2 dotenv bcryptjs jsonwebtoken
 npm install -D nodemon
 ```
 
@@ -55,17 +55,115 @@ npm install -D nodemon
 ```
 PORT=3000
 CORS_ORIGIN=*
+JWT_SECRET=mi_secreto_jwt_cambiar_en_produccion
 
 DB_HOST=localhost
 DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=
+DB_USER=mi_usuario
+DB_PASSWORD=mi_password
 DB_NAME=mi_app
 ```
 
-Crear también `.env.example` con la misma estructura (sin valores sensibles) y agregar `.env` al `.gitignore`.
+Crear también `.env.example` con la misma estructura (valores de ejemplo, sin datos reales) y agregar `.env` al `.gitignore`.
 
-## 4. Configuración de Knex — `knexfile.js`
+## 4. Crear base de datos y usuario local
+
+Agregar un script que cree la base de datos y el usuario definidos en `.env` usando el usuario root de MariaDB/MySQL.
+
+### Variables extra en `.env`
+
+Agregar al final del `.env` (opcional, solo para `setup-db`):
+
+```
+DB_ROOT_USER=root
+DB_ROOT_PASSWORD=
+```
+
+### Script — `src/scripts/setup-db.js`
+
+```javascript
+import 'dotenv/config';
+import mysql from 'mysql2/promise';
+
+async function setupDatabase() {
+  const {
+    DB_ROOT_USER = 'root',
+    DB_ROOT_PASSWORD = '',
+    DB_HOST = 'localhost',
+    DB_PORT = '3306',
+    DB_USER,
+    DB_PASSWORD,
+    DB_NAME,
+  } = process.env;
+
+  if (!DB_USER || !DB_NAME) {
+    console.error('Faltan DB_USER y/o DB_NAME en .env');
+    process.exit(1);
+  }
+
+  const connection = await mysql.createConnection({
+    host: DB_HOST,
+    port: parseInt(DB_PORT),
+    user: DB_ROOT_USER,
+    password: DB_ROOT_PASSWORD,
+  });
+
+  try {
+    await connection.execute(
+      `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+    );
+    console.log(`[setup-db] Base de datos "${DB_NAME}" lista.`);
+
+    const [rows] = await connection.execute(
+      `SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = ? AND host = ?) AS existe`,
+      [DB_USER, '%']
+    );
+    const existe = rows[0].existe === 1 || rows[0].existe === '1';
+
+    if (!existe) {
+      await connection.execute(
+        `CREATE USER ?@? IDENTIFIED BY ?`,
+        [DB_USER, '%', DB_PASSWORD]
+      );
+      console.log(`[setup-db] Usuario "${DB_USER}" creado.`);
+    } else {
+      await connection.execute(
+        `ALTER USER ?@? IDENTIFIED BY ?`,
+        [DB_USER, '%', DB_PASSWORD]
+      );
+      console.log(`[setup-db] Contraseña de "${DB_USER}" actualizada.`);
+    }
+
+    await connection.execute(
+      `GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO ?@?`,
+      [DB_USER, '%']
+    );
+    await connection.execute('FLUSH PRIVILEGES');
+    console.log(`[setup-db] Privilegios otorgados a "${DB_USER}" sobre "${DB_NAME}".`);
+  } finally {
+    await connection.end();
+  }
+}
+
+setupDatabase().catch((err) => {
+  console.error('[setup-db] Error:', err.message);
+  process.exit(1);
+});
+```
+
+### Script npm en `package.json`
+
+```json
+{
+  "scripts": {
+    "setup-db": "node src/scripts/setup-db.js"
+  }
+}
+```
+
+El script `setup-db` se ejecuta **una sola vez** al iniciar el proyecto en entorno dev, antes de las migraciones.
+
+## 5. Configuración de Knex — `knexfile.js`
 
 ```javascript
 import 'dotenv/config';
@@ -98,7 +196,7 @@ export default {
 };
 ```
 
-## 5. Configuración de BD — `src/config/db.js`
+## 6. Configuración de BD — `src/config/db.js`
 
 ```javascript
 import knex from 'knex';
@@ -108,7 +206,7 @@ const db = knex(config);
 export default db;
 ```
 
-## 6. Configuración de CORS — `src/config/cors.js`
+## 7. Configuración de CORS — `src/config/cors.js`
 
 ```javascript
 import cors from 'cors';
@@ -123,13 +221,15 @@ const corsOptions = {
 export default cors(corsOptions);
 ```
 
-## 7. Servidor con migraciones automáticas — `src/index.js`
+## 8. Servidor con migraciones automáticas — `src/index.js`
 
 ```javascript
 import 'dotenv/config';
 import express from 'express';
 import corsMiddleware from './config/cors.js';
 import db from './config/db.js';
+import authRoutes from './routes/auth.js';
+import { seedAdmin } from './seeds/admin.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -137,6 +237,8 @@ const PORT = process.env.PORT || 3000;
 app.use(corsMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use('/api/auth', authRoutes);
 
 async function start() {
   try {
@@ -146,6 +248,12 @@ async function start() {
   } catch (err) {
     console.error('[migrate] Error:', err.message);
     process.exit(1);
+  }
+
+  try {
+    await seedAdmin();
+  } catch (err) {
+    console.error('[seed] Error al crear admin:', err.message);
   }
 
   app.get('/health', (req, res) => {
@@ -160,14 +268,14 @@ async function start() {
 start();
 ```
 
-## 8. Migración de ejemplo — `src/migrations/XXXXXXXXXXXXXX_init.js`
+## 9. Migración de ejemplo — `src/migrations/XXXXXXXXXXXXXX_init.js`
 
 ```javascript
 export function up(knex) {
   return knex.schema.createTable('usuarios', (table) => {
     table.increments('id').primary();
-    table.string('nombre', 100).notNullable();
-    table.string('email', 150).unique().notNullable();
+    table.string('username', 50).unique().notNullable();
+    table.string('password', 255).notNullable();
     table.timestamps(true, true);
   });
 }
@@ -183,13 +291,160 @@ Para generar el archivo automáticamente:
 npx knex migrate:make init
 ```
 
-## 9. Scripts en `package.json`
+## 10. Semilla de usuario admin — `src/seeds/admin.js`
+
+```javascript
+import bcrypt from 'bcryptjs';
+import db from '../config/db.js';
+
+export async function seedAdmin() {
+  const [existentes] = await db('usuarios').where({ username: 'admin' });
+  if (existentes) {
+    console.log('[seed] Usuario admin ya existe.');
+    return;
+  }
+
+  const hash = await bcrypt.hash('admin123', 10);
+  await db('usuarios').insert({
+    username: 'admin',
+    password: hash,
+  });
+  console.log('[seed] Usuario admin creado (admin / admin123).');
+}
+```
+
+> Seed ejecutado automáticamente al iniciar el servidor (en `src/index.js`). Usuario por defecto: `admin` / `admin123`.
+
+## 11. Middleware de autenticación — `src/middleware/auth.js`
+
+```javascript
+import jwt from 'jsonwebtoken';
+
+export default function authMiddleware(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token requerido' });
+  }
+
+  try {
+    const token = header.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.usuario = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Token inválido o expirado' });
+  }
+}
+```
+
+## 12. Controlador de autenticación — `src/controllers/authController.js`
+
+```javascript
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import db from '../config/db.js';
+
+export async function login(req, res) {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
+  }
+
+  const usuario = await db('usuarios').where({ username }).first();
+  if (!usuario) {
+    return res.status(401).json({ error: 'Credenciales inválidas' });
+  }
+
+  const valida = await bcrypt.compare(password, usuario.password);
+  if (!valida) {
+    return res.status(401).json({ error: 'Credenciales inválidas' });
+  }
+
+  const token = jwt.sign(
+    { id: usuario.id, username: usuario.username },
+    process.env.JWT_SECRET,
+    { expiresIn: '8h' }
+  );
+
+  res.json({ token, usuario: { id: usuario.id, username: usuario.username } });
+}
+
+export async function perfil(req, res) {
+  const usuario = await db('usuarios')
+    .where({ id: req.usuario.id })
+    .select('id', 'username', 'created_at', 'updated_at')
+    .first();
+
+  if (!usuario) {
+    return res.status(404).json({ error: 'Usuario no encontrado' });
+  }
+
+  res.json(usuario);
+}
+
+export async function actualizarPerfil(req, res) {
+  const { username, passwordActual, passwordNuevo } = req.body;
+
+  const usuario = await db('usuarios').where({ id: req.usuario.id }).first();
+  if (!usuario) {
+    return res.status(404).json({ error: 'Usuario no encontrado' });
+  }
+
+  if (username && username !== usuario.username) {
+    const existe = await db('usuarios').where({ username }).first();
+    if (existe) {
+      return res.status(400).json({ error: 'El nombre de usuario ya está en uso' });
+    }
+  }
+
+  if (passwordNuevo) {
+    if (!passwordActual) {
+      return res.status(400).json({ error: 'Debes proporcionar la contraseña actual para cambiarla' });
+    }
+    const valida = await bcrypt.compare(passwordActual, usuario.password);
+    if (!valida) {
+      return res.status(401).json({ error: 'Contraseña actual incorrecta' });
+    }
+  }
+
+  const actualizar = {};
+  if (username) actualizar.username = username;
+  if (passwordNuevo) actualizar.password = await bcrypt.hash(passwordNuevo, 10);
+
+  if (Object.keys(actualizar).length === 0) {
+    return res.status(400).json({ error: 'No hay datos para actualizar' });
+  }
+
+  await db('usuarios').where({ id: req.usuario.id }).update(actualizar);
+
+  res.json({ message: 'Perfil actualizado correctamente' });
+}
+```
+
+## 13. Rutas de autenticación — `src/routes/auth.js`
+
+```javascript
+import { Router } from 'express';
+import { login, perfil, actualizarPerfil } from '../controllers/authController.js';
+import authMiddleware from '../middleware/auth.js';
+
+const router = Router();
+
+router.post('/login', login);
+router.get('/perfil', authMiddleware, perfil);
+router.put('/perfil', authMiddleware, actualizarPerfil);
+
+export default router;
+```
+
+## 14. Scripts en `package.json`
 
 ```json
 {
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
+    "setup-db": "node src/scripts/setup-db.js",
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
     "seed": "knex seed:run"
@@ -197,14 +452,14 @@ npx knex migrate:make init
 }
 ```
 
-## 10. `.gitignore`
+## 15. `.gitignore`
 
 ```
 node_modules/
 .env
 ```
 
-## 11. Estructura final
+## 16. Estructura final
 
 ```
 <proyecto>/
@@ -219,14 +474,21 @@ node_modules/
 │   │   ├── cors.js
 │   │   └── db.js
 │   ├── controllers/
+│   │   └── authController.js
 │   ├── middleware/
+│   │   └── auth.js
 │   ├── migrations/
 │   │   └── XXXX_init.js
-│   └── routes/
+│   ├── routes/
+│   │   └── auth.js
+│   ├── scripts/
+│   │   └── setup-db.js
+│   └── seeds/
+│       └── admin.js
 └── node_modules/
 ```
 
-## 12. Documentación básica — `DOCUMENTACION.md`
+## 17. Documentación básica — `DOCUMENTACION.md`
 
 Generar o actualizar el archivo `DOCUMENTACION.md` en la raíz del proyecto con la siguiente estructura. Este documento debe ser legible por humanos y fácilmente parseable por IA, usando secciones claras, metadatos estructurados y tablas consistentes.
 
@@ -258,9 +520,10 @@ Backend Node.js con Express, Knex y MariaDB.
 | 1 | `git clone <repo>` |
 | 2 | `npm install` |
 | 3 | Copiar `.env.example` a `.env` y completar variables |
-| 4 | `npm run migrate` |
-| 5 | `npm run seed` (opcional) |
-| 6 | `npm run dev` |
+| 4 | `npm run setup-db` (entorno dev, crea BD y usuario) |
+| 5 | `npm run migrate` |
+| 6 | `npm run seed` (opcional) |
+| 7 | `npm run dev` |
 
 ## VARIABLES DE ENTORNO
 
@@ -272,7 +535,10 @@ Backend Node.js con Express, Knex y MariaDB.
 | `DB_PORT` | Puerto de base de datos | `3306` |
 | `DB_USER` | Usuario de base de datos | `root` |
 | `DB_PASSWORD` | Contrasena de base de datos | |
+| `JWT_SECRET` | Secreto para firmar tokens JWT | `mi_secreto_jwt` |
 | `DB_NAME` | Nombre de base de datos | `mi_app` |
+| `DB_ROOT_USER` | Usuario root de BD (solo setup-db) | `root` |
+| `DB_ROOT_PASSWORD` | Contrasena root de BD (solo setup-db) | |
 
 Ver archivo `.env.example` para referencia.
 
@@ -282,6 +548,7 @@ Ver archivo `.env.example` para referencia.
 |---------|-------------|
 | `npm run dev` | Inicia servidor con recarga automatica |
 | `npm start` | Inicia servidor en produccion |
+| `npm run setup-db` | Crea base de datos y usuario en entorno dev |
 | `npm run migrate` | Ejecuta migraciones pendientes |
 | `npm run migrate:rollback` | Revierte ultima migracion |
 | `npm run seed` | Ejecuta seeders |
@@ -293,6 +560,14 @@ Ver archivo `.env.example` para referencia.
 | Metodo | Ruta | Descripcion | Auth |
 |--------|------|-------------|------|
 | GET | `/health` | Health check del servidor | No |
+
+### Auth
+
+| Metodo | Ruta | Descripcion | Auth |
+|--------|------|-------------|------|
+| POST | `/api/auth/login` | Iniciar sesion (username + password) | No |
+| GET | `/api/auth/perfil` | Obtener datos del usuario autenticado | Si |
+| PUT | `/api/auth/perfil` | Actualizar username y/o password (requiere passwordActual para cambiar password) | Si |
 
 ### API
 
@@ -318,10 +593,17 @@ Ver archivo `.env.example` para referencia.
 │   │   ├── cors.js
 │   │   └── db.js
 │   ├── controllers/
+│   │   └── authController.js
 │   ├── middleware/
+│   │   └── auth.js
 │   ├── migrations/
 │   │   └── <timestamp>_init.js
-│   └── routes/
+│   ├── routes/
+│   │   └── auth.js
+│   ├── scripts/
+│   │   └── setup-db.js
+│   └── seeds/
+│       └── admin.js
 └── node_modules/
 ```
 
@@ -334,6 +616,8 @@ Ver archivo `.env.example` para referencia.
 | knex | - | Query builder / migraciones |
 | mysql2 | - | Driver MariaDB/MySQL |
 | dotenv | - | Variables de entorno |
+| bcryptjs | - | Hashing de contrasenas |
+| jsonwebtoken | - | Tokens JWT |
 | nodemon | - (dev) | Recarga automatica |
 ```
 
