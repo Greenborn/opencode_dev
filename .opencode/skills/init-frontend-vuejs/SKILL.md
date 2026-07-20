@@ -1,3 +1,8 @@
+---
+name: init-frontend-vuejs
+description: Inicializar un frontend Vue.js 3 con Vite, Bootstrap, Pinia, Axios y layout responsive
+---
+
 # Skill: Inicializar frontend Vue.js con Vite, Bootstrap y Pinia
 
 Usar cuando el usuario pida **crear un frontend desde cero** con Vue.js 3, Vite, Bootstrap, Pinia, Axios, barra superior y menú lateral (hamburguesa en móvil). **Prohibido usar TypeScript** — todo el código debe ser JavaScript con Options API.

@@ -1,3 +1,8 @@
+---
+name: init-backend-nodejs
+description: Inicializar un backend Node.js con Express, MariaDB vía Knex, CORS y migraciones automáticas
+---
+
 # Skill: Inicializar backend Node.js con Express
 
 Usar cuando el usuario pida **crear un backend Node.js desde cero** con Express, conexión a MariaDB vía Knex, CORS, y migraciones automáticas al inicio.
