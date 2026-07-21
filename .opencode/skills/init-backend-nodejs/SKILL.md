@@ -261,6 +261,8 @@ async function start() {
     console.error('[migrate] Error:', err.message);
     process.exit(1);
   }
+  // Las migraciones se ejecutan SIEMPRE automaticamente en cada inicio del servidor, no solo en setup-dev.
+  // Esto garantiza que al desplegar en produccion las tablas esten actualizadas sin pasos manuales.
 
   try {
     await seedRbac();
@@ -845,13 +847,16 @@ export default router;
 
 ## 17. Scripts en `package.json`
 
+> Las migraciones se ejecutan **automáticamente** al iniciar el servidor (`npm run dev` / `npm start`) vía `db.migrate.latest()` en `src/index.js`.  
+> Los scripts `migrate` y `migrate:rollback` son solo para uso manual de emergencia; no es necesario ejecutarlos en el flujo normal.
+
 ```json
 {
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "setup-db": "node src/scripts/setup-db.js",
-    "setup-dev": "node src/scripts/setup-db.js && npx knex migrate:latest && node src/index.js",
+    "setup-dev": "node src/scripts/setup-db.js && node src/index.js",
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
     "seed": "knex seed:run",
@@ -918,15 +923,44 @@ npm install -D globals @eslint/js
 │   │   └── auth.js
 │   ├── scripts/
 │   │   └── setup-db.js
-│   └── seeds/
+│       └── seeds/
 │       ├── admin.js
 │       └── rbac.js
 └── node_modules/
+documentacion/
+    └── DOCUMENTACION.md
 ```
 
-## 21. Documentación básica — `DOCUMENTACION.md`
+## 21. Verificación y seeds
 
-Generar o actualizar el archivo `DOCUMENTACION.md` en la raíz del proyecto con la siguiente estructura. Este documento debe ser legible por humanos y fácilmente parseable por IA, usando secciones claras, metadatos estructurados y tablas consistentes.
+Una vez generado todo el proyecto, se debe verificar que el servidor arranque correctamente sin errores y luego ejecutar las seeds de Knex:
+
+```bash
+cd <nombre-proyecto>
+
+# 1. Iniciar el servidor para verificar que no haya errores de compilacion, conexion a BD, migraciones, etc.
+#    Las migraciones se ejecutaran automaticamente al arrancar.
+node src/index.js
+
+# 2. El servidor debe iniciar sin errores. Esperar 3 segundos y luego detenerlo con Ctrl+C (SIGINT).
+#    Alternativamente, se puede usar un timeout si se ejecuta en segundo plano.
+
+# 3. Ejecutar las seeds de Knex
+npx knex seed:run
+```
+
+Pasos detallados:
+
+1. Ejecutar `node src/index.js` y verificar que en la consola aparezcan los mensajes de migraciones ejecutadas y que el servidor quede escuchando en el puerto configurado.
+2. Detener el servidor (Ctrl+C).
+3. Ejecutar `npx knex seed:run` para poblar la base de datos con los datos iniciales (roles, permisos, usuarios por defecto).
+4. Confirmar que las seeds se ejecutaron sin errores.
+
+> Nota: Las seeds ya se ejecutan automáticamente al iniciar el servidor via `seedRbac()` y `seedAdmin()` en `src/index.js`, pero se ejecutan manualmente en este paso para garantizar que queden registradas en la tabla `knex_seeds` y no se re-ejecuten en futuros arranques. La ejecucion automatica en `start()` funciona como respaldo.
+
+## 22. Documentación básica — `documentacion/DOCUMENTACION.md`
+
+Generar o actualizar el archivo `documentacion/DOCUMENTACION.md` en el directorio `documentacion/` en la raíz del proyecto con la siguiente estructura. Este documento debe ser legible por humanos y fácilmente parseable por IA, usando secciones claras, metadatos estructurados y tablas consistentes.
 
 ```markdown
 ---
@@ -957,9 +991,9 @@ Backend Node.js con Express, Knex y MariaDB.
 | 2 | `npm install` |
 | 3 | Copiar `.env.example` a `.env` y completar variables |
 | 4 | `npm run setup-db` (entorno dev, crea BD y usuario) |
-| 5 | `npm run migrate` |
-| 6 | `npm run seed` (opcional) |
-| 7 | `npm run dev` |
+| 5 | `npm run seed` (opcional) |
+| 6 | `npm run dev` |
+|   | *Las migraciones se ejecutan automaticamente al iniciar el servidor* |
 
 ## VARIABLES DE ENTORNO
 
@@ -986,8 +1020,8 @@ Ver archivo `.env.example` para referencia.
 | `npm run dev` | Inicia servidor con recarga automatica |
 | `npm start` | Inicia servidor en produccion |
 | `npm run setup-db` | Crea base de datos y usuario en entorno dev |
-| `npm run setup-dev` | Crea BD, ejecuta migraciones e inicia servidor |
-| `npm run migrate` | Ejecuta migraciones pendientes |
+| `npm run setup-dev` | Crea BD e inicia servidor (migraciones automaticas al arrancar) |
+| `npm run migrate` | Ejecuta migraciones manualmente (solo emergencia, se auto-ejecutan al iniciar) |
 | `npm run migrate:rollback` | Revierte ultima migracion |
 | `npm run seed` | Ejecuta seeders |
 | `npm run lint` | Analiza el codigo con ESLint |
@@ -1037,7 +1071,8 @@ Ver archivo `.env.example` para referencia.
 ├── .env
 ├── .env.example
 ├── .gitignore
-├── DOCUMENTACION.md
+├── documentacion/
+│   └── DOCUMENTACION.md
 ├── eslint.config.js
 ├── knexfile.js
 ├── package.json
@@ -1079,9 +1114,9 @@ Ver archivo `.env.example` para referencia.
 ```
 
 Reglas para la documentación:
-- El archivo `DOCUMENTACION.md` debe crearse **siempre** al generar el proyecto desde cero.
+- El archivo `documentacion/DOCUMENTACION.md` debe crearse **siempre** al generar el proyecto desde cero.
 - Al agregar nuevas rutas/controladores, **insertar** los nuevos endpoints en la tabla `### API` manteniendo el formato uniforme.
-- Mantener la sección `ESTRUCTURA` sincronizada con los directorios reales del proyecto.
+- Mantener la sección `ESTRUCTURA` sincronizada con los directorios reales del proyecto. Toda la documentacion debe estar siempre en `documentacion/` en la raiz del proyecto, nunca dentro de subproyectos.
 - No eliminar secciones ni contenido agregado manualmente por el usuario.
 - No usar acentos ni caracteres especiales en los titulos de seccion para facilitar el parseo automatico.
 
@@ -1089,7 +1124,7 @@ Reglas para la documentación:
 
 - **Usar ESM** (`import`/`export`) con `"type": "module"` en package.json.
 - **Validar variables de entorno** requeridas al arrancar — fallar con mensaje claro si falta alguna.
-- **Migraciones automáticas:** ejecutar `db.migrate.latest()` dentro de un `async function start()` antes de levantar el servidor.
+- **Migraciones automaticas obligatorias:** `db.migrate.latest()` debe ejecutarse SIEMPRE dentro de `async function start()` antes de levantar el servidor. No debe haber un paso manual de migraciones para arrancar la aplicacion en ningun entorno (dev, staging, produccion).
 - **CORS configurable** por variable de entorno `CORS_ORIGIN`.
 - **Driver MariaDB:** usar `mysql2` como cliente de Knex.
 - **No hardcodear configuraciones:** todo debe ir en `.env`.
