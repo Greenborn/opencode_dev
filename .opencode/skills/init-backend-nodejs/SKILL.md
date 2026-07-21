@@ -53,7 +53,7 @@ npm install -D nodemon eslint
 ## 3. Archivo `.env`
 
 ```
-PORT=3000
+PORT=4000
 CORS_ORIGIN=*
 JWT_SECRET=mi_secreto_jwt_cambiar_en_produccion
 JWT_EXPIRES_IN=8h
@@ -83,64 +83,54 @@ DB_ROOT_PASSWORD=
 ### Script — `src/scripts/setup-db.js`
 
 ```javascript
-import 'dotenv/config';
 import mysql from 'mysql2/promise';
+import config from '../config/env.js';
 
 async function setupDatabase() {
   const {
-    DB_ROOT_USER = 'root',
-    DB_ROOT_PASSWORD = '',
-    DB_HOST = 'localhost',
-    DB_PORT = '3306',
-    DB_USER,
-    DB_PASSWORD,
-    DB_NAME,
-  } = process.env;
-
-  if (!DB_USER || !DB_NAME) {
-    console.error('Faltan DB_USER y/o DB_NAME en .env');
-    process.exit(1);
-  }
+    db: { host, port, user, password, database },
+    dbRoot,
+  } = config;
 
   const connection = await mysql.createConnection({
-    host: DB_HOST,
-    port: parseInt(DB_PORT),
-    user: DB_ROOT_USER,
-    password: DB_ROOT_PASSWORD,
+    host,
+    port,
+    user: dbRoot.user,
+    password: dbRoot.password,
   });
 
   try {
     await connection.execute(
-      `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+      `CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
     );
-    console.log(`[setup-db] Base de datos "${DB_NAME}" lista.`);
+    console.log(`[setup-db] Base de datos "${database}" lista.`);
 
     const [rows] = await connection.execute(
       `SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = ? AND host = ?) AS existe`,
-      [DB_USER, '%']
+      [user, '%']
     );
     const existe = rows[0].existe === 1 || rows[0].existe === '1';
 
     if (!existe) {
       await connection.execute(
         `CREATE USER ?@? IDENTIFIED BY ?`,
-        [DB_USER, '%', DB_PASSWORD]
+        [user, '%', password]
       );
-      console.log(`[setup-db] Usuario "${DB_USER}" creado.`);
+      console.log(`[setup-db] Usuario "${user}" creado.`);
     } else {
       await connection.execute(
         `ALTER USER ?@? IDENTIFIED BY ?`,
-        [DB_USER, '%', DB_PASSWORD]
+        [user, '%', password]
       );
-      console.log(`[setup-db] Contraseña de "${DB_USER}" actualizada.`);
+      console.log(`[setup-db] Contraseña de "${user}" actualizada.`);
     }
 
     await connection.execute(
-      `GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO ?@?`,
-      [DB_USER, '%']
+      `GRANT ALL PRIVILEGES ON \`${database}\`.* TO ?@?`,
+      [user, '%']
     );
     await connection.execute('FLUSH PRIVILEGES');
-    console.log(`[setup-db] Privilegios otorgados a "${DB_USER}" sobre "${DB_NAME}".`);
+    console.log(`[setup-db] Privilegios otorgados a "${user}" sobre "${database}".`);
   } finally {
     await connection.end();
   }
@@ -166,22 +156,23 @@ El script `setup-db` se ejecuta **una sola vez** al iniciar el proyecto en entor
 
 ## 5. Configuración de Knex — `knexfile.js`
 
-```javascript
-import 'dotenv/config';
+Carga `.env` con `dotenv.config({ override: true })` para que el archivo `.env` siempre tenga prioridad sobre variables de entorno del sistema. La validación de variables requeridas se delega a `src/config/env.js`.
 
-const required = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME', 'JWT_SECRET'];
-for (const key of required) {
-  if (!process.env[key]) {
-    console.log(`Falta ${key} en .env`);
-    process.exit(1);
-  }
-}
+```javascript
+import dotenv from 'dotenv';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: resolve(__dirname, '.env'), override: true });
 
 export default {
   client: 'mysql2',
   connection: {
     host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT),
+    port: parseInt(process.env.DB_PORT, 10),
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
@@ -207,13 +198,66 @@ const db = knex(config);
 export default db;
 ```
 
-## 7. Configuración de CORS — `src/config/cors.js`
+## 7. Configuración centralizada — `src/config/env.js`
+
+Lee únicamente el archivo `.env` con `dotenv.parse()` + `fs.readFileSync()`. No accede a `process.env` del sistema, garantizando que ninguna variable de entorno del sistema se use como configuración.
+
+```javascript
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const envPath = resolve(__dirname, '../../.env');
+let envRaw = {};
+try {
+  const envContent = readFileSync(envPath, 'utf-8');
+  envRaw = dotenv.parse(envContent);
+} catch {
+  console.error('[env] No se encuentra el archivo .env');
+  console.error('[env] Copia .env.example a .env y completa las variables');
+  process.exit(1);
+}
+
+const required = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME', 'JWT_SECRET'];
+const missing = required.filter(key => !envRaw[key]);
+if (missing.length > 0) {
+  console.error(`[env] Faltan variables en .env: ${missing.join(', ')}`);
+  process.exit(1);
+}
+
+const config = {
+  port: parseInt(envRaw.PORT, 10) || 4000,
+  corsOrigin: envRaw.CORS_ORIGIN || '*',
+  jwtSecret: envRaw.JWT_SECRET,
+  jwtExpiresIn: envRaw.JWT_EXPIRES_IN || '8h',
+  db: {
+    host: envRaw.DB_HOST,
+    port: parseInt(envRaw.DB_PORT, 10),
+    user: envRaw.DB_USER,
+    password: envRaw.DB_PASSWORD,
+    database: envRaw.DB_NAME,
+  },
+  dbRoot: {
+    user: envRaw.DB_ROOT_USER || 'root',
+    password: envRaw.DB_ROOT_PASSWORD || '',
+  },
+};
+
+export default config;
+```
+
+## 8. Configuración de CORS — `src/config/cors.js`
 
 ```javascript
 import cors from 'cors';
+import config from './env.js';
 
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: config.corsOrigin,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -222,11 +266,11 @@ const corsOptions = {
 export default cors(corsOptions);
 ```
 
-## 8. Servidor con migraciones automáticas — `src/index.js`
+## 9. Servidor con migraciones automáticas — `src/index.js`
 
 ```javascript
-import 'dotenv/config';
 import express from 'express';
+import config from './config/env.js';
 import corsMiddleware from './config/cors.js';
 import db from './config/db.js';
 import authRoutes from './routes/auth.js';
@@ -234,16 +278,7 @@ import { seedAdmin } from './seeds/admin.js';
 import { seedRbac } from './seeds/rbac.js';
 import adminRoutes from './routes/admin.js';
 
-const required = ['JWT_SECRET'];
-for (const key of required) {
-  if (!process.env[key]) {
-    console.error(`Falta ${key} en .env`);
-    process.exit(1);
-  }
-}
-
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(corsMiddleware);
 app.use(express.json());
@@ -275,15 +310,15 @@ async function start() {
     res.json({ status: true, data: { timestamp: new Date().toISOString() } });
   });
 
-  app.listen(PORT, () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`);
+  app.listen(config.port, () => {
+    console.log(`Servidor corriendo en puerto ${config.port}`);
   });
 }
 
 start();
 ```
 
-## 9. Migración de ejemplo — `src/migrations/XXXXXXXXXXXXXX_init.js`
+## 10. Migración de ejemplo — `src/migrations/XXXXXXXXXXXXXX_init.js`
 
 ```javascript
 export function up(knex) {
@@ -334,7 +369,7 @@ Para generar el archivo automáticamente:
 npx knex migrate:make init
 ```
 
-## 10. Semilla de usuario admin — `src/seeds/admin.js`
+## 11. Semilla de usuario admin — `src/seeds/admin.js`
 
 ```javascript
 import bcrypt from 'bcryptjs';
@@ -393,7 +428,7 @@ export async function seedAdmin() {
 
 > Seed ejecutado automaticamente al iniciar el servidor (en \`src/index.js\`). Usuarios por defecto: \`admin\` / \`admin123\` (rol ADMIN) y \`usuario\` / \`usuario123\` (rol USUARIO).
 
-## 11. Semilla de roles y permisos — `src/seeds/rbac.js`
+## 12. Semilla de roles y permisos — `src/seeds/rbac.js`
 
 ```javascript
 import db from '../config/db.js';
@@ -461,11 +496,12 @@ export async function seedRbac() {
 }
 ```
 
-## 12. Middleware de autenticación — `src/middleware/auth.js`
+## 13. Middleware de autenticación — `src/middleware/auth.js`
 
 ```javascript
 import jwt from 'jsonwebtoken';
 import db from '../config/db.js';
+import config from '../config/env.js';
 
 export default function authMiddleware(...permisosRequeridos) {
   return async function (req, res, next) {
@@ -476,7 +512,7 @@ export default function authMiddleware(...permisosRequeridos) {
 
     try {
       const token = header.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, config.jwtSecret);
       req.usuario = decoded;
 
       if (permisosRequeridos.length === 0) {
@@ -516,12 +552,13 @@ export default function authMiddleware(...permisosRequeridos) {
 }
 ```
 
-## 13. Controlador de autenticación — `src/controllers/authController.js`
+## 14. Controlador de autenticación — `src/controllers/authController.js`
 
 ```javascript
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import db from '../config/db.js';
+import config from '../config/env.js';
 
 export async function login(req, res) {
   const { username, password } = req.body;
@@ -546,8 +583,8 @@ export async function login(req, res) {
 
   const token = jwt.sign(
     { id: usuario.id, username: usuario.username },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
+    config.jwtSecret,
+    { expiresIn: config.jwtExpiresIn }
   );
 
   res.status(200).json({
@@ -634,7 +671,7 @@ export async function actualizarPerfil(req, res) {
 }
 ```
 
-## 14. Rutas de autenticación — `src/routes/auth.js`
+## 15. Rutas de autenticación — `src/routes/auth.js`
 
 ```javascript
 import { Router } from 'express';
@@ -650,7 +687,7 @@ router.put('/perfil', authMiddleware('perfil.editar'), actualizarPerfil);
 export default router;
 ```
 
-## 15. Controlador de administracion — `src/controllers/adminController.js`
+## 16. Controlador de administracion — `src/controllers/adminController.js`
 
 ```javascript
 import bcrypt from 'bcryptjs';
@@ -817,7 +854,7 @@ export async function listarPermisos(req, res) {
 }
 ```
 
-## 16. Rutas de administracion — `src/routes/admin.js`
+## 17. Rutas de administracion — `src/routes/admin.js`
 
 ```javascript
 import { Router } from 'express';
@@ -845,7 +882,7 @@ router.get('/permisos', authMiddleware('permisos.ver'), listarPermisos);
 export default router;
 ```
 
-## 17. Scripts en `package.json`
+## 18. Scripts en `package.json`
 
 > Las migraciones se ejecutan **automáticamente** al iniciar el servidor (`npm run dev` / `npm start`) vía `db.migrate.latest()` en `src/index.js`.  
 > Los scripts `migrate` y `migrate:rollback` son solo para uso manual de emergencia; no es necesario ejecutarlos en el flujo normal.
@@ -865,14 +902,14 @@ export default router;
 }
 ```
 
-## 18. `.gitignore`
+## 19. `.gitignore`
 
 ```
 node_modules/
 .env
 ```
 
-## 19. ESLint — `eslint.config.js`
+## 20. ESLint — `eslint.config.js`
 
 ```javascript
 import globals from 'globals';
@@ -896,7 +933,7 @@ Instalar dependencias adicionales de ESLint:
 npm install -D globals @eslint/js
 ```
 
-## 20. Estructura final
+## 21. Estructura final
 
 ```
 <proyecto>/
@@ -910,7 +947,8 @@ npm install -D globals @eslint/js
 │   ├── index.js
 │   ├── config/
 │   │   ├── cors.js
-│   │   └── db.js
+│   │   ├── db.js
+│   │   └── env.js
 │   ├── controllers/
 │   │   ├── adminController.js
 │   │   └── authController.js
@@ -931,7 +969,7 @@ documentacion/
     └── DOCUMENTACION.md
 ```
 
-## 21. Verificación y seeds
+## 22. Verificación y seeds
 
 Una vez generado todo el proyecto, se debe verificar que el servidor arranque correctamente sin errores y luego ejecutar las seeds de Knex:
 
@@ -958,7 +996,7 @@ Pasos detallados:
 
 > Nota: Las seeds ya se ejecutan automáticamente al iniciar el servidor via `seedRbac()` y `seedAdmin()` en `src/index.js`, pero se ejecutan manualmente en este paso para garantizar que queden registradas en la tabla `knex_seeds` y no se re-ejecuten en futuros arranques. La ejecucion automatica en `start()` funciona como respaldo.
 
-## 22. Documentación básica — `documentacion/DOCUMENTACION.md`
+## 23. Documentación básica — `documentacion/DOCUMENTACION.md`
 
 Generar o actualizar el archivo `documentacion/DOCUMENTACION.md` en el directorio `documentacion/` en la raíz del proyecto con la siguiente estructura. Este documento debe ser legible por humanos y fácilmente parseable por IA, usando secciones claras, metadatos estructurados y tablas consistentes.
 
@@ -999,7 +1037,7 @@ Backend Node.js con Express, Knex y MariaDB.
 
 | Variable | Descripcion | Valor ejemplo |
 |----------|-------------|---------------|
-| `PORT` | Puerto del servidor | `3000` |
+| `PORT` | Puerto del servidor | `4000` |
 | `CORS_ORIGIN` | Origenes permitidos CORS | `*` |
 | `DB_HOST` | Host de base de datos | `localhost` |
 | `DB_PORT` | Puerto de base de datos | `3306` |
@@ -1064,6 +1102,84 @@ Ver archivo `.env.example` para referencia.
 > | Metodo | Ruta | Descripcion | Auth |
 > | GET | `/api/recurso` | Descripcion del recurso | Si/No |
 
+## BASE DE DATOS
+
+### Diagrama de tablas
+
+```
++------------------+       +------------------+       +------------------+
+|    usuarios      |       |    roles         |       |   permisos       |
++------------------+       +------------------+       +------------------+
+| id (PK, incr)    |       | id (PK, incr)    |       | id (PK, incr)    |
+| username (UQ)    |       | nombre (UQ)      |       | nombre (UQ)      |
+| password         |       | descripcion      |       | descripcion      |
+| created_at       |       | created_at       |       | created_at       |
+| updated_at       |       | updated_at       |       | updated_at       |
++------------------+       +------------------+       +------------------+
+         |                          |                          |
+         |  usuarios_roles          |  roles_permisos          |
+         |  (usuario_id FK) --------+  (rol_id FK)            |
+         +-- (rol_id FK)               +-- (permiso_id FK)    |
+```
+
+### Tablas
+
+**usuarios**
+| Columna | Tipo | Restricciones | Descripcion |
+|---------|------|---------------|-------------|
+| id | integer | PK, auto-increment | Identificador unico |
+| username | varchar(50) | UNIQUE, NOT NULL | Nombre de usuario |
+| password | varchar(255) | NOT NULL | Hash bcrypt de la contrasena |
+| created_at | timestamp | NOT NULL, DEFAULT now() | Fecha de creacion |
+| updated_at | timestamp | NOT NULL, DEFAULT now() | Fecha de actualizacion |
+
+**roles**
+| Columna | Tipo | Restricciones | Descripcion |
+|---------|------|---------------|-------------|
+| id | integer | PK, auto-increment | Identificador unico |
+| nombre | varchar(50) | UNIQUE, NOT NULL | Nombre del rol (ADMIN, USUARIO, etc.) |
+| descripcion | varchar(255) | NULL | Descripcion del rol |
+| created_at | timestamp | NOT NULL, DEFAULT now() | Fecha de creacion |
+| updated_at | timestamp | NOT NULL, DEFAULT now() | Fecha de actualizacion |
+
+**permisos**
+| Columna | Tipo | Restricciones | Descripcion |
+|---------|------|---------------|-------------|
+| id | integer | PK, auto-increment | Identificador unico |
+| nombre | varchar(100) | UNIQUE, NOT NULL | Nombre del permiso (ej: usuarios.ver) |
+| descripcion | varchar(255) | NULL | Descripcion del permiso |
+| created_at | timestamp | NOT NULL, DEFAULT now() | Fecha de creacion |
+| updated_at | timestamp | NOT NULL, DEFAULT now() | Fecha de actualizacion |
+
+**usuarios_roles**
+| Columna | Tipo | Restricciones | Descripcion |
+|---------|------|---------------|-------------|
+| usuario_id | integer | PK, FK -> usuarios(id) ON DELETE CASCADE | Referencia al usuario |
+| rol_id | integer | PK, FK -> roles(id) ON DELETE CASCADE | Referencia al rol |
+
+**roles_permisos**
+| Columna | Tipo | Restricciones | Descripcion |
+|---------|------|---------------|-------------|
+| rol_id | integer | PK, FK -> roles(id) ON DELETE CASCADE | Referencia al rol |
+| permiso_id | integer | PK, FK -> permisos(id) ON DELETE CASCADE | Referencia al permiso |
+
+### Datos iniciales (seeds)
+
+Los siguientes roles y permisos se crean automaticamente al iniciar el servidor o via `npx knex seed:run`:
+
+| Rol | Permisos asignados |
+|-----|-------------------|
+| ADMIN | Todos los permisos del sistema |
+| USUARIO | `perfil.ver`, `perfil.editar` |
+
+Usuarios por defecto:
+| Usuario | Contrasena | Rol |
+|---------|------------|-----|
+| admin | admin123 | ADMIN |
+| usuario | usuario123 | USUARIO |
+
+> Al agregar nuevas migraciones, actualizar esta seccion reflejando las nuevas tablas, columnas y relaciones.
+
 ## ESTRUCTURA
 
 ```
@@ -1080,7 +1196,8 @@ Ver archivo `.env.example` para referencia.
 │   ├── index.js
 │   ├── config/
 │   │   ├── cors.js
-│   │   └── db.js
+│   │   ├── db.js
+│   │   └── env.js
 │   ├── controllers/
 │   │   ├── adminController.js
 │   │   └── authController.js
@@ -1117,15 +1234,17 @@ Reglas para la documentación:
 - El archivo `documentacion/DOCUMENTACION.md` debe crearse **siempre** al generar el proyecto desde cero.
 - Al agregar nuevas rutas/controladores, **insertar** los nuevos endpoints en la tabla `### API` manteniendo el formato uniforme.
 - Mantener la sección `ESTRUCTURA` sincronizada con los directorios reales del proyecto. Toda la documentacion debe estar siempre en `documentacion/` en la raiz del proyecto, nunca dentro de subproyectos.
+- Mantener la sección `BASE DE DATOS` actualizada con cada nueva migracion: agregar tablas, columnas, tipos, restricciones y relaciones.
 - No eliminar secciones ni contenido agregado manualmente por el usuario.
 - No usar acentos ni caracteres especiales en los titulos de seccion para facilitar el parseo automatico.
 
 ## Reglas obligatorias
 
 - **Usar ESM** (`import`/`export`) con `"type": "module"` en package.json.
-- **Validar variables de entorno** requeridas al arrancar — fallar con mensaje claro si falta alguna.
+- **Validar variables .env** requeridas al arrancar — fallar con mensaje claro si falta alguna.
+- **Solo .env:** toda configuración debe leerse únicamente del archivo `.env` mediante `dotenv.parse()` + `fs.readFileSync()` en `src/config/env.js`. Nunca usar `process.env` directamente ni depender de variables de entorno del sistema.
 - **Migraciones automaticas obligatorias:** `db.migrate.latest()` debe ejecutarse SIEMPRE dentro de `async function start()` antes de levantar el servidor. No debe haber un paso manual de migraciones para arrancar la aplicacion en ningun entorno (dev, staging, produccion).
-- **CORS configurable** por variable de entorno `CORS_ORIGIN`.
+- **CORS configurable** por variable `CORS_ORIGIN` en `.env`.
 - **Driver MariaDB:** usar `mysql2` como cliente de Knex.
-- **No hardcodear configuraciones:** todo debe ir en `.env`.
+- **No hardcodear configuraciones:** todo debe ir en `.env` y centralizarse en `src/config/env.js`.
 - **Separar responsabilidades:** rutas en `routes/`, lógica en `controllers/`, middlewares en `middleware/`, config en `config/`.

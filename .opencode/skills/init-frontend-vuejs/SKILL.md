@@ -23,6 +23,23 @@ Header: Nombre del frontend
 
 > El valor ingresado reemplaza `<nombre-proyecto>` en el resto de la receta (nombre del directorio, carpeta del proyecto, package.json, etc.).
 
+### Preguntar si habilita PWA
+
+Usar la herramienta `question` para preguntar al usuario si desea habilitar soporte PWA (Progressive Web App). La respuesta determina si se usa `<pwa-habilitado>` como `true` o `false` en los pasos siguientes.
+
+Ejemplo de pregunta:
+
+```
+<question>
+Pregunta: ¿Deseas habilitar soporte PWA (Progressive Web App) para que la app sea descargable e instalable?
+Header: Habilitar PWA
+Options:
+  - Si (Recommended)
+  - No
+```
+
+> Si se habilita PWA, se agregara `vite-plugin-pwa`, se configurara el service worker, y se generaran los iconos necesarios. En caso contrario se omite todo lo relacionado a PWA.
+
 ## 1. Crear el proyecto con Vite
 
 ```bash
@@ -47,6 +64,12 @@ Fijar la versión inicial en `package.json` a `1.0.0`:
 npm install bootstrap @popperjs/core bootstrap-icons pinia axios vue-router
 ```
 
+Si `<pwa-habilitado>` es `true`, instalar ademas:
+
+```bash
+npm install -D vite-plugin-pwa
+```
+
 ## 3. Configurar Bootstrap global — `src/main.js`
 
 ```javascript
@@ -57,11 +80,118 @@ import router from './router'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 import 'bootstrap'
+import { usePwaStore } from './stores/pwa'
+
+// --- PWA install prompt listener ---
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault()
+  usePwaStore().capturarPrompt(e)
+})
+
+window.addEventListener('appinstalled', () => {
+  usePwaStore().isInstalled = true
+})
+// -----------------------------------
 
 const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 app.mount('#app')
+```
+
+## 3B. Configurar PWA (solo si habilitado) — `vite.config.js`
+
+Si `<pwa-habilitado>` es `true`, modificar `vite.config.js` para incluir el plugin PWA:
+
+```javascript
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { VitePWA } from 'vite-plugin-pwa'
+
+export default defineConfig({
+  plugins: [
+    vue(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      manifest: {
+        name: '<nombre-proyecto>',
+        short_name: '<nombre-proyecto>',
+        description: 'Aplicacion instalable',
+        theme_color: '#212529',
+        background_color: '#ffffff',
+        display: 'standalone',
+        scope: '/',
+        start_url: '/',
+        icons: [
+          { src: 'icon-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icon-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+    }),
+  ],
+})
+```
+
+Generar los iconos PWA manualmente o descargarlos desde https://favicon.io. Colocarlos en `public/`:
+- `public/favicon.ico`
+- `public/apple-touch-icon.png`
+- `public/icon-192x192.png`
+- `public/icon-512x512.png`
+- `public/mask-icon.svg`
+
+> El service worker se registra automaticamente gracias a `registerType: 'autoUpdate'` de `vite-plugin-pwa`. No es necesario agregar codigo manual en `main.js`.
+
+### Store PWA — `src/stores/pwa.js`
+
+Crear el store que captura el evento `beforeinstallprompt` y expone el metodo `install()`:
+
+```javascript
+import { defineStore } from 'pinia'
+
+export const usePwaStore = defineStore('pwa', {
+  state: () => ({
+    installPrompt: null,
+    isInstalled: false,
+  }),
+  getters: {
+    puedeInstalar(state) {
+      return state.installPrompt !== null && !state.isInstalled
+    },
+  },
+  actions: {
+    capturarPrompt(event) {
+      event.preventDefault()
+      this.installPrompt = event
+    },
+    async install() {
+      if (!this.installPrompt) return
+      this.installPrompt.prompt()
+      const { outcome } = await this.installPrompt.userChoice
+      if (outcome === 'accepted') {
+        this.isInstalled = true
+      }
+      this.installPrompt = null
+    },
+  },
+})
+```
+
+En `src/main.js`, agregar el listener global antes de montar la app:
+
+```javascript
+import { usePwaStore } from './stores/pwa'
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  const pwa = usePwaStore()
+  pwa.capturarPrompt(e)
+})
+
+window.addEventListener('appinstalled', () => {
+  const pwa = usePwaStore()
+  pwa.isInstalled = true
+})
 ```
 
 ## 4. Router con vista por defecto — `src/router/index.js`
@@ -273,6 +403,11 @@ export default {
             Mi Perfil
           </router-link>
         </li>
+        <li class="nav-item" v-if="pwa.puedeInstalar">
+          <a href="#" class="nav-link text-white" @click.prevent="instalarPwa">
+            <i class="bi bi-download me-1"></i> Instalar App
+          </a>
+        </li>
       </ul>
     </div>
   </div>
@@ -280,6 +415,7 @@ export default {
 
 <script>
 import { useAuthStore } from '../../stores/auth'
+import { usePwaStore } from '../../stores/pwa'
 
 export default {
   name: 'Sidebar',
@@ -288,7 +424,10 @@ export default {
   },
   emits: ['close'],
   data() {
-    return { auth: useAuthStore() }
+    return {
+      auth: useAuthStore(),
+      pwa: usePwaStore(),
+    }
   },
   computed: {
     isMobile() {
@@ -300,6 +439,10 @@ export default {
       if (this.isMobile) {
         this.$emit('close')
       }
+    },
+    async instalarPwa() {
+      await this.pwa.install()
+      this.closeOnMobile()
     },
   },
 }
@@ -430,7 +573,7 @@ export const useEjemploStore = defineStore('ejemplo', {
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -1301,7 +1444,7 @@ export default {
 ## 14. Archivo `.env` y `.env.example`
 
 ```
-VITE_API_URL=http://localhost:3000
+VITE_API_URL=http://localhost:4000
 ```
 
 Crear `.env.example` con el mismo contenido y agregar `.env` al `.gitignore`.
@@ -1336,6 +1479,12 @@ dist/
 ├── index.html
 ├── package.json
 ├── vite.config.js
+├── public/                         (si PWA habilitado)
+│   ├── favicon.ico
+│   ├── apple-touch-icon.png
+│   ├── icon-192x192.png
+│   ├── icon-512x512.png
+│   └── mask-icon.svg
 ├── src/
 │   ├── main.js
 │   ├── App.vue
@@ -1350,7 +1499,8 @@ dist/
 │   │   └── index.js
 │   ├── stores/
 │   │   ├── auth.js
-│   │   └── ejemplo.js
+│   │   ├── ejemplo.js
+│   │   └── pwa.js                     (si PWA habilitado)
 │   └── views/
 │       ├── LoginView.vue
 │       ├── DashboardView.vue
@@ -1361,7 +1511,26 @@ dist/
 └── node_modules/
 ```
 
-## 18. Documentación básica — `DOCUMENTACION.md`
+## 18. Verificación
+
+Una vez generado todo el proyecto, se debe verificar que el servidor de desarrollo arranque correctamente sin errores de compilación:
+
+```bash
+cd <nombre-proyecto>
+
+# Iniciar el servidor de desarrollo para verificar que no haya errores de compilacion
+npm run dev
+```
+
+Pasos detallados:
+
+1. Ejecutar `npm run dev` y verificar que en la consola aparezca el mensaje de Vite indicando que el servidor está corriendo (ej: `http://localhost:5173`), sin errores de compilación.
+2. Abrir la URL en el navegador (opcional) y confirmar que la app carga sin errores en la consola del navegador.
+3. Detener el servidor (Ctrl+C).
+
+> Nota: Este paso solo verifica la compilación y el servidor de desarrollo. La funcionalidad completa depende de que el backend esté operativo.
+
+## 19. Documentación básica — `DOCUMENTACION.md`
 
 Generar o actualizar el archivo `DOCUMENTACION.md` en la raíz del proyecto con la siguiente estructura. Este documento debe ser legible por humanos y fácilmente parseable por IA, usando secciones claras, metadatos estructurados y tablas consistentes.
 
@@ -1398,7 +1567,7 @@ Frontend Vue 3 con Vite, Bootstrap, Pinia y Axios.
 
 | Variable | Descripcion | Valor ejemplo |
 |----------|-------------|---------------|
-| `VITE_API_URL` | URL base de la API | `http://localhost:3000` |
+| `VITE_API_URL` | URL base de la API | `http://localhost:4000` |
 
 Ver archivo `.env.example` para referencia.
 
@@ -1409,6 +1578,16 @@ Ver archivo `.env.example` para referencia.
 | `npm run dev` | Inicia servidor de desarrollo |
 | `npm run build` | Compila para produccion |
 | `npm run preview` | Previsualiza build de produccion |
+
+## PWA (si habilitado)
+
+La aplicacion es instalable como PWA en dispositivos moviles y desktop (Chrome, Edge, etc.). Para instalar:
+
+1. Abrir la app en el navegador.
+2. Hacer clic en **Instalar App** en el menu lateral.
+3. Seguir las instrucciones del dialogo de instalacion del navegador.
+
+> El service worker se actualiza automaticamente (`autoUpdate`). Los iconos PWA estan en `public/`.
 
 ## RUTAS
 
@@ -1432,6 +1611,12 @@ Ver archivo `.env.example` para referencia.
 ├── index.html
 ├── package.json
 ├── vite.config.js
+├── public/                         (si PWA habilitado)
+│   ├── favicon.ico
+│   ├── apple-touch-icon.png
+│   ├── icon-192x192.png
+│   ├── icon-512x512.png
+│   └── mask-icon.svg
 ├── src/
 │   ├── main.js
 │   ├── App.vue
@@ -1446,7 +1631,8 @@ Ver archivo `.env.example` para referencia.
 │   │   └── index.js
 │   ├── stores/
 │   │   ├── auth.js
-│   │   └── ejemplo.js
+│   │   ├── ejemplo.js
+│   │   └── pwa.js                     (si PWA habilitado)
 │   └── views/
 │       ├── LoginView.vue
 │       ├── DashboardView.vue
@@ -1469,6 +1655,7 @@ Ver archivo `.env.example` para referencia.
 | pinia | ^2 | Estado global |
 | vue-router | ^4 | Enrutamiento SPA |
 | axios | ^1 | HTTP client |
+| vite-plugin-pwa | - (dev) | Service worker y manifest PWA (si habilitado) |
 ```
 
 Reglas para la documentación:
