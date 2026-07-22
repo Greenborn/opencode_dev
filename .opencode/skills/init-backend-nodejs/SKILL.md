@@ -1,6 +1,7 @@
 ---
 name: init-backend-nodejs
 description: Inicializar un backend Node.js con Express, MariaDB vía Knex, CORS y migraciones automáticas
+requires: []
 ---
 
 # Skill: Inicializar backend Node.js con Express
@@ -977,32 +978,48 @@ documentacion/
     └── DOCUMENTACION.md
 ```
 
-## 22. Verificación y seeds
+## 22. Verificación obligatoria
 
-Una vez generado todo el proyecto, se debe verificar que el servidor arranque correctamente sin errores y luego ejecutar las seeds de Knex:
+Ejecutar los siguientes comandos en orden y **confirmar que cada uno devuelva el resultado esperado**. Si algún comando falla, abortar y notificar el error.
 
 ```bash
 cd <nombre-proyecto>
-
-# 1. Iniciar el servidor para verificar que no haya errores de compilacion, conexion a BD, migraciones, etc.
-#    Las migraciones se ejecutaran automaticamente al arrancar.
-node src/index.js
-
-# 2. El servidor debe iniciar sin errores. Esperar 3 segundos y luego detenerlo con Ctrl+C (SIGINT).
-#    Alternativamente, se puede usar un timeout si se ejecuta en segundo plano.
-
-# 3. Ejecutar las seeds de Knex
-npx knex seed:run
 ```
 
-Pasos detallados:
+| # | Comando | Resultado esperado |
+|---|---------|-------------------|
+| 1 | `node src/index.js` (dejar correr 3s, luego Ctrl+C) | En consola: `[migrate] Migraciones ejecutadas correctamente.` y `Servidor corriendo en puerto 4000` |
+| 2 | `npx knex seed:run` | Seeds ejecutadas sin errores. Tabla `knex_seeds` registrada |
+| 3 | `npm run lint` | `0 errors`, `0 warnings` o solo advertencias menores |
+| 4 | Verificar archivo `.env.example` | Existe en raíz, contiene todas las variables con valores ejemplo (sin datos reales) |
+| 5 | Verificar `.gitignore` | Contiene `node_modules/` y `.env` |
+| 6 | Leer `documentacion/DOCUMENTACION.md` | Existe con todas las secciones completas (tablas, endpoints, scripts) |
+| 7 | Verificar `src/config/env.js` | Lee solo de `.env` vía `dotenv.parse()` + `fs.readFileSync()`. No usa `process.env` |
+| 8 | Verificar `src/index.js` | `db.migrate.latest()` se ejecuta dentro de `async function start()` antes de `app.listen()` |
 
-1. Ejecutar `node src/index.js` y verificar que en la consola aparezcan los mensajes de migraciones ejecutadas y que el servidor quede escuchando en el puerto configurado.
-2. Detener el servidor (Ctrl+C).
-3. Ejecutar `npx knex seed:run` para poblar la base de datos con los datos iniciales (roles, permisos, usuarios por defecto).
-4. Confirmar que las seeds se ejecutaron sin errores.
+**Validación de endpoints (servidor corriendo):**
 
-> Nota: Las seeds ya se ejecutan automáticamente al iniciar el servidor via `seedRbac()` y `seedAdmin()` en `src/index.js`, pero se ejecutan manualmente en este paso para garantizar que queden registradas en la tabla `knex_seeds` y no se re-ejecuten en futuros arranques. La ejecucion automatica en `start()` funciona como respaldo.
+```bash
+# Iniciar servidor en segundo plano
+node src/index.js &
+SERVER_PID=$!
+sleep 2
+
+# Health check
+curl -s http://localhost:4000/health
+# → {"status":true,"data":{"timestamp":"..."}}
+
+# Login
+curl -s -X POST http://localhost:4000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"admin123"}'
+# → {"status":true,"data":{"token":"...","usuario":{...}}}
+
+# Detener servidor
+kill $SERVER_PID 2>/dev/null
+```
+
+> Nota: Las seeds se ejecutan automáticamente al iniciar el servidor vía `seedRbac()` y `seedAdmin()` en `src/index.js`, pero la ejecución manual con `npx knex seed:run` garantiza que queden registradas en la tabla `knex_seeds` y no se re-ejecuten en futuros arranques. La ejecución automática en `start()` funciona como respaldo.
 
 ## 23. Documentación básica — `documentacion/DOCUMENTACION.md`
 

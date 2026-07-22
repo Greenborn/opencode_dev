@@ -1,6 +1,7 @@
 ---
 name: init-frontend-vuejs
 description: Inicializar un frontend Vue.js 3 con Vite, Bootstrap, Pinia, Axios y layout responsive
+requires: [init-backend-nodejs]
 ---
 
 # Skill: Inicializar frontend Vue.js con Vite, Bootstrap y Pinia
@@ -39,6 +40,36 @@ Options:
 ```
 
 > Si se habilita PWA, se agregara `vite-plugin-pwa`, se configurara el service worker, y se generaran los iconos necesarios. En caso contrario se omite todo lo relacionado a PWA.
+
+### Patron de colores para botones — regla general del sitio
+
+Este patron debe agregarse como regla general en `AGENTS.md` (raiz del proyecto) y aplicarse en todo el frontend:
+
+| Accion | Clase Bootstrap | Color |
+|---|---|---|
+| Eliminar / Deshabilitar | `btn-danger` | Rojo |
+| Agregar / Confirmar / Habilitar | `btn-success` | Verde |
+| Editar / Modificar | `btn-warning` | Amarillo |
+| Cancelar / Volver atras | `btn-secondary` | Gris |
+| Informacion / Detalles | `btn-info` | Azul |
+
+**Pasos obligatorios:**
+
+1. Crear o actualizar `AGENTS.md` en la raiz del proyecto agregando esta regla bajo la seccion `## Convenciones`:
+
+   ```markdown
+   - **Patron de colores para botones:** usar estas clases Bootstrap de forma consistente en todo el sitio:
+     - `btn-danger` (rojo) — Eliminar, deshabilitar, acciones destructivas
+     - `btn-success` (verde) — Agregar, confirmar, habilitar, crear
+     - `btn-warning` (amarillo) — Editar, modificar
+     - `btn-secondary` (gris) — Cancelar, volver atras, cerrar
+     - `btn-info` (azul) — Informacion, detalles, ver
+   ```
+
+2. Aplicar el mismo criterio en todos los botones del frontend:
+   - En toolbar de `TableEditor.vue`: `severity: 'btn-success'` para crear, `severity: 'btn-danger'` para eliminar, etc.
+   - En `rowActions`: mismo criterio por accion
+   - En cualquier otro boton del sitio: mantener consistencia
 
 ## 1. Crear el proyecto con Vite
 
@@ -291,17 +322,19 @@ export default router
     <template v-else>
       <router-view />
     </template>
+    <ModalDialog />
   </div>
 </template>
 
 <script>
 import Topbar from './components/layout/Topbar.vue'
 import Sidebar from './components/layout/Sidebar.vue'
+import ModalDialog from './components/ModalDialog.vue'
 import { useAuthStore } from './stores/auth'
 
 export default {
   name: 'App',
-  components: { Topbar, Sidebar },
+  components: { Topbar, Sidebar, ModalDialog },
   data() {
     return {
       sidebarVisible: window.innerWidth >= 768,
@@ -1450,6 +1483,196 @@ export default {
 </script>
 ```
 
+## 13F. Store de modals anidados — `src/stores/modal.js`
+
+Store Pinia que maneja una pila de modals (`stack`). Cada modal guarda:
+- `component` — componente a renderizar en el cuerpo (marcado con `markRaw`)
+- `props` — parámetros a pasarle al componente
+- `title` — título del header
+- `size` — clase Bootstrap opcional (`sm`, `lg`, `xl`)
+- `closable` — si muestra el botón de cerrar
+- `position` — coordenadas `{x, y}` para arrastrar
+- `zIndex` — calculado automáticamente para superposición
+
+```javascript
+import { defineStore } from 'pinia'
+import { markRaw } from 'vue'
+
+export const useModalStore = defineStore('modal', {
+  state: () => ({
+    stack: [],
+    zIndexBase: 1050,
+  }),
+  getters: {
+    topModal(state) {
+      return state.stack.length > 0 ? state.stack[state.stack.length - 1] : null
+    },
+    hasModals(state) {
+      return state.stack.length > 0
+    },
+    modalCount(state) {
+      return state.stack.length
+    },
+  },
+  actions: {
+    open({ component, props = {}, title = '', size = '', closable = true }) {
+      const id = Date.now() + Math.random()
+      this.stack.push({
+        id,
+        component: markRaw(component),
+        props,
+        title,
+        size,
+        closable,
+        zIndex: this.zIndexBase + this.stack.length * 10,
+        position: { x: 20 + this.stack.length * 20, y: 20 + this.stack.length * 20 },
+      })
+      return id
+    },
+    close(id) {
+      if (id) {
+        const idx = this.stack.findIndex(m => m.id === id)
+        if (idx >= 0) this.stack.splice(idx, 1)
+      } else {
+        this.stack.pop()
+      }
+    },
+    closeAll() {
+      this.stack = []
+    },
+    updatePosition(id, x, y) {
+      const modal = this.stack.find(m => m.id === id)
+      if (modal) {
+        modal.position.x = x
+        modal.position.y = y
+      }
+    },
+  },
+})
+```
+
+## 13G. Componente Modal arrastrable — `src/components/ModalDialog.vue`
+
+Renderiza la pila completa del store `useModalStore`. Cada modal:
+- Se posiciona con `position: fixed` y coordenadas del store
+- El header funciona como asa de arrastre (`@mousedown` + `mousemove`)
+- Al hacer clic en un modal detrás del tope, lo trae al frente (`bringToFront`)
+- Renderiza el componente dinámico con `<component :is="..." v-bind="..." />`
+- Usa clases Bootstrap (`modal-header`, `modal-body`, `modal-content`, `shadow`)
+
+```javascript
+<template>
+  <div v-for="(modal, index) in modalStore.stack" :key="modal.id"
+    class="modal-dialog-overlay"
+    :style="{ zIndex: modal.zIndex }"
+    @mousedown="bringToFront(modal.id)">
+
+    <div v-if="index === modalStore.stack.length - 1" class="modal-backdrop fade show"></div>
+
+    <div class="modal-dialog modal-dialog-custom"
+      :class="[modal.size ? 'modal-' + modal.size : '', 'show', 'd-block']"
+      :style="{
+        position: 'fixed',
+        left: modal.position.x + 'px',
+        top: modal.position.y + 'px',
+        margin: 0,
+        zIndex: modal.zIndex + 1,
+      }">
+      <div class="modal-content shadow">
+        <div class="modal-header modal-header-drag"
+          @mousedown.prevent="startDrag($event, modal)">
+          <h5 class="modal-title">{{ modal.title }}</h5>
+          <button v-if="modal.closable" type="button" class="btn-close" @click="modalStore.close(modal.id)"></button>
+        </div>
+        <div class="modal-body">
+          <component :is="modal.component" v-bind="modal.props" />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { useModalStore } from '../stores/modal'
+
+export default {
+  name: 'ModalDialog',
+  setup() {
+    return { modalStore: useModalStore() }
+  },
+  data() {
+    return {
+      dragging: null,
+      dragOffset: { x: 0, y: 0 },
+    }
+  },
+  methods: {
+    startDrag(event, modal) {
+      this.dragging = modal.id
+      this.dragOffset.x = event.clientX - modal.position.x
+      this.dragOffset.y = event.clientY - modal.position.y
+      document.addEventListener('mousemove', this.onDrag)
+      document.addEventListener('mouseup', this.stopDrag)
+    },
+    onDrag(event) {
+      if (!this.dragging) return
+      const modal = this.modalStore.stack.find(m => m.id === this.dragging)
+      if (modal) {
+        const x = event.clientX - this.dragOffset.x
+        const y = event.clientY - this.dragOffset.y
+        this.modalStore.updatePosition(this.dragging, Math.max(0, x), Math.max(0, y))
+      }
+    },
+    stopDrag() {
+      this.dragging = null
+      document.removeEventListener('mousemove', this.onDrag)
+      document.removeEventListener('mouseup', this.stopDrag)
+    },
+    bringToFront(id) {
+      const idx = this.modalStore.stack.findIndex(m => m.id === id)
+      if (idx >= 0 && idx < this.modalStore.stack.length - 1) {
+        const modal = this.modalStore.stack.splice(idx, 1)[0]
+        modal.zIndex = this.modalStore.zIndexBase + this.modalStore.stack.length * 10
+        modal.position.x = 20 + this.modalStore.stack.length * 20
+        modal.position.y = 20 + this.modalStore.stack.length * 20
+        this.modalStore.stack.push(modal)
+      }
+    },
+  },
+  beforeUnmount() {
+    document.removeEventListener('mousemove', this.onDrag)
+    document.removeEventListener('mouseup', this.stopDrag)
+  },
+}
+</script>
+
+<style scoped>
+.modal-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.modal-dialog-overlay > * {
+  pointer-events: auto;
+}
+.modal-dialog-custom {
+  min-width: 320px;
+  max-width: 80vw;
+  transition: none;
+}
+.modal-header-drag {
+  cursor: move;
+  user-select: none;
+}
+.modal-backdrop {
+  pointer-events: auto;
+}
+</style>
+```
+
 ## 14. Archivo `.env` y `.env.example`
 
 ```
@@ -1503,12 +1726,14 @@ dist/
 │   │   ├── layout/
 │   │   │   ├── Topbar.vue
 │   │   │   └── Sidebar.vue
+│   │   ├── ModalDialog.vue
 │   │   └── TableEditor.vue
 │   ├── router/
 │   │   └── index.js
 │   ├── stores/
 │   │   ├── auth.js
 │   │   ├── ejemplo.js
+│   │   ├── modal.js
 │   │   └── pwa.js                     (si PWA habilitado)
 │   └── views/
 │       ├── LoginView.vue
@@ -1520,24 +1745,45 @@ dist/
 └── node_modules/
 ```
 
-## 18. Verificación
+## 18. Verificación obligatoria
 
-Una vez generado todo el proyecto, se debe verificar que el servidor de desarrollo arranque correctamente sin errores de compilación:
+Ejecutar los siguientes comandos en orden y **confirmar que cada uno devuelva el resultado esperado**. Si algún comando falla, abortar y notificar el error.
+
+| # | Comando | Resultado esperado |
+|---|---------|-------------------|
+| 1 | `npm run dev` (dejar correr 3s, luego Ctrl+C) | Vite imprime `http://localhost:5173` sin errores de compilación |
+| 2 | `npm run build` | `✓ built in Xs` sin errores. Se genera `dist/` con `index.html` y assets |
+| 3 | Verificar `AGENTS.md` en raíz del proyecto | Existe con la sección `## Convenciones` que incluye el patrón de colores para botones |
+| 4 | Verificar `.env` | Contiene `VITE_API_URL=<url>` |
+| 5 | Verificar `.gitignore` | Contiene `node_modules/`, `.env`, `dist/` |
+| 6 | Verificar estructura de directorios | Existen: `src/views/`, `src/components/layout/`, `src/stores/`, `src/api/`, `src/router/` |
+| 7 | Leer `DOCUMENTACION.md` | Existe con todas las secciones completas (rutas, estructura, dependencias) |
+
+**Validación cruzada con backend (si el backend ya está operativo):**
 
 ```bash
-cd <nombre-proyecto>
+# Iniciar frontend
+npm run dev &
+FRONTEND_PID=$!
 
-# Iniciar el servidor de desarrollo para verificar que no haya errores de compilacion
-npm run dev
+# Iniciar backend (desde el directorio del backend)
+cd ../<backend-directorio> && node src/index.js &
+BACKEND_PID=$!
+
+sleep 2
+
+# Verificar que frontend y backend responden
+curl -s -o /dev/null -w '%{http_code}' http://localhost:5173
+# → 200
+
+curl -s -o /dev/null -w '%{http_code}' http://localhost:4000/health
+# → 200
+
+# Detener procesos
+kill $FRONTEND_PID $BACKEND_PID 2>/dev/null
 ```
 
-Pasos detallados:
-
-1. Ejecutar `npm run dev` y verificar que en la consola aparezca el mensaje de Vite indicando que el servidor está corriendo (ej: `http://localhost:5173`), sin errores de compilación.
-2. Abrir la URL en el navegador (opcional) y confirmar que la app carga sin errores en la consola del navegador.
-3. Detener el servidor (Ctrl+C).
-
-> Nota: Este paso solo verifica la compilación y el servidor de desarrollo. La funcionalidad completa depende de que el backend esté operativo.
+> Nota: La verificación del paso 1 confirma que el proyecto compila y el servidor de desarrollo arranca. La validación cruzada con backend (pasos adicionales) es opcional pero recomendada si el backend ya existe.
 
 ## 19. Documentación básica — `DOCUMENTACION.md`
 
@@ -1635,12 +1881,14 @@ La aplicacion es instalable como PWA en dispositivos moviles y desktop (Chrome, 
 │   │   ├── layout/
 │   │   │   ├── Topbar.vue
 │   │   │   └── Sidebar.vue
+│   │   ├── ModalDialog.vue
 │   │   └── TableEditor.vue
 │   ├── router/
 │   │   └── index.js
 │   ├── stores/
 │   │   ├── auth.js
 │   │   ├── ejemplo.js
+│   │   ├── modal.js
 │   │   └── pwa.js                     (si PWA habilitado)
 │   └── views/
 │       ├── LoginView.vue
