@@ -281,9 +281,9 @@ export default router
   <div id="app">
     <template v-if="logueado">
       <Topbar @toggle-sidebar="toggleSidebar" />
-      <div class="d-flex">
+      <div class="d-flex" style="margin-top: 56px; min-height: calc(100vh - 56px);">
         <Sidebar :visible="sidebarVisible" @close="sidebarVisible = false" />
-        <main class="flex-grow-1 p-3" :class="{ 'ms-0': !sidebarVisible, 'ms-250': sidebarVisible }">
+        <main class="flex-grow-1 p-3" style="padding-top: 56px;">
           <router-view />
         </main>
       </div>
@@ -323,6 +323,10 @@ export default {
     },
   },
   mounted() {
+    const auth = useAuthStore()
+    if (auth.token) {
+      auth.fetchPerfil()
+    }
     window.addEventListener('resize', this.handleResize)
   },
   beforeUnmount() {
@@ -333,8 +337,6 @@ export default {
 
 <style>
 html, body, #app { height: 100%; margin: 0; }
-.ms-250 { margin-left: 250px; }
-.flex-grow-1 { flex-grow: 1; }
 </style>
 ```
 
@@ -342,74 +344,77 @@ html, body, #app { height: 100%; margin: 0; }
 
 ```javascript
 <template>
-  <nav class="navbar navbar-dark bg-dark fixed-top d-flex align-items-center px-3" style="height: 56px; z-index: 1030;">
-    <button class="navbar-toggler border-0" type="button" @click="$emit('toggle-sidebar')" aria-label="Toggle sidebar">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <span class="navbar-brand mb-0 ms-2 h5">Mi App</span>
-    <div class="ms-auto d-flex align-items-center gap-2">
-      <span class="text-light small">{{ auth.usuario?.username }}</span>
-      <button class="btn btn-outline-light btn-sm" @click="logout">Salir</button>
+  <nav class="navbar navbar-dark bg-dark fixed-top px-3">
+    <div class="d-flex align-items-center w-100">
+      <button class="navbar-toggler border-0" type="button" @click="$emit('toggle-sidebar')" aria-label="Toggle sidebar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <span class="navbar-brand mb-0 ms-2">Mi App</span>
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <span class="text-light small">{{ auth.usuario?.username }}</span>
+        <button class="btn btn-outline-light btn-sm" @click="logout">Salir</button>
+      </div>
     </div>
   </nav>
 </template>
-
-<script>
-import { useAuthStore } from '../../stores/auth'
-
-export default {
-  name: 'Topbar',
-  emits: ['toggle-sidebar'],
-  data() {
-    return { auth: useAuthStore() }
-  },
-  methods: {
-    logout() {
-      this.auth.logout()
-      this.$router.push({ name: 'login' })
-    },
-  },
-}
-</script>
 ```
 
 ## 7. Sidebar — `src/components/layout/Sidebar.vue`
 
+Usa **Offcanvas** de Bootstrap 5 para móvil (overlay con backdrop) y sidebar estático en desktop dentro del flujo flex. Los items se renderizan con `v-for` desde un array, con iconos Bootstrap y resaltado de ruta activa.
+
 ```javascript
 <template>
   <div>
-    <div v-if="visible && isMobile" class="sidebar-overlay" @click="$emit('close')"></div>
-
-    <div class="sidebar bg-dark text-white p-3" :class="{ open: visible }">
-      <h5 class="text-center mb-4">Menú</h5>
-      <ul class="nav flex-column">
-        <li class="nav-item">
-          <router-link to="/" class="nav-link text-white" @click="closeOnMobile">
-            Dashboard
-          </router-link>
-        </li>
-        <li class="nav-item" v-if="auth.tienePermiso('usuarios.ver')">
-          <router-link to="/admin/usuarios" class="nav-link text-white" @click="closeOnMobile">
-            Usuarios
-          </router-link>
-        </li>
-        <li class="nav-item" v-if="auth.tienePermiso('roles.ver')">
-          <router-link to="/admin/roles" class="nav-link text-white" @click="closeOnMobile">
-            Roles
-          </router-link>
-        </li>
-        <li class="nav-item">
-          <router-link to="/perfil" class="nav-link text-white" @click="closeOnMobile">
-            Mi Perfil
-          </router-link>
-        </li>
-        <li class="nav-item" v-if="pwa.puedeInstalar">
-          <a href="#" class="nav-link text-white" @click.prevent="instalarPwa">
-            <i class="bi bi-download me-1"></i> Instalar App
-          </a>
-        </li>
-      </ul>
+    <!-- Offcanvas para móvil (se oculta en desktop con d-md-none) -->
+    <div class="offcanvas offcanvas-start bg-dark text-white d-md-none"
+      :class="{ show: visible && isMobile }"
+      tabindex="-1"
+      aria-labelledby="sidebarLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title text-white" id="sidebarLabel">Menú</h5>
+        <button type="button" class="btn-close btn-close-white" @click="close" aria-label="Cerrar"></button>
+      </div>
+      <div class="offcanvas-body p-0">
+        <ul class="nav flex-column">
+          <li class="nav-item" v-for="item in navItems" :key="item.to">
+            <router-link :to="item.to" class="nav-link text-white nav-link-sidebar"
+              :class="{ active: rutaActiva(item.to) }"
+              @click="closeOnMobile">
+              <i :class="['bi', item.icon, 'me-2']"></i>{{ item.label }}
+            </router-link>
+          </li>
+          <li class="nav-item" v-if="pwa.puedeInstalar">
+            <a href="#" class="nav-link text-white nav-link-sidebar" @click.prevent="instalarPwa">
+              <i class="bi bi-download me-2"></i>Instalar App
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
+
+    <!-- Sidebar estático para desktop -->
+    <div class="d-none d-md-block bg-dark text-white sidebar-desktop">
+      <div class="p-3">
+        <h5 class="text-center mb-4">Menú</h5>
+        <ul class="nav flex-column">
+          <li class="nav-item" v-for="item in navItems" :key="item.to">
+            <router-link :to="item.to" class="nav-link text-white nav-link-sidebar"
+              :class="{ active: rutaActiva(item.to) }">
+              <i :class="['bi', item.icon, 'me-2']"></i>{{ item.label }}
+            </router-link>
+          </li>
+          <li class="nav-item" v-if="pwa.puedeInstalar">
+            <a href="#" class="nav-link text-white nav-link-sidebar" @click.prevent="instalarPwa">
+              <i class="bi bi-download me-2"></i>Instalar App
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Backdrop estilo Bootstrap para móvil -->
+    <div v-if="visible && isMobile" class="offcanvas-backdrop fade show" @click="close"></div>
   </div>
 </template>
 
@@ -433,12 +438,25 @@ export default {
     isMobile() {
       return window.innerWidth < 768
     },
+    navItems() {
+      const items = [
+        { to: '/', label: 'Dashboard', icon: 'bi-speedometer2', permiso: null },
+        { to: '/perfil', label: 'Mi Perfil', icon: 'bi-person', permiso: null },
+        { to: '/admin/usuarios', label: 'Usuarios', icon: 'bi-people', permiso: 'usuarios.ver' },
+        { to: '/admin/roles', label: 'Roles', icon: 'bi-shield', permiso: 'roles.ver' },
+      ]
+      return items.filter(item => !item.permiso || this.auth.tienePermiso(item.permiso))
+    },
   },
   methods: {
+    rutaActiva(path) {
+      return this.$route.path === path
+    },
+    close() {
+      this.$emit('close')
+    },
     closeOnMobile() {
-      if (this.isMobile) {
-        this.$emit('close')
-      }
+      if (this.isMobile) this.close()
     },
     async instalarPwa() {
       await this.pwa.install()
@@ -449,33 +467,23 @@ export default {
 </script>
 
 <style scoped>
-.sidebar {
-  position: fixed;
-  top: 56px;
-  left: 0;
+.sidebar-desktop {
   width: 250px;
-  height: calc(100% - 56px);
+  flex-shrink: 0;
   overflow-y: auto;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 1020;
 }
-.sidebar.open {
-  transform: translateX(0);
+.nav-link-sidebar {
+  border-radius: 0;
+  padding: 0.65rem 1rem;
+  border-left: 3px solid transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
-.sidebar-overlay {
-  position: fixed;
-  top: 56px;
-  left: 0;
-  width: 100%;
-  height: calc(100% - 56px);
-  background: rgba(0,0,0,0.5);
-  z-index: 1019;
+.nav-link-sidebar:hover {
+  background-color: rgba(255, 255, 255, 0.08);
 }
-@media (min-width: 768px) {
-  .sidebar {
-    transform: translateX(0);
-  }
+.nav-link-sidebar.active {
+  background-color: rgba(13, 110, 253, 0.15);
+  border-left-color: #0d6efd;
 }
 </style>
 ```
@@ -654,6 +662,7 @@ export default {
       this.cargando = true
       try {
         await useAuthStore().login(this.username, this.password)
+        await useAuthStore().fetchPerfil()
         this.$router.push({ name: 'dashboard' })
       } catch (err) {
         this.error = err.response?.data?.error || 'Error al iniciar sesión'

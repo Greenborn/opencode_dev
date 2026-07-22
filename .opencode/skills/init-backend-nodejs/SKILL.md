@@ -581,6 +581,13 @@ export async function login(req, res) {
     .where('usuarios_roles.usuario_id', usuario.id)
     .select('roles.nombre');
 
+  const permisos = await db('usuarios_roles')
+    .join('roles_permisos', 'usuarios_roles.rol_id', 'roles_permisos.rol_id')
+    .join('permisos', 'roles_permisos.permiso_id', 'permisos.id')
+    .where('usuarios_roles.usuario_id', usuario.id)
+    .select('permisos.nombre')
+    .distinct();
+
   const token = jwt.sign(
     { id: usuario.id, username: usuario.username },
     config.jwtSecret,
@@ -595,6 +602,7 @@ export async function login(req, res) {
         id: usuario.id,
         username: usuario.username,
         roles: roles.map((r) => r.nombre),
+        permisos: permisos.map((p) => p.nombre),
       },
     },
   });
