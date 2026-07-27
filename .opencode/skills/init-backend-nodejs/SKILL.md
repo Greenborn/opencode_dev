@@ -275,9 +275,11 @@ import config from './config/env.js';
 import corsMiddleware from './config/cors.js';
 import db from './config/db.js';
 import authRoutes from './routes/auth.js';
+import adminRoutes from './routes/admin.js';
+import preferenciasRoutes from './routes/preferencias.js';
 import { seedAdmin } from './seeds/admin.js';
 import { seedRbac } from './seeds/rbac.js';
-import adminRoutes from './routes/admin.js';
+import { seedPreferencias } from './seeds/preferencias.js';
 
 const app = express();
 
@@ -287,6 +289,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/preferencias', preferenciasRoutes);
 
 async function start() {
   try {
@@ -303,6 +306,7 @@ async function start() {
   try {
     await seedRbac();
     await seedAdmin();
+    await seedPreferencias();
   } catch (err) {
     console.error('[seed] Error al crear datos iniciales:', err.message);
   }
@@ -351,11 +355,31 @@ export function up(knex) {
       table.integer('rol_id').unsigned().references('id').inTable('roles').onDelete('CASCADE');
       table.integer('permiso_id').unsigned().references('id').inTable('permisos').onDelete('CASCADE');
       table.primary(['rol_id', 'permiso_id']);
+    })
+    .createTable('preferencias_permitidas', (table) => {
+      table.increments('id').primary();
+      table.string('clave', 100).unique().notNullable();
+      table.string('nombre', 200).notNullable();
+      table.text('descripcion');
+      table.string('tipo', 50).notNullable();
+      table.json('opciones');
+      table.text('valor_defecto');
+      table.timestamps(true, true);
+    })
+    .createTable('preferencias_usuario', (table) => {
+      table.increments('id').primary();
+      table.integer('usuario_id').unsigned().references('id').inTable('usuarios').onDelete('CASCADE');
+      table.integer('preferencia_id').unsigned().references('id').inTable('preferencias_permitidas').onDelete('CASCADE');
+      table.text('valor');
+      table.timestamps(true, true);
+      table.unique(['usuario_id', 'preferencia_id']);
     });
 }
 
 export function down(knex) {
   return knex.schema
+    .dropTableIfExists('preferencias_usuario')
+    .dropTableIfExists('preferencias_permitidas')
     .dropTableIfExists('roles_permisos')
     .dropTableIfExists('usuarios_roles')
     .dropTableIfExists('permisos')
@@ -460,6 +484,8 @@ export async function seedRbac() {
     { nombre: 'roles.editar', descripcion: 'Editar roles' },
     { nombre: 'roles.eliminar', descripcion: 'Eliminar roles' },
     { nombre: 'permisos.ver', descripcion: 'Ver listado de permisos' },
+    { nombre: 'preferencias.ver', descripcion: 'Ver preferencias del sistema' },
+    { nombre: 'preferencias.editar', descripcion: 'Editar preferencias del sistema' },
   ];
 
   for (const perm of permisos) {
@@ -482,7 +508,7 @@ export async function seedRbac() {
     }
   }
 
-  const permisosUsuario = ['perfil.ver', 'perfil.editar'];
+  const permisosUsuario = ['perfil.ver', 'perfil.editar', 'preferencias.ver', 'preferencias.editar'];
   for (const nombrePerm of permisosUsuario) {
     const perm = await db('permisos').where({ nombre: nombrePerm }).first();
     if (perm) {
@@ -496,6 +522,32 @@ export async function seedRbac() {
   console.log('[seed] Roles y permisos inicializados.');
 }
 ```
+
+## 12B. Semilla de preferencias por defecto — `src/seeds/preferencias.js`
+
+```javascript
+import db from '../config/db.js';
+
+export async function seedPreferencias() {
+  const preferencias = [
+    { clave: 'theme', nombre: 'Tema visual', tipo: 'select', opciones: JSON.stringify(['light', 'dark']), valor_defecto: 'light' },
+    { clave: 'language', nombre: 'Idioma', tipo: 'select', opciones: JSON.stringify(['es', 'en']), valor_defecto: 'es' },
+    { clave: 'notifications_enabled', nombre: 'Notificaciones', tipo: 'boolean', valor_defecto: 'true' },
+    { clave: 'items_per_page', nombre: 'Items por pagina', tipo: 'number', valor_defecto: '25' },
+  ];
+
+  for (const pref of preferencias) {
+    const [existente] = await db('preferencias_permitidas').where({ clave: pref.clave });
+    if (!existente) {
+      await db('preferencias_permitidas').insert(pref);
+      console.log(`[seed] Preferencia "${pref.clave}" creada.`);
+    }
+  }
+  console.log('[seed] Preferencias por defecto inicializadas.');
+}
+```
+
+> Seed ejecutado automaticamente al iniciar el servidor (en \`src/index.js\`). Define las preferencias disponibles para todos los usuarios del sistema.
 
 ## 13. Middleware de autenticación — `src/middleware/auth.js`
 
@@ -703,18 +755,36 @@ import bcrypt from 'bcryptjs';
 import db from '../config/db.js';
 
 export async function listarUsuarios(req, res) {
-  const usuarios = await db('usuarios')
-    .select('id', 'username', 'created_at', 'updated_at');
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 25;
+  const sortField = req.query.sortField || 'id';
+  const sortDir = req.query.sortDir === 'desc' ? 'desc' : 'asc';
+  const search = req.query.search || '';
+
+  let query = db('usuarios').select('id', 'username', 'created_at', 'updated_at');
+  let countQuery = db('usuarios');
+
+  if (search) {
+    query = query.where('username', 'like', `%${search}%`);
+    countQuery = countQuery.where('username', 'like', `%${search}%`);
+  }
+
+  const [{ count }] = await countQuery.count('* as count');
+  const total = parseInt(count);
+
+  const allowedSort = ['id', 'username', 'created_at'];
+  const safeField = allowedSort.includes(sortField) ? sortField : 'id';
+  const offset = (page - 1) * pageSize;
+  const usuarios = await query.orderBy(safeField, sortDir).offset(offset).limit(pageSize);
 
   for (const u of usuarios) {
-    const roles = await db('usuarios_roles')
+    u.roles = await db('usuarios_roles')
       .join('roles', 'usuarios_roles.rol_id', 'roles.id')
       .where('usuarios_roles.usuario_id', u.id)
       .select('roles.id', 'roles.nombre');
-    u.roles = roles;
   }
 
-  res.status(200).json({ status: true, data: usuarios });
+  res.status(200).json({ status: true, data: { rows: usuarios, total, page, pageSize } });
 }
 
 export async function crearUsuario(req, res) {
@@ -786,15 +856,52 @@ export async function eliminarUsuario(req, res) {
 }
 
 export async function listarRoles(req, res) {
-  const roles = await db('roles').select('*');
+  const page = parseInt(req.query.page);
+  if (!page) {
+    const roles = await db('roles').select('*');
+    for (const rol of roles) {
+      rol.permisos = await db('roles_permisos')
+        .join('permisos', 'roles_permisos.permiso_id', 'permisos.id')
+        .where('roles_permisos.rol_id', rol.id)
+        .select('permisos.id', 'permisos.nombre');
+    }
+    return res.status(200).json({ status: true, data: roles });
+  }
+  const pageSize = parseInt(req.query.pageSize) || 25;
+  const sortField = req.query.sortField || 'id';
+  const sortDir = req.query.sortDir === 'desc' ? 'desc' : 'asc';
+  const search = req.query.search || '';
+
+  let query = db('roles');
+  let countQuery = db('roles');
+
+  if (search) {
+    query = query.where(function () {
+      this.where('nombre', 'like', `%${search}%`)
+          .orWhere('descripcion', 'like', `%${search}%`);
+    });
+    countQuery = countQuery.where(function () {
+      this.where('nombre', 'like', `%${search}%`)
+          .orWhere('descripcion', 'like', `%${search}%`);
+    });
+  }
+
+  const [{ count }] = await countQuery.count('* as count');
+  const total = parseInt(count);
+
+  const allowedSort = ['id', 'nombre', 'descripcion'];
+  const safeField = allowedSort.includes(sortField) ? sortField : 'id';
+  const offset = (page - 1) * pageSize;
+  const roles = await query.orderBy(safeField, sortDir).offset(offset).limit(pageSize);
+
   for (const rol of roles) {
-    const permisos = await db('roles_permisos')
+    rol.permisos = await db('roles_permisos')
       .join('permisos', 'roles_permisos.permiso_id', 'permisos.id')
       .where('roles_permisos.rol_id', rol.id)
       .select('permisos.id', 'permisos.nombre');
-    rol.permisos = permisos;
   }
-  res.status(200).json({ status: true, data: roles });
+
+  res.status(200).json({ status: true, data: { rows: roles, total, page, pageSize } });
 }
 
 export async function crearRol(req, res) {
@@ -858,8 +965,34 @@ export async function eliminarRol(req, res) {
 }
 
 export async function listarPermisos(req, res) {
-  const permisos = await db('permisos').select('*');
-  res.status(200).json({ status: true, data: permisos });
+  const page = parseInt(req.query.page);
+  if (!page) {
+    const permisos = await db('permisos').select('*');
+    return res.status(200).json({ status: true, data: permisos });
+  }
+  const pageSize = parseInt(req.query.pageSize) || 50;
+  const search = req.query.search || '';
+
+  let query = db('permisos');
+  let countQuery = db('permisos');
+
+  if (search) {
+    query = query.where(function () {
+      this.where('nombre', 'like', `%${search}%`)
+          .orWhere('descripcion', 'like', `%${search}%`);
+    });
+    countQuery = countQuery.where(function () {
+      this.where('nombre', 'like', `%${search}%`)
+          .orWhere('descripcion', 'like', `%${search}%`);
+    });
+  }
+
+  const [{ count }] = await countQuery.count('* as count');
+  const total = parseInt(count);
+  const offset = (page - 1) * pageSize;
+  const permisos = await query.orderBy('nombre', 'asc').offset(offset).limit(pageSize);
+
+  res.status(200).json({ status: true, data: { rows: permisos, total, page, pageSize } });
 }
 ```
 
@@ -887,6 +1020,223 @@ router.put('/roles/:id', authMiddleware('roles.editar'), actualizarRol);
 router.delete('/roles/:id', authMiddleware('roles.eliminar'), eliminarRol);
 
 router.get('/permisos', authMiddleware('permisos.ver'), listarPermisos);
+
+export default router;
+```
+
+## 17B. Controlador de preferencias — `src/controllers/preferenciasController.js`
+
+```javascript
+import db from '../config/db.js';
+
+export async function listarDefiniciones(req, res) {
+  const page = parseInt(req.query.page);
+  if (!page) {
+    const definiciones = await db('preferencias_permitidas').select('*');
+    return res.status(200).json({ status: true, data: definiciones });
+  }
+  const pageSize = parseInt(req.query.pageSize) || 25;
+  const search = req.query.search || '';
+  let query = db('preferencias_permitidas');
+  let countQuery = db('preferencias_permitidas');
+  if (search) {
+    query = query.where(function () {
+      this.where('clave', 'like', `%${search}%`)
+          .orWhere('nombre', 'like', `%${search}%`);
+    });
+    countQuery = countQuery.where(function () {
+      this.where('clave', 'like', `%${search}%`)
+          .orWhere('nombre', 'like', `%${search}%`);
+    });
+  }
+  const [{ count }] = await countQuery.count('* as count');
+  const total = parseInt(count);
+  const offset = (page - 1) * pageSize;
+  const definiciones = await query.orderBy('clave', 'asc').offset(offset).limit(pageSize);
+  res.status(200).json({ status: true, data: { rows: definiciones, total, page, pageSize } });
+}
+
+export async function crearDefinicion(req, res) {
+  const { clave, nombre, descripcion, tipo, opciones, valor_defecto } = req.body;
+  if (!clave || !nombre || !tipo) {
+    return res.status(200).json({ status: false, error: 'clave, nombre y tipo son requeridos' });
+  }
+
+  const existe = await db('preferencias_permitidas').where({ clave }).first();
+  if (existe) {
+    return res.status(200).json({ status: false, error: 'La clave ya existe' });
+  }
+
+  const [id] = await db('preferencias_permitidas').insert({
+    clave, nombre, descripcion, tipo,
+    opciones: opciones ? JSON.stringify(opciones) : null,
+    valor_defecto,
+  });
+
+  res.status(200).json({ status: true, data: { id, clave, nombre } });
+}
+
+export async function actualizarDefinicion(req, res) {
+  const { id } = req.params;
+  const { clave, nombre, descripcion, tipo, opciones, valor_defecto } = req.body;
+
+  const existente = await db('preferencias_permitidas').where({ id }).first();
+  if (!existente) {
+    return res.status(200).json({ status: false, error: 'Preferencia no encontrada' });
+  }
+
+  if (clave && clave !== existente.clave) {
+    const duplicado = await db('preferencias_permitidas').where({ clave }).first();
+    if (duplicado) {
+      return res.status(200).json({ status: false, error: 'La clave ya existe' });
+    }
+  }
+
+  const actualizar = {};
+  if (clave !== undefined) actualizar.clave = clave;
+  if (nombre !== undefined) actualizar.nombre = nombre;
+  if (descripcion !== undefined) actualizar.descripcion = descripcion;
+  if (tipo !== undefined) actualizar.tipo = tipo;
+  if (opciones !== undefined) actualizar.opciones = JSON.stringify(opciones);
+  if (valor_defecto !== undefined) actualizar.valor_defecto = valor_defecto;
+
+  if (Object.keys(actualizar).length > 0) {
+    await db('preferencias_permitidas').where({ id }).update(actualizar);
+  }
+
+  res.status(200).json({ status: true, data: { message: 'Preferencia actualizada correctamente' } });
+}
+
+export async function eliminarDefinicion(req, res) {
+  const { id } = req.params;
+  const existente = await db('preferencias_permitidas').where({ id }).first();
+  if (!existente) {
+    return res.status(200).json({ status: false, error: 'Preferencia no encontrada' });
+  }
+
+  await db('preferencias_permitidas').where({ id }).del();
+  res.status(200).json({ status: true, data: { message: 'Preferencia eliminada correctamente' } });
+}
+
+export async function misPreferencias(req, res) {
+  const usuarioId = req.usuario.id;
+  const definiciones = await db('preferencias_permitidas').select('*');
+  const valores = await db('preferencias_usuario')
+    .where({ usuario_id: usuarioId })
+    .select('*');
+
+  const resultado = {};
+  for (const def of definiciones) {
+    const valorUsuario = valores.find(v => v.preferencia_id === def.id);
+    resultado[def.clave] = valorUsuario ? valorUsuario.valor : def.valor_defecto;
+  }
+
+  res.status(200).json({ status: true, data: { definiciones, valores: resultado } });
+}
+
+export async function actualizarMisPreferencias(req, res) {
+  const usuarioId = req.usuario.id;
+  const preferencias = req.body;
+
+  const definiciones = await db('preferencias_permitidas').select('*');
+
+  for (const [clave, valor] of Object.entries(preferencias)) {
+    const def = definiciones.find(d => d.clave === clave);
+    if (!def) continue;
+
+    if (def.tipo === 'select' && def.opciones) {
+      const opciones = JSON.parse(def.opciones);
+      if (!opciones.includes(valor)) continue;
+    }
+
+    const existente = await db('preferencias_usuario')
+      .where({ usuario_id: usuarioId, preferencia_id: def.id })
+      .first();
+
+    if (existente) {
+      await db('preferencias_usuario')
+        .where({ usuario_id: usuarioId, preferencia_id: def.id })
+        .update({ valor: String(valor) });
+    } else {
+      await db('preferencias_usuario').insert({
+        usuario_id: usuarioId,
+        preferencia_id: def.id,
+        valor: String(valor),
+      });
+    }
+  }
+
+  res.status(200).json({ status: true, data: { message: 'Preferencias actualizadas correctamente' } });
+}
+
+export async function preferenciasDeUsuario(req, res) {
+  const { id } = req.params;
+  const definiciones = await db('preferencias_permitidas').select('*');
+  const valores = await db('preferencias_usuario')
+    .where({ usuario_id: id })
+    .select('*');
+
+  const resultado = {};
+  for (const def of definiciones) {
+    const valorUsuario = valores.find(v => v.preferencia_id === def.id);
+    resultado[def.clave] = valorUsuario ? valorUsuario.valor : def.valor_defecto;
+  }
+
+  res.status(200).json({ status: true, data: { definiciones, valores: resultado } });
+}
+
+export async function actualizarPreferenciasUsuario(req, res) {
+  const { id } = req.params;
+  const preferencias = req.body;
+
+  const definiciones = await db('preferencias_permitidas').select('*');
+
+  for (const [clave, valor] of Object.entries(preferencias)) {
+    const def = definiciones.find(d => d.clave === clave);
+    if (!def) continue;
+
+    const existente = await db('preferencias_usuario')
+      .where({ usuario_id: id, preferencia_id: def.id })
+      .first();
+
+    if (existente) {
+      await db('preferencias_usuario')
+        .where({ usuario_id: id, preferencia_id: def.id })
+        .update({ valor: String(valor) });
+    } else {
+      await db('preferencias_usuario').insert({
+        usuario_id: id,
+        preferencia_id: def.id,
+        valor: String(valor),
+      });
+    }
+  }
+
+  res.status(200).json({ status: true, data: { message: 'Preferencias del usuario actualizadas correctamente' } });
+}
+```
+
+## 17C. Rutas de preferencias — `src/routes/preferencias.js`
+
+```javascript
+import { Router } from 'express';
+import authMiddleware from '../middleware/auth.js';
+import {
+  listarDefiniciones, crearDefinicion, actualizarDefinicion, eliminarDefinicion,
+  misPreferencias, actualizarMisPreferencias,
+  preferenciasDeUsuario, actualizarPreferenciasUsuario,
+} from '../controllers/preferenciasController.js';
+
+const router = Router();
+
+router.get('/', authMiddleware('preferencias.ver'), listarDefiniciones);
+router.post('/', authMiddleware('preferencias.editar'), crearDefinicion);
+router.put('/:id', authMiddleware('preferencias.editar'), actualizarDefinicion);
+router.delete('/:id', authMiddleware('preferencias.editar'), eliminarDefinicion);
+router.get('/usuario', authMiddleware(), misPreferencias);
+router.put('/usuario', authMiddleware(), actualizarMisPreferencias);
+router.get('/usuario/:id', authMiddleware('preferencias.ver'), preferenciasDeUsuario);
+router.put('/usuario/:id', authMiddleware('preferencias.editar'), actualizarPreferenciasUsuario);
 
 export default router;
 ```
@@ -960,18 +1310,21 @@ npm install -D globals @eslint/js
 │   │   └── env.js
 │   ├── controllers/
 │   │   ├── adminController.js
-│   │   └── authController.js
+│   │   ├── authController.js
+│   │   └── preferenciasController.js
 │   ├── middleware/
 │   │   └── auth.js
 │   ├── migrations/
 │   │   └── XXXX_init.js
 │   ├── routes/
 │   │   ├── admin.js
-│   │   └── auth.js
+│   │   ├── auth.js
+│   │   └── preferencias.js
 │   ├── scripts/
 │   │   └── setup-db.js
 │       └── seeds/
 │       ├── admin.js
+│       ├── preferencias.js
 │       └── rbac.js
 └── node_modules/
 documentacion/
@@ -1119,13 +1472,22 @@ Ver archivo `.env.example` para referencia.
 | DELETE | `/api/admin/roles/:id` | Eliminar un rol | Si | `roles.eliminar` |
 | GET | `/api/admin/permisos` | Listar todos los permisos | Si | `permisos.ver` |
 
+### Preferencias
+
+| Metodo | Ruta | Descripcion | Auth | Permisos |
+|--------|------|-------------|------|----------|
+| GET | `/api/preferencias` | Listar definiciones de preferencias permitidas | Si | `preferencias.ver` |
+| POST | `/api/preferencias` | Crear nueva definicion de preferencia | Si | `preferencias.editar` |
+| PUT | `/api/preferencias/:id` | Actualizar definicion de preferencia | Si | `preferencias.editar` |
+| DELETE | `/api/preferencias/:id` | Eliminar definicion de preferencia | Si | `preferencias.editar` |
+| GET | `/api/preferencias/usuario` | Obtener preferencias del usuario autenticado | Si | - |
+| PUT | `/api/preferencias/usuario` | Actualizar preferencias del usuario autenticado | Si | - |
+| GET | `/api/preferencias/usuario/:id` | Obtener preferencias de un usuario (admin) | Si | `preferencias.ver` |
+| PUT | `/api/preferencias/usuario/:id` | Actualizar preferencias de un usuario (admin) | Si | `preferencias.editar` |
+
 ### API
 
 <!-- Listar aqui los endpoints de la API a medida que se agreguen rutas en src/routes/ -->
-
-> Formato para agregar nuevos endpoints:
-> | Metodo | Ruta | Descripcion | Auth |
-> | GET | `/api/recurso` | Descripcion del recurso | Si/No |
 
 ## BASE DE DATOS
 
@@ -1145,6 +1507,21 @@ Ver archivo `.env.example` para referencia.
          |  usuarios_roles          |  roles_permisos          |
          |  (usuario_id FK) --------+  (rol_id FK)            |
          +-- (rol_id FK)               +-- (permiso_id FK)    |
+
++----------------------------+       +----------------------------------+
+| preferencias_permitidas    |       | preferencias_usuario             |
++----------------------------+       +----------------------------------+
+| id (PK, incr)              |       | id (PK, incr)                    |
+| clave (UQ)                 |       | usuario_id (FK -> usuarios)      |
+| nombre                     |       | preferencia_id (FK -> pref_per)  |
+| descripcion                |       | valor                            |
+| tipo                       |       | created_at                       |
+| opciones (json)            |       | updated_at                       |
+| valor_defecto              |       | UNIQUE (usuario_id,preferencia_id)|
+| created_at                 |       +----------------------------------+
+| updated_at                 |                    |
++----------------------------+                    |
+         +----------------------------------------+
 ```
 
 ### Tablas
@@ -1188,6 +1565,31 @@ Ver archivo `.env.example` para referencia.
 | rol_id | integer | PK, FK -> roles(id) ON DELETE CASCADE | Referencia al rol |
 | permiso_id | integer | PK, FK -> permisos(id) ON DELETE CASCADE | Referencia al permiso |
 
+**preferencias_permitidas**
+| Columna | Tipo | Restricciones | Descripcion |
+|---------|------|---------------|-------------|
+| id | integer | PK, auto-increment | Identificador unico |
+| clave | varchar(100) | UNIQUE, NOT NULL | Clave unica de la preferencia (ej: theme) |
+| nombre | varchar(200) | NOT NULL | Nombre legible de la preferencia |
+| descripcion | text | NULL | Descripcion de la preferencia |
+| tipo | varchar(50) | NOT NULL | Tipo de valor (string, boolean, number, select, json) |
+| opciones | json | NULL | Opciones validas para tipo select |
+| valor_defecto | text | NULL | Valor por defecto global |
+| created_at | timestamp | NOT NULL, DEFAULT now() | Fecha de creacion |
+| updated_at | timestamp | NOT NULL, DEFAULT now() | Fecha de actualizacion |
+
+**preferencias_usuario**
+| Columna | Tipo | Restricciones | Descripcion |
+|---------|------|---------------|-------------|
+| id | integer | PK, auto-increment | Identificador unico |
+| usuario_id | integer | FK -> usuarios(id) ON DELETE CASCADE | Referencia al usuario |
+| preferencia_id | integer | FK -> preferencias_permitidas(id) ON DELETE CASCADE | Referencia a la definicion de preferencia |
+| valor | text | NULL | Valor concreto del usuario para esta preferencia |
+| created_at | timestamp | NOT NULL, DEFAULT now() | Fecha de creacion |
+| updated_at | timestamp | NOT NULL, DEFAULT now() | Fecha de actualizacion |
+
+Restricciones: UNIQUE(usuario_id, preferencia_id)
+
 ### Datos iniciales (seeds)
 
 Los siguientes roles y permisos se crean automaticamente al iniciar el servidor o via `npx knex seed:run`:
@@ -1195,7 +1597,7 @@ Los siguientes roles y permisos se crean automaticamente al iniciar el servidor 
 | Rol | Permisos asignados |
 |-----|-------------------|
 | ADMIN | Todos los permisos del sistema |
-| USUARIO | `perfil.ver`, `perfil.editar` |
+| USUARIO | `perfil.ver`, `perfil.editar`, `preferencias.ver`, `preferencias.editar` |
 
 Usuarios por defecto:
 | Usuario | Contrasena | Rol |
@@ -1225,17 +1627,21 @@ Usuarios por defecto:
 │   │   └── env.js
 │   ├── controllers/
 │   │   ├── adminController.js
-│   │   └── authController.js
+│   │   ├── authController.js
+│   │   └── preferenciasController.js
 │   ├── middleware/
 │   │   └── auth.js
 │   ├── migrations/
 │   │   └── <timestamp>_init.js
 │   ├── routes/
-│   │   └── auth.js
+│   │   ├── admin.js
+│   │   ├── auth.js
+│   │   └── preferencias.js
 │   ├── scripts/
 │   │   └── setup-db.js
 │   └── seeds/
 │       ├── admin.js
+│       ├── preferencias.js
 │       └── rbac.js
 └── node_modules/
 ```
