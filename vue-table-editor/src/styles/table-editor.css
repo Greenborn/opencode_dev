@@ -45,10 +45,10 @@
 .te-th[draggable='true'] { cursor: grab; }
 .te-th:active { cursor: grabbing; }
 /* Grupos de columnas */
-.te-header-group-row .te-th { top: 0; z-index: 3; background: linear-gradient(180deg, #e8edf4 0%, #dfe5ee 100%); font-weight: 700; font-size: 0.82rem; color: #1e293b; text-align: center; border-bottom: 2px solid #c6cfdb; }
+.te-header-group-row .te-th { top: 0; z-index: 3; background: linear-gradient(180deg, #e8edf4 0%, #dfe5ee 100%); font-weight: 700; font-size: 0.82rem; color: #1e293b; text-align: center; border-bottom: 2px solid #c6cfdb; height: 2.2rem; }
 .te-header-group-row .te-th .te-th-content { justify-content: center; height: 2.2rem; }
 .te-header-group-row .te-th-group-label { font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
-.te-header-row.te-has-groups .te-th { top: 2.2rem; }
+.te-header-row.te-has-groups .te-th { top: 2.2rem; height: 2.6rem; }
 /* Estados drag/drop */
 .te-th-dragging { opacity: 0.35; background: #e5e7eb !important; }
 .te-th-dragover-left { background: #eff6ff !important; box-shadow: inset 3px 0 0 0 #3b82f6; }

@@ -65,7 +65,9 @@
             <th v-if="rowActionButtons.length" class="te-th te-th-acts" :rowspan="2">Acciones</th>
             <template v-for="hcol of columnGroupHeaders" :key="hcol._key">
               <th v-if="hcol._type === 'group'" :colspan="hcol._span" class="te-th te-th-group">
-                <span class="te-th-group-label">{{ hcol.headerName }}</span>
+                <div class="te-th-content">
+                  <span class="te-th-group-label">{{ hcol.headerName }}</span>
+                </div>
               </th>
               <th v-else :rowspan="2" :data-field="hcol._col.field"
                 :class="['te-th', hcol._col.css, { 'te-th-sorted': sortField === hcol._col.field }]">
