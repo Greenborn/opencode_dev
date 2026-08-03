@@ -72,6 +72,7 @@ export default {
       lazy: false,
       selectionMode: 'multiple',
       showPaginator: true,
+      showFilterRow: true,
       columnGroups: [
         { headerName: 'Datos', fields: ['nombre', 'precio', 'stock'] },
         { headerName: 'Estado', fields: ['estado', 'activo'] },

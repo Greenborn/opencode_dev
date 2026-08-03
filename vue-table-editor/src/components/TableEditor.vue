@@ -523,6 +523,7 @@ function applyConfig() {
   if (props.config?.buttons?.rowActions) {
     buttonGroups.value.rowActions = props.config.buttons.rowActions.map(toBtnConfig)
   }
+  nextTick(() => measureActionsColumn())
 }
 
 // ── Format helpers ───────────────────────────────────
@@ -1028,6 +1029,24 @@ function trackByRow(row, index) {
 watch(() => props.data, (nd) => {
   if (nd?.rows !== undefined) loadData(nd)
 })
+
+watch(displayRows, () => measureActionsColumn())
+
+// ── Medición columna de acciones ─────────────────────
+function measureActionsColumn() {
+  if (!rowActionButtons.value.length) return
+  nextTick(() => {
+    const wrap = scrollWrapRef.value
+    if (!wrap) return
+    let max = 0
+    wrap.querySelectorAll('.te-actions-wrap').forEach((el) => {
+      max = Math.max(max, el.scrollWidth)
+    })
+    if (max > 0) {
+      actionColWidth.value = Math.max(56, max + 24) + 'px'
+    }
+  })
+}
 
 // ── Lifecycle ────────────────────────────────────────
 onMounted(async () => {
