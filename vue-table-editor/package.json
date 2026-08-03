@@ -1,0 +1,46 @@
+{
+  "name": "vue-table-editor",
+  "version": "1.0.0",
+  "description": "Tabla genérica reutilizable y autocontenida para Vue 3: redimensionable, reordenable, preferencias de columnas, lazy loading server-side, edición inline, CSV export, paginación e infinite scroll. Sin dependencias de UI (CSS propio, iconos SVG embebidos).",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-table-editor.umd.cjs",
+  "module": "./dist/vue-table-editor.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-table-editor.js",
+      "require": "./dist/vue-table-editor.umd.cjs"
+    },
+    "./style.css": "./dist/vue-table-editor.css",
+    "./dist/style.css": "./dist/vue-table-editor.css"
+  },
+  "style": "./dist/vue-table-editor.css",
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "table",
+    "table-editor",
+    "datatable",
+    "lazy-loading",
+    "infinite-scroll"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0"
+  }
+}
