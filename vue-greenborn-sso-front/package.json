@@ -1,0 +1,52 @@
+{
+  "name": "vue-greenborn-sso-front",
+  "version": "1.0.0",
+  "description": "Cliente SSO para aplicaciones Vue 3 que se integra con el servidor de autenticación Greenborn (auth.greenborn.com.ar). Proporciona login con Google (OAuth), intercambio de token temporal por bearer token, verificación de sesión, logout y componente callback reutilizable para vue-router.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-greenborn-sso-front.umd.cjs",
+  "module": "./dist/vue-greenborn-sso-front.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-sso-front.js",
+      "require": "./dist/vue-greenborn-sso-front.umd.cjs"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prepublishOnly": "npm run build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "sso",
+    "oauth",
+    "google",
+    "auth",
+    "authentication",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-sso-front",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0",
+    "vue-router": "^4.3.0"
+  }
+}
