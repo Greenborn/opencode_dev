@@ -173,7 +173,7 @@
               <input v-if="selectionMode === 'multiple'" type="checkbox"
                 :checked="isSelected(row)" @change="toggleRowSelection(row)" class="te-checkbox" />
               <input v-else type="radio" :checked="selectedRow === row"
-                @change="selectSingle(row)" class="te-checkbox" />
+                @click="selectSingle(row)" class="te-checkbox" />
             </td>
             <td v-if="rowActionButtons.length" class="te-td te-td-acts">
               <div class="te-actions-wrap">
@@ -573,9 +573,15 @@ function isSelected(row) {
 }
 
 function selectSingle(row) {
-  selectedRow.value = row
-  editEnabled.value = false
-  emit('rowSelected', row)
+  if (selectedRow.value === row) {
+    selectedRow.value = null
+    editEnabled.value = true
+    emit('rowSelected', null)
+  } else {
+    selectedRow.value = row
+    editEnabled.value = false
+    emit('rowSelected', row)
+  }
 }
 
 function toggleRowSelection(row) {
