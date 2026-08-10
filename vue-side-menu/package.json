@@ -1,0 +1,59 @@
+{
+  "name": "@greenborn/vue-side-menu",
+  "version": "1.0.0",
+  "description": "Menú lateral genérico y autocontenido para Vue 3: configurable por props, responsive con overlay en móvil, filtrado opcional por permisos vía provide/inject y soporte opcional de vue-router. Sin dependencias de UI (CSS propio).",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-side-menu.umd.cjs",
+  "module": "./dist/vue-side-menu.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-side-menu.js",
+      "require": "./dist/vue-side-menu.umd.cjs"
+    },
+    "./style.css": "./dist/vue-side-menu.css",
+    "./dist/style.css": "./dist/vue-side-menu.css"
+  },
+  "style": "./dist/vue-side-menu.css",
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prepublishOnly": "npm run build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "sidebar",
+    "side-menu",
+    "menu",
+    "navigation",
+    "responsive"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-side-menu",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0"
+  }
+}
