@@ -1,0 +1,78 @@
+{
+  "name": "express-greenborn-sso-back",
+  "version": "1.0.0",
+  "description": "Autenticación SSO para backends Express/Node que se integra con el servidor de autenticación Greenborn (auth.greenborn.com.ar). Middlewares (authMiddleware/authMiddlewareOptional) y router Express (/me, /sso-profile, /register) reutilizables, con inyección de dependencias (knex, logger, caché) y agnóstico del esquema de base de datos.",
+  "type": "module",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test",
+    "prepublishOnly": "npm run build",
+    "prepack": "npm run build",
+    "demo": "node demo/server.js"
+  },
+  "keywords": [
+    "sso",
+    "auth",
+    "authentication",
+    "express",
+    "node",
+    "middleware",
+    "google",
+    "oauth",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/express-greenborn-sso-back",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "axios": "^1.10.0",
+    "greenborn-memory-cache": "^1.0.0"
+  },
+  "peerDependencies": {
+    "express": "^4.21.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2",
+    "esbuild": "^0.21.0",
+    "express": "^4.21.2",
+    "knex": "^3.3.0",
+    "supertest": "^7.0.0"
+  }
+}

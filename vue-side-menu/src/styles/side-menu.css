@@ -41,6 +41,24 @@
   margin-bottom: 0.25rem;
 }
 
+.vsm-submenu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.vsm-submenu-toggle .vsm-caret {
+  margin-right: 0;
+  transition: transform 0.2s ease;
+}
+.vsm-submenu-toggle.vsm-open .vsm-caret {
+  transform: rotate(180deg);
+}
+
+.vsm-nav.vsm-submenu {
+  margin-left: 0.5rem;
+  border-left: 1px solid rgba(108, 117, 125, 0.4);
+}
+
 .vsm-divider {
   height: 1px;
   margin: 0.5rem 0;

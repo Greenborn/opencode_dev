@@ -9,21 +9,13 @@
     <div class="vsm-sidebar" :class="{ 'vsm-open': visible }">
       <h5 class="vsm-header">{{ title }}</h5>
       <ul class="vsm-nav">
-        <template v-for="(item, index) in visibleItems" :key="index">
-          <li v-if="item.divider" class="vsm-divider"></li>
-
-          <li v-else class="vsm-item">
-            <component
-              :is="linkComponentFor(item)"
-              v-bind="linkAttrs(item)"
-              class="vsm-link"
-              :class="{ 'vsm-button': isAction(item) }"
-              @click="handleAction(item)"
-            >
-              <i v-if="item.icon" :class="item.icon"></i>{{ item.label }}
-            </component>
-          </li>
-        </template>
+        <MenuItem
+          v-for="(item, index) in visibleItems"
+          :key="index"
+          :item="item"
+          :breakpoint="breakpoint"
+          @close="$emit('close')"
+        />
       </ul>
 
       <div class="vsm-footer">
@@ -34,12 +26,14 @@
 </template>
 
 <script>
-import { inject, computed, resolveComponent } from 'vue'
+import { inject, computed } from 'vue'
+import MenuItem from './MenuItem.vue'
 
 export const HAS_PERMISSION_KEY = 'hasPermission'
 
 export default {
   name: 'SideMenu',
+  components: { MenuItem },
   props: {
     items: { type: Array, default: () => [] },
     visible: { type: Boolean, default: false },
@@ -59,49 +53,11 @@ export default {
       })
     })
 
-    let routerLink
-    try {
-      const resolved = resolveComponent('router-link')
-      if (typeof resolved !== 'string') {
-        routerLink = 'router-link'
-      }
-    } catch {
-      routerLink = undefined
-    }
-
-    return { hasPermission, visibleItems, routerLink }
+    return { hasPermission, visibleItems }
   },
   computed: {
     isMobile() {
       return window.innerWidth < this.breakpoint
-    },
-    routerLinkComponent() {
-      return this.routerLink || 'a'
-    },
-  },
-  methods: {
-    linkComponentFor(item) {
-      if (item.href) return 'a'
-      if (item.to && this.routerLink) return 'router-link'
-      if (item.to) return 'a'
-      return 'button'
-    },
-    linkAttrs(item) {
-      if (item.href) return { href: item.href }
-      if (item.to && this.routerLink) return { to: item.to }
-      if (item.to) return { href: item.to }
-      return { type: 'button' }
-    },
-    isAction(item) {
-      return !item.href && !item.to
-    },
-    handleAction(item) {
-      if (this.isMobile) {
-        this.$emit('close')
-      }
-      if (typeof item.action === 'function') {
-        item.action(item)
-      }
     },
   },
 }

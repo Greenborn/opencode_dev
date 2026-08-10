@@ -73,6 +73,27 @@ export default {
         { label: 'Clientes', to: '/clientes', icon: '▤', permiso: 'clientes.ver' },
         { label: 'Notas', to: '/notas', icon: '▥', permiso: 'notas.ver' },
         { label: 'Proyectos', href: '/proyectos', icon: '▦' },
+        {
+          label: 'Administración',
+          icon: '▧',
+          children: [
+            { label: 'Usuarios', to: '/admin/usuarios', icon: '◈' },
+            {
+              label: 'Configuración',
+              icon: '◉',
+              children: [
+                { label: 'General', to: '/admin/config/general' },
+                {
+                  label: 'Avanzado',
+                  children: [
+                    { label: 'Privacidad', to: '/admin/config/privacidad' },
+                    { label: 'Seguridad', to: '/admin/config/seguridad' },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         { divider: true },
         { label: 'Secreto', to: '/secreto', icon: '▧', permiso: 'secreto.ver' },
         instalado,

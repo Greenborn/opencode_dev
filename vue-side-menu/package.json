@@ -1,6 +1,6 @@
 {
   "name": "@greenborn/vue-side-menu",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Menú lateral genérico y autocontenido para Vue 3: configurable por props, responsive con overlay en móvil, filtrado opcional por permisos vía provide/inject y soporte opcional de vue-router. Sin dependencias de UI (CSS propio).",
   "type": "module",
   "files": [

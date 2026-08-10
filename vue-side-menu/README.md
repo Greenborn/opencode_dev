@@ -75,6 +75,7 @@ export default {
 | `permiso` | `String` | Clave de permiso. El item se muestra solo si `hasPermission(permiso)` es verdadero. |
 | `divider` | `Boolean` | Renderiza un separador. |
 | `action` | `Function` | Función ejecutada al hacer clic (usar cuando no hay `to` ni `href`). |
+| `children` | `Array` | Sub-items. Anidamiento recursivo de N niveles; si está presente, el item se renderiza como submenú desplegable. |
 
 ## Emits
 
