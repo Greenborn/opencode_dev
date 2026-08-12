@@ -152,6 +152,33 @@ Los endpoints que consume el frontend son justamente los que expone este router:
 | `user/sso-profile?unique_id=...` | `GET /sso-profile` |
 | `user/me` | `GET /me` |
 
+## WebSocket complementario (socket.io)
+
+Añade una conexión persistente y autenticada sobre el **mismo** `http.Server` de Express para transmitir mensajes genéricos con callbacks por función (Pub/Sub + ACK).
+
+```js
+const server = app.listen(3000);
+
+const socket = sso.attachSocket(server, {
+  path: '/socket.io',        // default
+  corsOrigin: '*',           // string | string[]
+});
+
+// Handler por función: el cliente invoca emit('echo', payload, ack)
+socket.onFunction('echo', ({ payload, ack, user }) => {
+  ack({ success: true, echo: payload, user: user?.id });
+});
+
+// Push back→front
+socket.emitToUser(userId, 'notificacion', { texto: 'hola' });
+socket.broadcast('ping', { ts: Date.now() });
+```
+
+- **Autenticación**: cada conexión envía el bearer token en el handshake (`auth: { token, unique_id }`). Se valida primero como token local (`findLocalUserByToken`) y luego contra el SSO (`verifySsoToken`), sincronizando el usuario. Fallo → rechazo de conexión.
+- Cada socket autenticado se une a las rooms `user:{id}` y `user:{email}`.
+- API del manager: `onFunction`, `onConnection`, `emitToUser`, `emitToRoom`, `broadcast`, `close`, y `io`.
+- Contraparte de frontend: `vue-greenborn-sso-front` → `useSsoSocket` / `createSocketClient`.
+
 ## Scripts
 
 ```bash

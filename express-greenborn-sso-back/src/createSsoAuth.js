@@ -3,6 +3,7 @@ import { createSsoClient } from './ssoClient.js';
 import { createService } from './service.js';
 import { createMiddleware } from './middleware.js';
 import { createRouter } from './router.js';
+import { createSsoSocket } from './socket.js';
 import { normalizeUniqueId, parseSsoRoleMap } from './utils.js';
 
 const DEFAULT_TABLES = {
@@ -70,16 +71,25 @@ export function createSsoAuth(options = {}) {
   const middleware = createMiddleware(ctx, service);
   const router = createRouter(ctx, service, middleware);
 
-  return {
+  function attachSocket(httpServer, socketOptions = {}) {
+    return createSsoSocket({ sso: api, httpServer, ...socketOptions });
+  }
+
+  const api = {
     authMiddleware: middleware.authMiddleware,
     authMiddlewareOptional: middleware.authMiddlewareOptional,
     router,
     syncSsoUser: service.syncSsoUser,
+    findLocalUserByToken: service.findLocalUserByToken,
     resolveSsoRole: service.resolveSsoRoleFor,
     verifySsoToken: service.verifySsoToken,
     extendSsoSession: service.extendSsoSession,
     normalizeUniqueId,
+    attachSocket,
+    logger,
   };
+
+  return api;
 }
 
 export default createSsoAuth;

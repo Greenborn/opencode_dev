@@ -9,6 +9,8 @@ const SSO_CONFIG = {
   ssoBaseUrl: import.meta.env.VITE_SSO_BASE_URL || 'https://auth.greenborn.com.ar',
   ssoRedirect: '/login-redirect',
   nodeApiBaseUrl: import.meta.env.VITE_NODE_API_BASE_URL || 'https://gfc.api2.greenborn.com.ar/api/',
+  wsUrl: import.meta.env.VITE_WS_URL || 'http://localhost:5175',
+  wsPath: import.meta.env.VITE_WS_PATH || '/socket.io',
 }
 
 const router = createRouter({

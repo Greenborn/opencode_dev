@@ -27,6 +27,18 @@
     <h3>Verificar sesión</h3>
     <button @click="runVerify">Verificar</button>
     <pre v-if="verifyResult" class="user-box">{{ verifyResult }}</pre>
+
+    <hr class="spacer" />
+
+    <h3>WebSocket complementario (socket.io)</h3>
+    <p>
+      Estado: <code>{{ sso.connected.value ? 'conectado ✓' : (sso.socketError.value ? 'error: ' + sso.socketError.value.message : 'desconectado') }}</code><br />
+      Se conecta/desconecta automáticamente con la sesión SSO.
+    </p>
+    <button @click="connectSocket">Conectar</button>
+    <button @click="disconnectSocket">Desconectar</button>
+    <button @click="runEcho">Emit 'echo' (ack)</button>
+    <pre v-if="echoResult" class="user-box">{{ echoResult }}</pre>
   </div>
 </template>
 
@@ -36,6 +48,7 @@ import { useSsoAuth } from '../composables/useSsoAuth.js'
 
 const sso = useSsoAuth()
 const verifyResult = ref(null)
+const echoResult = ref(null)
 
 function loginWithGoogle() {
   sso.login()
@@ -47,6 +60,19 @@ async function logout() {
 
 async function runVerify() {
   verifyResult.value = await sso.verifySession()
+}
+
+function connectSocket() {
+  sso.connectSocket()
+}
+
+function disconnectSocket() {
+  sso.disconnectSocket()
+}
+
+async function runEcho() {
+  const res = await sso.socket.emit('echo', { hola: 'mundo' })
+  echoResult.value = res
 }
 </script>
 

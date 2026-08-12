@@ -17,10 +17,10 @@ export default defineConfig({
       formats: ['es', 'umd'],
     },
     rollupOptions: {
-      external: ['vue', 'vue-router'],
+      external: ['vue', 'vue-router', 'socket.io-client'],
       output: {
         exports: 'named',
-        globals: { vue: 'Vue', 'vue-router': 'VueRouter' },
+        globals: { vue: 'Vue', 'vue-router': 'VueRouter', 'socket.io-client': 'io' },
         assetFileNames: (assetInfo) =>
           assetInfo.name && assetInfo.name.endsWith('.css')
             ? 'vue-greenborn-sso-front.css'

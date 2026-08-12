@@ -46,7 +46,9 @@ app.get('/api/public', sso.authMiddlewareOptional, (req, res) => {
   res.json({ success: true, user: req.user || null });
 });
 
-app.listen(port, () => {
+// app.listen devuelve el http.Server; socket.io se adjunta a ESE mismo server
+// para exponer HTTP y WebSocket en un único puerto.
+const server = app.listen(port, () => {
   console.log(`Demo express-greenborn-sso-back en http://localhost:${port}`);
   console.log(`  - GET  /api/user/me           (Bearer token local o SSO)`);
   console.log(`  - GET  /api/user/sso-profile?unique_id=...`);
@@ -54,3 +56,24 @@ app.listen(port, () => {
   console.log(`  - GET  /api/protected         (authMiddleware)`);
   console.log(`  - GET  /api/public            (authMiddlewareOptional)`);
 });
+
+// Conexión WebSocket complementaria (socket.io) sobre el mismo servidor HTTP.
+// Autentica con el bearer token SSO/local y permite mensajes genéricos con
+// callbacks por función (Pub/Sub + ACK).
+const socket = sso.attachSocket(server, {
+  path: process.env.SOCKET_PATH || '/socket.io',
+  corsOrigin: process.env.SOCKET_CORS || '*',
+});
+
+// Handler de ejemplo: "echo" — invocado con sock.emit('echo', payload, ack)
+socket.onFunction('echo', ({ payload, socket: sck, ack, user }) => {
+  ack({ success: true, echo: payload, user: user?.id ?? null });
+});
+
+// Push de ejemplo: cada 15s a cada usuario conectado (habitación user:{id})
+setInterval(() => {
+  socket.broadcast('ping', { ts: Date.now() });
+}, 15000);
+
+console.log(`  - WS   ${process.env.SOCKET_PATH || '/socket.io'}  (socket.io, autenticado con Bearer SSO)`);
+

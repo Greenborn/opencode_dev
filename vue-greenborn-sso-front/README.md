@@ -9,6 +9,7 @@ Replica el flujo de autenticación SSO del frontend de referencia (`GFC-Front`, 
 - Verificación de sesión activa (`verify`)
 - Cierre de sesión (`logout`)
 - Componente **callback** reutilizable para `vue-router`
+- **WebSocket complementario** (socket.io) con mensajes genéricos y callbacks por función
 
 Sin dependencias de UI. JS plano (sin TypeScript), estados reactivos con `ref`/`computed`.
 
@@ -47,6 +48,8 @@ installSso(app, {
   ssoBaseUrl: 'https://auth.greenborn.com.ar',
   ssoRedirect: '/login-redirect',
   nodeApiBaseUrl: 'https://gfc.api2.greenborn.com.ar/api/',
+  wsUrl: 'http://localhost:5175',   // opcional: base del servidor para WebSocket
+  wsPath: '/socket.io',             // opcional
 })
 
 app.use(router)
@@ -58,6 +61,8 @@ app.mount('#app')
 | `ssoBaseUrl`      | string | sí          | Base del servidor SSO, ej. `https://auth.greenborn.com.ar`              |
 | `ssoRedirect`     | string | sí          | Ruta de la app que procesa el callback, ej. `/login-redirect`           |
 | `nodeApiBaseUrl`  | string | no          | Base del API Node local, para verificar el perfil local (`user/sso-profile`) |
+| `wsUrl`           | string | no          | Base del servidor WebSocket (solo si se quiere la conexión complementaria) |
+| `wsPath`          | string | no          | Ruta del socket, default `/socket.io`                                    |
 
 ## Uso básico
 
@@ -139,13 +144,47 @@ sso.getUniqueId()             // id de cliente persistido en localStorage
 sso.getAndClearRedirectUrl()  // URL guardada antes del login (y la limpia)
 ```
 
+## WebSocket complementario (socket.io)
+
+Conexión persistente y autenticada con el bearer token SSO, con mensajes genéricos y callbacks por función (Pub/Sub + ACK). Es **opcional**: si no se define `wsUrl`, no se establece ninguna conexión.
+
+### Uso
+
+```js
+const sso = useSsoAuth();
+// o, más directo:
+import { useSsoSocket } from 'vue-greenborn-sso-front';
+const socket = useSsoSocket();
+```
+
+- **Auto conectar/desconectar**: se conecta al autenticarse y se desconecta al hacer logout/expirar sesión. También puedes llamar `connectSocket()` / `disconnectSocket()` manualmente.
+- Estado reactivo: `socket.connected` (ref booleana) y `socket.socketError`.
+- **Emitir con ack** (invoca una función en el back y espera respuesta):
+
+```js
+const res = await sso.socket.emit('echo', { hola: 'mundo' });
+// con callback explícito:
+sso.socket.emit('echo', { hola: 'mundo' }, (res) => console.log(res));
+```
+
+- **Recibir** (handler por función):
+
+```js
+sso.socket.on('ping', (data) => console.log('ping', data));
+```
+
+- API del composable: `emit`, `on`, `off`, `once`, `connect`, `disconnect`, `client`.
+- Contraparte de backend: `express-greenborn-sso-back` → `sso.attachSocket(server)`.
+
 ## Exports
 
 | Export              | Descripción                                     |
 | ------------------- | ----------------------------------------------- |
 | `useSsoAuth`        | Composable con estado reactivo + acciones       |
 | `installSso(app, c)`| Provee la config y el store a toda la app        |
+| `useSsoSocket`      | Composable de la conexión WebSocket complementaria |
 | `createSsoClient(c)`| Cliente SSO puro (framework-agnostic)           |
+| `createSocketClient(c)`| Cliente socket.io puro (framework-agnostic)  |
 | `SsoCallback`       | Componente callback para `vue-router`            |
 | `SSO_TOKEN_KEY` …   | Constantes de claves de `localStorage`           |
 
