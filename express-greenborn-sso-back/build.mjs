@@ -11,7 +11,9 @@ const shared = {
   bundle: true,
   platform: 'node',
   target: 'node18',
-  external: ['express', 'axios', 'greenborn-memory-cache'],
+  // Externaliza TODAS las dependencias de node_modules (incluida socket.io, cuyo
+  // require dinámico rompe el bundle ESM). Cada dependencia se resuelve en runtime.
+  packages: 'external',
   sourcemap: true,
 };
 

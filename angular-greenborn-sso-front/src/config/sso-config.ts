@@ -24,6 +24,7 @@ export const SSO_CONFIG = new InjectionToken<SSOConfig>('SSO_CONFIG');
 export function normalizeConfig(config: Partial<SSOConfig> = {}): SSOConfig {
   const appName = config.appName ?? '';
   return {
+    ssoBaseUrl: config.ssoBaseUrl ?? '',
     ssoRedirect: '/#/login-redirect',
     wsPath: '/socket.io',
     ...config,
