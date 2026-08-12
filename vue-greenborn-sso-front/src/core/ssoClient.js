@@ -20,13 +20,17 @@ function normUrl(base) {
  * @param {string} config.ssoBaseUrl      Base del servidor SSO, ej. "https://auth.greenborn.com.ar"
  * @param {string} config.ssoRedirect     Ruta de la app que procesa el callback, ej. "/login-redirect"
  * @param {string} [config.nodeApiBaseUrl] Base del API Node local, para verificar el perfil local ("user/sso-profile")
- * @returns {object} Cliente SSO con login, handleCallback, verifySession, logout y helpers.
+ * @param {string} [config.meEndpoint]    Ruta del perfil local para fetchMe, default "/user/me"
+ * @param {string} [config.loginEndpoint] Ruta del login local, default "/login"
+ * @returns {object} Cliente SSO con login, handleCallback, verifySession, logout, loginLocal, fetchMe y helpers.
  */
 export function createSsoClient(config = {}) {
   const {
     ssoBaseUrl = '',
     ssoRedirect = '/login-redirect',
     nodeApiBaseUrl = '',
+    meEndpoint = '/user/me',
+    loginEndpoint = '/login',
   } = config
 
   const ssoBase = normUrl(ssoBaseUrl)
@@ -95,13 +99,16 @@ export function createSsoClient(config = {}) {
       const profileData = await profileResponse.json()
 
       if (profileData?.exists && profileData?.user) {
+        const pu = profileData.user
         return {
           exists: true,
           localUser: {
-            id: profileData.user.id,
-            username: profileData.user.username,
-            email: profileData.user.email,
-            role_id: profileData.user.role_id,
+            id: pu.id,
+            username: pu.username,
+            email: pu.email,
+            role_id: pu.role_id,
+            roles: pu.roles || [],
+            permisos: pu.permisos || [],
           },
           ssoEmail,
           bearer_token: bearerToken,
@@ -154,6 +161,84 @@ export function createSsoClient(config = {}) {
     } catch (error) {
       clearSession()
       return { authenticated: false }
+    }
+  }
+
+  async function fetchMe(baseUrl) {
+    const token = getToken()
+    const base = normUrl(baseUrl || nodeApiBaseUrl)
+    if (!token) {
+      return { success: false, authenticated: false, error: 'Sin token' }
+    }
+    if (!base) {
+      return { success: false, authenticated: false, error: 'Sin nodeApiBaseUrl configurado' }
+    }
+
+    try {
+      const response = await fetch(`${base}${meEndpoint}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        if (error.require_reauth) {
+          return { success: false, authenticated: false, requireReauth: true }
+        }
+        return { success: false, authenticated: false, error: 'Error al obtener perfil local' }
+      }
+
+      const result = await response.json()
+      const user = result?.data?.user ?? result?.user
+      if (user) {
+        safeSet(SSO_USER_KEY, JSON.stringify(user))
+      }
+
+      return {
+        success: true,
+        authenticated: true,
+        user: user || null,
+        roles: user?.roles || [],
+        permisos: user?.permisos || [],
+      }
+    } catch (error) {
+      console.error('SSO fetchMe: error', error)
+      return { success: false, authenticated: false, error: error.message }
+    }
+  }
+
+  async function loginLocal(username, password) {
+    const base = normUrl(nodeApiBaseUrl)
+    if (!base) {
+      throw new Error('Login local requiere nodeApiBaseUrl')
+    }
+    if (!username || !password) {
+      throw new Error('Usuario y contraseña requeridos')
+    }
+
+    const response = await fetch(`${base}${loginEndpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    })
+
+    const body = await response.json().catch(() => ({}))
+
+    if (!response.ok || !body?.success) {
+      throw new Error(body?.message || 'Credenciales inválidas')
+    }
+
+    const bearerToken = body?.data?.token
+    if (!bearerToken) {
+      throw new Error('No se recibió token del servidor')
+    }
+
+    safeSet(SSO_TOKEN_KEY, bearerToken)
+    safeSet(SSO_USER_KEY, JSON.stringify(body?.data?.user || {}))
+
+    return {
+      success: true,
+      user: body?.data?.user || null,
+      bearer_token: bearerToken,
     }
   }
 
@@ -214,8 +299,10 @@ export function createSsoClient(config = {}) {
 
   return {
     login,
+    loginLocal,
     handleCallback,
     verifySession,
+    fetchMe,
     logout,
     getToken,
     getUser,

@@ -3,13 +3,52 @@ import { getBearerToken, filterSensitive } from './utils.js';
 
 export function createRouter(ctx, service, middleware) {
   const router = express.Router();
-  const { sensitiveFields } = ctx;
-  const { verifySsoToken, syncSsoUser, findLocalUserByToken, normalizeUniqueId } = service;
+  const { sensitiveFields, rbac, localLogin } = ctx;
+  const { verifySsoToken, syncSsoUser, findLocalUserByToken, normalizeUniqueId, resolveUserRoles, resolveUserPermissions, localLoginUser } = service;
   const { authMiddleware } = middleware;
 
+  // POST /login — Login local (usuario/contraseña). Solo si localLogin está activo.
+  if (localLogin) {
+    router.post(localLogin.endpoint, async (req, res) => {
+      const { username, password } = req.body || {};
+      if (!username || !password) {
+        return res.status(400).json({ success: false, message: 'Usuario y contraseña requeridos' });
+      }
+      try {
+        const result = await localLoginUser(username, password);
+        if (!result) {
+          return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
+        }
+        return res.status(200).json({
+          success: true,
+          data: {
+            token: result.token,
+            user: filterSensitive(result.user, sensitiveFields),
+          },
+        });
+      } catch (error) {
+        (ctx.logger?.error || console.error)('[Login] Error:', error);
+        return res.status(500).json({ success: false, message: 'Error interno del servidor' });
+      }
+    });
+  }
+
   // GET /me — Devuelve el usuario autenticado (requiere authMiddleware)
-  router.get('/me', authMiddleware, (req, res) => {
-    res.json({ success: true, user: filterSensitive(req.user, sensitiveFields) });
+  router.get('/me', authMiddleware, async (req, res) => {
+    let user = req.user;
+    if (rbac && user) {
+      const userId = user[rbac.userPk] ?? user.id;
+      const [roles, permisos] = await Promise.all([
+        resolveUserRoles(userId),
+        resolveUserPermissions(userId),
+      ]);
+      user = {
+        ...user,
+        roles: roles.map((r) => r[rbac.roleNameCol] ?? r.nombre),
+        permisos: permisos.map((p) => p[rbac.permissionNameCol] ?? p.nombre),
+      };
+    }
+    res.json({ success: true, user: filterSensitive(user, sensitiveFields) });
   });
 
   // GET /sso-profile — Busca usuario local por email del SSO sin crearlo
@@ -38,7 +77,21 @@ export function createRouter(ctx, service, middleware) {
         return res.json({ success: true, exists: false, user: null });
       }
 
-      return res.json({ success: true, exists: true, user: filterSensitive(localUser, sensitiveFields) });
+      let user = localUser;
+      if (rbac) {
+        const userId = localUser[rbac.userPk] ?? localUser.id;
+        const [roles, permisos] = await Promise.all([
+          resolveUserRoles(userId),
+          resolveUserPermissions(userId),
+        ]);
+        user = {
+          ...localUser,
+          roles: roles.map((r) => r[rbac.roleNameCol] ?? r.nombre),
+          permisos: permisos.map((p) => p[rbac.permissionNameCol] ?? p.nombre),
+        };
+      }
+
+      return res.json({ success: true, exists: true, user: filterSensitive(user, sensitiveFields) });
     } catch (error) {
       const ssoBody = error.response?.data;
       (ctx.logger?.error || console.error)(`[SSO-Profile] Error: ${JSON.stringify(ssoBody) || error.message}`);

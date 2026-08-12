@@ -4,17 +4,25 @@ import { createService } from './service.js';
 import { createMiddleware } from './middleware.js';
 import { createRouter } from './router.js';
 import { createSsoSocket } from './socket.js';
+import { normalizeRbacConfig } from './rbac.js';
 import { normalizeUniqueId, parseSsoRoleMap } from './utils.js';
 
 const DEFAULT_TABLES = {
   user: 'user',
   userTokens: 'user_tokens',
   profile: 'profile',
+  userPkField: 'id',
+  usernameField: 'username',
   accessTokenField: 'access_token',
   activeTokensField: 'is_active',
   lastUsedAtField: 'last_used_at',
   tokenField: 'token',
   expiresAtField: 'expires_at',
+};
+
+const DEFAULT_LOCAL_LOGIN = {
+  endpoint: '/login',
+  passwordField: 'password_hash',
 };
 
 const DEFAULT_SENSITIVE_FIELDS = [
@@ -49,6 +57,17 @@ export function createSsoAuth(options = {}) {
     ? options.cache
     : new MemoryCache({ ttlMs: cacheTtlMs, cleanupIntervalMs: 60 * 60 * 1000 });
 
+  const rbac = normalizeRbacConfig(options.rbac);
+
+  let localLogin = options.localLogin;
+  if (localLogin && localLogin !== true) {
+    localLogin = { ...DEFAULT_LOCAL_LOGIN, ...(typeof localLogin === 'object' ? localLogin : {}) };
+  } else if (localLogin === true) {
+    localLogin = { ...DEFAULT_LOCAL_LOGIN };
+  } else {
+    localLogin = null;
+  }
+
   const ctx = {
     knex: options.knex,
     ssoBaseUrl,
@@ -58,6 +77,8 @@ export function createSsoAuth(options = {}) {
     sendReauthHeader,
     sensitiveFields,
     tables,
+    rbac,
+    localLogin,
     logger,
     cache,
     findLocalUserByToken: options.findLocalUserByToken,
@@ -78,13 +99,20 @@ export function createSsoAuth(options = {}) {
   const api = {
     authMiddleware: middleware.authMiddleware,
     authMiddlewareOptional: middleware.authMiddlewareOptional,
+    requirePermission: middleware.requirePermission,
+    requireRole: middleware.requireRole,
     router,
     syncSsoUser: service.syncSsoUser,
     findLocalUserByToken: service.findLocalUserByToken,
     resolveSsoRole: service.resolveSsoRoleFor,
+    resolveUserRoles: service.resolveUserRoles,
+    resolveUserPermissions: service.resolveUserPermissions,
     verifySsoToken: service.verifySsoToken,
     extendSsoSession: service.extendSsoSession,
+    localLoginUser: service.localLoginUser,
     normalizeUniqueId,
+    rbac,
+    localLogin,
     attachSocket,
     logger,
   };

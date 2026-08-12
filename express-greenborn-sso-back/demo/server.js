@@ -20,11 +20,15 @@ const db = knex({
 });
 
 // Configuración SSO reutilizable
+// `rbac: true` habilita el modo de roles/permisos M2M (esquema de
+// sistema-gestion-interno): tablas roles, permisos, usuarios_roles,
+// roles_permisos. Omitirlo (o false) conserva el modo legacy role_id único.
 const sso = createSsoAuth({
   knex: db,
   ssoBaseUrl: process.env.URL_AUTH_SERVICE || 'https://auth.greenborn.com.ar',
   ssoRoleMap: process.env.SSO_ROLE_MAP,
   defaultRoleId: 3,
+  rbac: process.env.SSO_RBAC === 'true',
   logger: console,
 });
 
@@ -41,6 +45,16 @@ app.get('/api/protected', sso.authMiddleware, (req, res) => {
   res.json({ success: true, user: req.user });
 });
 
+// Ejemplo de autorización por permiso (modo RBAC)
+app.get('/api/projects', sso.authMiddleware, sso.requirePermission('proyectos.ver'), (req, res) => {
+  res.json({ success: true, user: req.user });
+});
+
+// Ejemplo de autorización por rol (modo RBAC)
+app.get('/api/admin', sso.authMiddleware, sso.requireRole('ADMIN'), (req, res) => {
+  res.json({ success: true, user: req.user });
+});
+
 // Ejemplo de ruta con auth opcional
 app.get('/api/public', sso.authMiddlewareOptional, (req, res) => {
   res.json({ success: true, user: req.user || null });
@@ -54,6 +68,8 @@ const server = app.listen(port, () => {
   console.log(`  - GET  /api/user/sso-profile?unique_id=...`);
   console.log(`  - POST /api/user/register     (rama SSO)`);
   console.log(`  - GET  /api/protected         (authMiddleware)`);
+  console.log(`  - GET  /api/projects          (authMiddleware + requirePermission)`);
+  console.log(`  - GET  /api/admin             (authMiddleware + requireRole)`);
   console.log(`  - GET  /api/public            (authMiddlewareOptional)`);
 });
 

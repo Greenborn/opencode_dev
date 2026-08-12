@@ -45,6 +45,11 @@ function makeStore(config) {
   const currentUser = computed(() => user.value)
   const accessToken = computed(() => token.value)
 
+  const roles = computed(() => (user.value?.roles) || [])
+  const permisos = computed(() => (user.value?.permisos) || [])
+  const esAdmin = computed(() => roles.value.includes('ADMIN'))
+  const tienePermiso = (permiso) => permisos.value.includes(permiso)
+
   watch(
     authenticated,
     (value) => {
@@ -64,6 +69,12 @@ function makeStore(config) {
     return client.login()
   }
 
+  async function loginLocal(username, password) {
+    const result = await client.loginLocal(username, password)
+    refreshState()
+    return result
+  }
+
   async function handleCallback(temporalToken, uniqueId) {
     const result = await client.handleCallback(temporalToken, uniqueId)
     refreshState()
@@ -81,6 +92,14 @@ function makeStore(config) {
     refreshState()
   }
 
+  async function fetchMe(baseUrl) {
+    const result = await client.fetchMe(baseUrl)
+    if (result?.authenticated) {
+      refreshState()
+    }
+    return result
+  }
+
   return {
     config,
     client,
@@ -95,9 +114,15 @@ function makeStore(config) {
     isAuthenticated,
     currentUser,
     accessToken,
+    roles,
+    permisos,
+    esAdmin,
+    tienePermiso,
     login,
+    loginLocal,
     handleCallback,
     verifySession,
+    fetchMe,
     logout,
     getToken: () => client.getToken(),
     getUser: () => client.getUser(),

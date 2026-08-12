@@ -11,3 +11,10 @@ export {
   filterSensitive,
   getBearerToken,
 } from './utils.js';
+export {
+  normalizeRbacConfig,
+  resolveUserRoles,
+  resolveUserPermissions,
+  attachRolesPermissions,
+  ensureUserRole,
+} from './rbac.js';

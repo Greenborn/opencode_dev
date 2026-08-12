@@ -61,6 +61,8 @@ app.mount('#app')
 | `ssoBaseUrl`      | string | sí          | Base del servidor SSO, ej. `https://auth.greenborn.com.ar`              |
 | `ssoRedirect`     | string | sí          | Ruta de la app que procesa el callback, ej. `/login-redirect`           |
 | `nodeApiBaseUrl`  | string | no          | Base del API Node local, para verificar el perfil local (`user/sso-profile`) |
+| `meEndpoint`      | string | no          | Ruta del perfil local para `fetchMe`, default `/user/me`                  |
+| `loginEndpoint`   | string | no          | Ruta del login local para `loginLocal`, default `/login`                  |
 | `wsUrl`           | string | no          | Base del servidor WebSocket (solo si se quiere la conexión complementaria) |
 | `wsPath`          | string | no          | Ruta del socket, default `/socket.io`                                    |
 
@@ -79,6 +81,46 @@ function loginWithGoogle() {
 ```
 
 `login()` guarda la URL actual para redirigir de vuelta tras el callback y envía al usuario a `{ssoBaseUrl}/auth/google?...`.
+
+> El login con **Google es opcional**. Si tu backend expone un login local (usuario/contraseña), puedes usarlo con `loginLocal()` en lugar de Google — ver más abajo.
+
+### Iniciar sesión local (usuario/contraseña) — opcional
+
+Requiere que el backend exponga el endpoint de login local (en `express-greenborn-sso-back`, la opción `localLogin`):
+
+```js
+const sso = useSsoAuth()
+
+const result = await sso.loginLocal('miusuario', 'miclave')
+// result: { success, user, bearer_token }
+```
+
+El front envía `POST {nodeApiBaseUrl}{loginEndpoint}` (default `/login`) con `{ username, password }`, guarda el bearer token y el usuario, y dispara el estado reactivo. A partir de ahí `sso.isAuthenticated`, `sso.user`, `sso.roles`, `sso.permisos`, etc. funcionan igual que con Google.
+
+```vue
+<template>
+  <form @submit.prevent="submit">
+    <input v-model="username" placeholder="Usuario" />
+    <input v-model="password" type="password" placeholder="Contraseña" />
+    <button>Entrar</button>
+  </form>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { useSsoAuth } from 'vue-greenborn-sso-front'
+const sso = useSsoAuth()
+const username = ref('')
+const password = ref('')
+async function submit() {
+  try {
+    await sso.loginLocal(username.value, password.value)
+  } catch (e) {
+    alert(e.message)
+  }
+}
+</script>
+```
 
 ### Página callback
 
@@ -134,6 +176,29 @@ sso.currentUser.value     // objeto usuario reactivo (o null)
 sso.accessToken.value     // bearer token reactivo (o null)
 ```
 
+## RBAC (roles y permisos)
+
+Si el backend local usa el esquema de roles/permisos (por ejemplo, `express-greenborn-sso-back` con `rbac: true`, o el RBAC de `sistema-gestion-interno`), el front expone helpers reactivos derivados de `user.roles`/`user.permisos`:
+
+```js
+const sso = useSsoAuth()
+
+sso.roles.value                    // string[] — p. ej. ['USUARIO']
+sso.permisos.value                 // string[] — p. ej. ['proyectos.ver']
+sso.esAdmin.value                  // boolean — true si 'ADMIN' está en roles
+sso.tienePermiso('proyectos.ver')  // boolean — comprueba un permiso
+```
+
+Los roles/permisos se capturan en el callback (vía `user/sso-profile`) y también puedes **refrescar** el perfil local para actualizarlos:
+
+```js
+await sso.fetchMe()
+// o, si el backend no usa la ruta default:
+await sso.fetchMe('https://api.ejemplo.com/api/')
+```
+
+`fetchMe` hace `GET {nodeApiBaseUrl}{meEndpoint}` con el bearer token (default `/user/me`), actualiza `sso.user` y dispara `refreshState()`.
+
 ## Helpers
 
 ```js
@@ -142,6 +207,16 @@ sso.getUser()                 // object | null
 sso.isSSOSession()            // boolean
 sso.getUniqueId()             // id de cliente persistido en localStorage
 sso.getAndClearRedirectUrl()  // URL guardada antes del login (y la limpia)
+
+// RBAC
+sso.roles.value               // string[]
+sso.permisos.value            // string[]
+sso.esAdmin.value             // boolean
+sso.tienePermiso('x.ver')     // boolean
+sso.fetchMe(baseUrl?)         // Promise<result> — refresca el perfil local
+
+// Login local (opcional, alternativa a Google)
+sso.loginLocal(username, password) // Promise<result>
 ```
 
 ## WebSocket complementario (socket.io)

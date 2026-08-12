@@ -8,7 +8,7 @@ function loadFromCache(service, cache, token) {
 }
 
 export function createMiddleware(ctx, service) {
-  const { cache, logger, sendReauthHeader } = ctx;
+  const { cache, logger, sendReauthHeader, rbac } = ctx;
   const { verifySsoToken, syncSsoUser, findLocalUserByToken, extendSsoSession, normalizeUniqueId } = service;
 
   const log = {
@@ -131,5 +131,53 @@ export function createMiddleware(ctx, service) {
     }
   }
 
-  return { authMiddleware, authMiddlewareOptional };
+  function requireRole(...roles) {
+    return async (req, res, next) => {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Token de autenticación requerido' });
+      }
+
+      let userRoles;
+      if (rbac) {
+        const userId = req.user[rbac.userPk] ?? req.user.id;
+        const rows = await service.resolveUserRoles(userId);
+        userRoles = rows.map((r) => r[rbac.roleNameCol] ?? r.nombre);
+      } else {
+        userRoles = req.user?.role_id != null ? [String(req.user.role_id)] : [];
+      }
+
+      const tiene = roles.some((r) => userRoles.includes(String(r)));
+      if (!tiene) {
+        return res.status(403).json({ success: false, message: 'Acceso denegado: rol insuficiente' });
+      }
+      next();
+    };
+  }
+
+  function requirePermission(...permisos) {
+    return async (req, res, next) => {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Token de autenticación requerido' });
+      }
+
+      if (permisos.length === 0) return next();
+
+      let userPermisos;
+      if (rbac) {
+        const userId = req.user[rbac.userPk] ?? req.user.id;
+        const rows = await service.resolveUserPermissions(userId);
+        userPermisos = rows.map((p) => p[rbac.permissionNameCol] ?? p.nombre);
+      } else {
+        userPermisos = req.user?.role_id != null ? [String(req.user.role_id)] : [];
+      }
+
+      const tiene = permisos.every((p) => userPermisos.includes(p));
+      if (!tiene) {
+        return res.status(403).json({ success: false, message: 'Acceso denegado: permisos insuficientes' });
+      }
+      next();
+    };
+  }
+
+  return { authMiddleware, authMiddlewareOptional, requirePermission, requireRole };
 }

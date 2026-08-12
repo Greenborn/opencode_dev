@@ -1,0 +1,7 @@
+node_modules/
+dist/
+out-tsc/
+demo/dist/
+*.log
+.DS_Store
+.env

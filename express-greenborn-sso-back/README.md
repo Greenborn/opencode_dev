@@ -35,6 +35,7 @@ const sso = createSsoAuth({
   ssoBaseUrl: process.env.URL_AUTH_SERVICE,   // default: https://auth.greenborn.com.ar
   ssoRoleMap: process.env.SSO_ROLE_MAP,       // default: env SSO_ROLE_MAP
   defaultRoleId: 3,                           // rol por defecto (Concursante)
+  rbac: true,                                 // opcional: esquema de roles/permisos M2M
   logger: console,
 });
 
@@ -70,6 +71,8 @@ app.listen(3000);
 | `createUserFromSso` | fn | interna | Hook de mapeo SSO → DB. |
 | `sendReauthHeader` | boolean | `true` | Emite header `X-New-Token` al renovar sesión. |
 | `ssoClient` | object | interno | Cliente HTTP SSO (`{ verifyToken, extendSession }`), útil para testear. |
+| `rbac` | boolean \| object | `false` | Habilita el modo RBAC M2M (esquema de roles/permisos). Ver abajo. |
+| `localLogin` | boolean \| object | `null` | Habilita el **login local** (usuario/contraseña) como alternativa a Google. Ver abajo. |
 
 ### `tables` por defecto
 
@@ -151,6 +154,103 @@ Los endpoints que consume el frontend son justamente los que expone este router:
 |--------------------------|-------------------------|
 | `user/sso-profile?unique_id=...` | `GET /sso-profile` |
 | `user/me` | `GET /me` |
+
+## Modo RBAC (roles y permisos M2M)
+
+Por defecto el paquete usa el modelo *legacy* de un solo rol por usuario (columna `user.role_id`), como en `GFC-Back`. Para usar el **mismo esquema de roles y permisos** de `sistema-gestion-interno`, activa la opción `rbac`:
+
+```js
+const sso = createSsoAuth({
+  knex: db,
+  rbac: true, // usa el esquema M2M de roles/permisos
+});
+```
+
+Con `rbac: true` el paquete espera (y sincroniza) estas tablas, coincidiendo con el esquema de sgi:
+
+```
+usuarios  (id, ...)
+roles     (id, nombre, ...)
+permisos  (id, nombre, ...)
+usuarios_roles  (usuario_id, rol_id)          -- M2M usuario <-> rol
+roles_permisos  (rol_id, permiso_id)          -- M2M rol <-> permiso
+```
+
+Los nombres de tablas/columnas son configurables:
+
+```js
+rbac: {
+  rolesTable: 'roles',
+  permissionsTable: 'permisos',
+  userRolesTable: 'usuarios_roles',
+  rolePermissionsTable: 'roles_permisos',
+  userIdCol: 'usuario_id',
+  roleIdCol: 'rol_id',
+  permissionIdCol: 'permiso_id',
+  roleNameCol: 'nombre',
+  permissionNameCol: 'nombre',
+  userPk: 'id',
+}
+```
+
+### Comportamiento con `rbac`
+- Al sincronizar un usuario SSO (nuevo o existente) se enlaza al rol resuelto por `SSO_ROLE_MAP` vía `usuarios_roles` (sin tocar un `role_id` único).
+- `GET /me` y `GET /sso-profile` devuelven `roles[]` y `permisos[]` (arrays de nombres) además del usuario, el mismo contrato que consume el frontend de sgi.
+
+### Autorización por permiso y rol
+
+```js
+// Requiere todos los permisos listados (modo RBAC: lee usuarios_roles/roles_permisos)
+app.get('/api/projects', sso.authMiddleware, sso.requirePermission('proyectos.ver', 'proyectos.editar'), handler);
+
+// Requiere al menos uno de los roles
+app.get('/api/admin', sso.authMiddleware, sso.requireRole('ADMIN'), handler);
+```
+
+> Sin `rbac`, `requireRole` compara contra `role_id` y `requirePermission` falla (no existen permisos en el esquema legacy); por eso `requirePermission` se recomienda únicamente con `rbac`.
+
+### Mapeo de usuario SSO → sgi
+La tabla `usuarios` de sgi **no tiene email** y su auth es JWT local. Para integrar, proporciona el hook `createUserFromSso` en el proyecto consumidor (por ejemplo, mapeando `ssoUser.email` a `username` y asignando el rol por mapa), sin modificar el esquema de sgi:
+
+```js
+createUserFromSso: async (ssoUser, ctx) => {
+  // ... crear/actualizar el usuario en tu tabla y enlazar rol en usuarios_roles
+}
+```
+
+## Login local (usuario/contraseña) — opcional
+
+El login **SSO con Google es opcional**. Puedes usarlo solo como autenticador de tokens, o bien habilitar un **login local** (`POST {endpoint}`) que valida usuario/contraseña contra tu tabla y emite un bearer token local (el mismo que acepta `authMiddleware` vía `findLocalUserByToken`).
+
+```js
+const sso = createSsoAuth({
+  knex: db,
+  localLogin: {
+    endpoint: '/login',              // default
+    passwordField: 'password_hash',  // columna con el hash de la contraseña
+    tokenTtlMs: 8 * 60 * 60 * 1000,  // opcional: expiración del token local
+    verifyPassword: async (password, hash) => bcrypt.compare(password, hash),
+  },
+});
+```
+
+- Con `localLogin: true` se usan los defaults (columna `password_hash`) — necesitarás proveer `verifyPassword`.
+- Para lógica de validación personalizada (buscar por otro campo, hashing propio, etc.) usa `handler(username, password, ctx)`:
+
+```js
+localLogin: {
+  handler: async (username, password, ctx) => {
+    const user = await ctx.knex('usuarios').where({ username }).first();
+    if (!user || !(await checkPassword(password, user.password))) return null;
+    return user;
+  },
+}
+```
+
+- El endpoint responde `{ success: true, data: { token, user } }` (filtra campos sensibles). Si en modo RBAC, `user` incluye `roles[]`/`permisos[]`.
+- El token emitido se guarda en la tabla de tokens (`user_tokens` por defecto), por lo que `authMiddleware` lo acepta igual que un token local.
+
+> Sin `localLogin` no se expone la ruta `/login` y el paquete solo valida tokens (SSO y/o locales).
 
 ## WebSocket complementario (socket.io)
 

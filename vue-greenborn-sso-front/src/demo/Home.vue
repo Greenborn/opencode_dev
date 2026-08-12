@@ -8,12 +8,28 @@
     <section v-if="sso.isAuthenticated.value">
       <p>✅ Sesión SSO activa.</p>
       <pre class="user-box">{{ sso.currentUser.value }}</pre>
+      <h4>RBAC</h4>
+      <p>
+        Roles: <code>{{ sso.roles.value.join(', ') || '—' }}</code><br />
+        Permisos: <code>{{ sso.permisos.value.join(', ') || '—' }}</code><br />
+        esAdmin: <code>{{ sso.esAdmin.value }}</code><br />
+        tienePermiso('proyectos.ver'): <code>{{ sso.tienePermiso('proyectos.ver') }}</code>
+      </p>
+      <button @click="refreshProfile">Refrescar perfil (fetchMe)</button>
       <button @click="logout">Cerrar sesión</button>
     </section>
 
     <section v-else>
-      <p>No hay sesión SSO activa.</p>
-      <button @click="loginWithGoogle">Iniciar sesión con Google</button>
+      <p>No hay sesión activa.</p>
+      <button @click="loginWithGoogle">Iniciar sesión con Google (SSO)</button>
+
+      <h4>Login local (opcional)</h4>
+      <form @submit.prevent="submitLocalLogin">
+        <input v-model="localUsername" placeholder="Usuario" />
+        <input v-model="localPassword" type="password" placeholder="Contraseña" />
+        <button type="submit">Entrar (usuario/contraseña)</button>
+      </form>
+      <p v-if="localError" class="error">{{ localError }}</p>
     </section>
 
     <hr class="spacer" />
@@ -49,13 +65,29 @@ import { useSsoAuth } from '../composables/useSsoAuth.js'
 const sso = useSsoAuth()
 const verifyResult = ref(null)
 const echoResult = ref(null)
+const localUsername = ref('')
+const localPassword = ref('')
+const localError = ref(null)
 
 function loginWithGoogle() {
   sso.login()
 }
 
+async function submitLocalLogin() {
+  localError.value = null
+  try {
+    await sso.loginLocal(localUsername.value, localPassword.value)
+  } catch (e) {
+    localError.value = e.message
+  }
+}
+
 async function logout() {
   await sso.logout()
+}
+
+async function refreshProfile() {
+  await sso.fetchMe()
 }
 
 async function runVerify() {
@@ -88,5 +120,8 @@ async function runEcho() {
   margin: 1.5rem 0;
   border: 0;
   border-top: 1px solid #e2e8f0;
+}
+.error {
+  color: #b91c1c;
 }
 </style>

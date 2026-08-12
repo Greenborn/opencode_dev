@@ -1,7 +1,14 @@
+import { randomBytes } from 'node:crypto';
 import { normalizeUniqueId, resolveSsoRole } from './utils.js';
+import {
+  attachRolesPermissions,
+  ensureUserRole,
+  resolveUserRoles,
+  resolveUserPermissions,
+} from './rbac.js';
 
 export function createService(ctx) {
-  const { knex, tables, createUserFromSso, ssoClient, defaultRoleId, logger } = ctx;
+  const { knex, tables, rbac, createUserFromSso, ssoClient, defaultRoleId, logger, localLogin } = ctx;
 
   const log = logger && typeof logger.error === 'function'
     ? logger
@@ -18,10 +25,23 @@ export function createService(ctx) {
     return defaultSyncSsoUser(ssoUser);
   }
 
+  async function attachRbac(user) {
+    if (!rbac || !user) return user;
+    return attachRolesPermissions(knex, rbac, user);
+  }
+
   async function defaultSyncSsoUser(ssoUser) {
     const email = ssoUser.email;
     let user = await knex(tables.user).where({ email }).first();
-    if (user) return user;
+
+    if (user) {
+      if (rbac) {
+        const roleId = resolveSsoRoleFor(ssoUser.email);
+        await ensureUserRole(knex, rbac, user[rbac.userPk] ?? user.id, roleId);
+        return attachRolesPermissions(knex, rbac, user);
+      }
+      return user;
+    }
 
     const name = ssoUser.name || ssoUser.email?.split('@')[0] || 'SSO User';
     const [profileRow] = await knex(tables.profile).insert({
@@ -31,17 +51,34 @@ export function createService(ctx) {
     }).returning('id');
     const profileId = profileRow?.id ?? profileRow;
 
-    const [userRow] = await knex(tables.user).insert({
-      username: name,
-      email: ssoUser.email,
-      role_id: resolveSsoRoleFor(ssoUser.email),
-      profile_id: profileId,
-      status: 1,
-      created_at: new Date().toISOString(),
-    }).returning('id');
+    const roleId = resolveSsoRoleFor(ssoUser.email);
+
+    const insertData = rbac
+      ? {
+          username: name,
+          email: ssoUser.email,
+          profile_id: profileId,
+          status: 1,
+          created_at: new Date().toISOString(),
+        }
+      : {
+          username: name,
+          email: ssoUser.email,
+          role_id: roleId,
+          profile_id: profileId,
+          status: 1,
+          created_at: new Date().toISOString(),
+        };
+
+    const [userRow] = await knex(tables.user).insert(insertData).returning('id');
     const userId = userRow?.id ?? userRow;
 
-    return knex(tables.user).where({ id: userId }).first();
+    if (rbac) {
+      await ensureUserRole(knex, rbac, userId, roleId);
+    }
+
+    const created = await knex(tables.user).where({ id: userId }).first();
+    return rbac ? attachRolesPermissions(knex, rbac, created) : created;
   }
 
   async function findLocalUserByToken(token) {
@@ -68,6 +105,50 @@ export function createService(ctx) {
       if (legacyUser) return legacyUser;
     }
     return null;
+  }
+
+  function generateToken() {
+    return randomBytes(32).toString('hex');
+  }
+
+  async function issueLocalToken(user) {
+    const token = generateToken();
+    const expiresAt = localLogin.tokenTtlMs
+      ? new Date(Date.now() + localLogin.tokenTtlMs)
+      : null;
+    const now = new Date();
+    await knex(tables.userTokens).insert({
+      [tables.tokenField]: token,
+      user_id: user[tables.userPkField] ?? user.id,
+      [tables.activeTokensField]: true,
+      [tables.expiresAtField]: expiresAt,
+      [tables.lastUsedAtField]: now,
+    });
+    return token;
+  }
+
+  async function defaultLocalLoginHandler(username, password) {
+    if (!localLogin.verifyPassword) return null;
+    const row = await knex(tables.user)
+      .where({ [tables.usernameField]: username })
+      .first();
+    if (!row) return null;
+    const ok = await localLogin.verifyPassword(password, row[localLogin.passwordField]);
+    return ok ? row : null;
+  }
+
+  async function localLoginUser(username, password) {
+    const handler = localLogin.handler || defaultLocalLoginHandler;
+    const user = await handler(username, password, ctx);
+    if (!user) return null;
+
+    let resultUser = user;
+    if (rbac) {
+      resultUser = await attachRolesPermissions(knex, rbac, user);
+    }
+
+    const token = await issueLocalToken(user);
+    return { user: resultUser, token };
   }
 
   async function verifySsoToken(token, uniqueId) {
@@ -102,5 +183,8 @@ export function createService(ctx) {
     findLocalUserByToken,
     verifySsoToken,
     extendSsoSession,
+    localLoginUser,
+    resolveUserRoles: (userId) => rbac ? resolveUserRoles(knex, rbac, userId) : Promise.resolve([]),
+    resolveUserPermissions: (userId) => rbac ? resolveUserPermissions(knex, rbac, userId) : Promise.resolve([]),
   };
 }

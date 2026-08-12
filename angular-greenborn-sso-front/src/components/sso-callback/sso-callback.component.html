@@ -1,0 +1,14 @@
+<div class="gb-sso-callback">
+  @if (loading) {
+    <div class="gb-sso-callback__loading">
+      <span class="gb-sso-callback__spinner" role="status"></span>
+      <p>Autenticando...</p>
+    </div>
+  } @else if (errorMessage) {
+    <div class="gb-sso-callback__error">
+      <p>{{ errorMessage }}</p>
+    </div>
+  } @else {
+    <ng-content></ng-content>
+  }
+</div>
