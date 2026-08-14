@@ -71,6 +71,7 @@ Fijar la versión inicial en `package.json` a `1.0.0`:
 ```bash
 npm install bootstrap @popperjs/core bootstrap-icons pinia axios vue-router vue-greenborn-sso-front@1.1.0
 npm install vue-table-editor
+npm install vue-greenborn-modal-manager
 ```
 
 Si `<ws-habilitado>` es `true`, instalar además el cliente socket.io (peer del paquete SSO):
@@ -267,19 +268,20 @@ export default router
     <template v-else>
       <router-view />
     </template>
-    <ModalDialog />
+    <ModalContainer />
   </div>
 </template>
 
 <script>
 import Topbar from './components/layout/Topbar.vue'
 import Sidebar from './components/layout/Sidebar.vue'
-import ModalDialog from './components/ModalDialog.vue'
+import { ModalContainer } from 'vue-greenborn-modal-manager'
+import 'vue-greenborn-modal-manager/style.css'
 import { useSsoAuth } from 'vue-greenborn-sso-front'
 
 export default {
   name: 'App',
-  components: { Topbar, Sidebar, ModalDialog },
+  components: { Topbar, Sidebar, ModalContainer },
   data() {
     return {
       sidebarVisible: window.innerWidth >= 768,
@@ -847,90 +849,90 @@ Las acciones siguen el patrón de colores: editar = `btn-dark`, eliminar = `btn-
 
 El `config` puede persistir columnas visibles/ancho/orden por usuario.
 
-## 13H. Store de modals anidados — `src/stores/modal.js`
+## 13H. Sistema de modales — `vue-greenborn-modal-manager`
+
+Los modales (formularios, confirmaciones, notificaciones) se gestionan con el paquete **`vue-greenborn-modal-manager`**. No escribir stores de modal propios ni usar `new Modal()` de Bootstrap directamente.
+
+El contenedor `<ModalContainer />` ya está montado en la raíz (`App.vue`, sección 5) con su hoja de estilos importada. Desde cualquier componente se abre un modal con el composable `useModal()`:
 
 ```javascript
-import { defineStore } from 'pinia'
+import { useModal } from 'vue-greenborn-modal-manager'
 
-export const useModalStore = defineStore('modal', {
-  state: () => ({
-    abiertos: [],
-  }),
-  getters: {
-    superior(state) {
-      return state.abiertos[state.abiertos.length - 1] || null
-    },
-  },
-  actions: {
-    abrir(config) {
-      this.abiertos.push(config)
-    },
-    cerrar(id) {
-      const idx = this.abiertos.findIndex((m) => m.id === id)
-      if (idx !== -1) this.abiertos.splice(idx, 1)
-    },
-  },
+const { mostrar_modal, ocultar_modal, mostrar_alerta, mostrar_confirm } = useModal()
+
+// Componente simple → se usa como body
+mostrar_modal(FormImputar, 'Imputación', { modelo }, { size: 'full' })
+
+// Componente compuesto (body + header + footer opcionales)
+mostrar_modal(
+  { body: formDatos, header: FormDatosHeader, footer: Botonera },
+  'Título',
+  { _modalState: modalState },
+  { size: 'md' }
+)
+
+// Helpers
+mostrar_alerta('Operación exitosa')
+mostrar_confirm({
+  title: 'Atención',
+  text: '¿Eliminar el registro?',
+  confirmar_accion: () => borrar(),
+  no_confirma_accion: () => {},
+  severity_confirmar: 'danger',
 })
 ```
 
-## 13I. Componente Modal arrastrable — `src/components/ModalDialog.vue`
+### Componentes inyectados en el body/header/footer
 
-Modal genérico arrastrable que renderiza el modal superior del store `modal`.
+Al cuerpo se le pasa `parametros` con el objeto que definiste **más** las claves reservadas `_config_modal` (configuración) y `_modal_cod` (identificador para `ocultar_modal()`). El contenido del modal debe ser un componente separado que exponga su lógica y se auto-oculte con `ocultar_modal`:
 
 ```vue
 <template>
-  <div v-if="modal.superior" class="modal-backdrop" @click.self="cerrar">
-    <div class="modal-dialog" style="position: fixed; left: 0; top: 0;" :style="posicion">
-      <div class="modal-content">
-        <div class="modal-header" @mousedown="iniciarArrastre">
-          <h5 class="modal-title">{{ modal.superior.titulo }}</h5>
-          <button type="button" class="btn-close" @click="cerrar"></button>
-        </div>
-        <div class="modal-body">
-          <component :is="modal.superior.componente" v-bind="modal.superior.props"
-            @ok="cerrar" @cancelar="cerrar" />
-        </div>
-      </div>
-    </div>
-  </div>
+  <form @submit.prevent="guardar">
+    <!-- campos -->
+    <button type="button" class="btn btn-secondary" @click="cancelar">Cancelar</button>
+    <button type="submit" class="btn btn-primary" :disabled="guardando">Guardar</button>
+  </form>
 </template>
 
 <script>
-import { useModalStore } from '../stores/modal'
+import { useModal } from 'vue-greenborn-modal-manager'
 
 export default {
-  name: 'ModalDialog',
-  data() {
-    return {
-      modal: useModalStore(),
-      posicion: { left: '20%', top: '12%' },
-      arrastre: null,
-    }
+  props: {
+    parametros: { type: Object, default: () => ({}) },
   },
+  data() { return { guardando: false } },
   methods: {
-    cerrar() {
-      if (this.modal.superior) this.modal.cerrar(this.modal.superior.id)
-    },
-    iniciarArrastre(e) {
-      const m = this.$el
-      this.arrastre = { dx: e.clientX - m.offsetLeft, dy: e.clientY - m.offsetTop }
-      window.addEventListener('mousemove', this.mover)
-      window.addEventListener('mouseup', this.soltar)
-    },
-    mover(e) {
-      if (!this.arrastre) return
-      this.posicion.left = `${e.clientX - this.arrastre.dx}px`
-      this.posicion.top = `${e.clientY - this.arrastre.dy}px`
-    },
-    soltar() {
-      this.arrastre = null
-      window.removeEventListener('mousemove', this.mover)
-      window.removeEventListener('mouseup', this.soltar)
+    ocultar() { ocultar_modal(this.parametros._modal_cod) },
+    cancelar() { this.ocultar() },
+    async guardar() {
+      this.guardando = true
+      try {
+        // lógica de guardado
+        this.ocultar()
+        this.parametros._onSaved?.()
+      } finally { this.guardando = false }
     },
   },
 }
 </script>
 ```
+
+### Configuración del modal — `config_modal`
+
+| Opción | Tipo | Descripción |
+|--------|------|-------------|
+| `size` | `string` | Escala de ancho: `sm` (480px), `md` (720px), `lg` (1100px), `full`. Default: auto. |
+| `styles.width` / `styles.height` | `string` | Escape hatch inline; gana a `size`. |
+| `cssClass` | `string` | Clase extra para el diálogo. |
+| `dismissableMask` | `boolean` | Clic en el overlay cierra el modal (default `false`). |
+
+### Modales anidados
+
+Llamar a `mostrar_modal()` desde el body de otro modal apila capas con mayor `z-index`; cerrar el hijo no afecta al padre.
+
+> Importante: como el modal actualiza el grid/lista tras guardar, pasar el refresco vía parámetro (p.ej. `_onSaved: () => tabla.refresh()`) en la llamada a `mostrar_modal`, nunca mediante eventos `close`/`cancel` del componente modal.
 
 ## 14. Archivo `.env` y `.env.example`
 
@@ -989,12 +991,10 @@ dist/
 │   │   ├── layout/
 │   │   │   ├── Topbar.vue
 │   │   │   └── Sidebar.vue
-│   │   └── ModalDialog.vue
 │   ├── router/
 │   │   └── index.js
 │   ├── stores/
 │   │   ├── ejemplo.js
-│   │   ├── modal.js
 │   │   ├── preferencias.js
 │   │   └── pwa.js                     (si PWA habilitado)
 │   └── views/
@@ -1096,7 +1096,7 @@ Frontend Vue 3 + Vite + Bootstrap + Pinia + SSO (vue-greenborn-sso-front).
 - `src/router/` — rutas con guard de sesión SSO
 - `src/api/axios.js` — instancia Axios con token SSO
 - `src/views/` — vistas
-- `src/stores/` — Pinia (preferencias, modal, pwa)
+- `src/stores/` — Pinia (preferencias, pwa). Los modales se gestionan con `vue-greenborn-modal-manager` (sin store de modales propio)
 - `src/components/layout/` — Topbar, Sidebar
 
 ## DEPENDENCIAS
