@@ -25,6 +25,62 @@ Define la configuración SSO con las claves de `SSOConfig`:
 | `wsPath` | `string` | no | Ruta del socket (default `/socket.io`) |
 | `onSessionExpired` | `() => void` | no | Callback al expirar la sesión (`require_reauth`) |
 
+## Errores comunes / anti-patterns
+
+> **Objetivo:** evitar que se repitan bugs por **configuración vacía** o por **acceder al
+> SSO fuera de la inyección de dependencias**. Regla de oro: **la config vive en el provider
+> `SSO_CONFIG` y el servicio se obtiene SOLO por inyección de dependencias (constructor)**.
+> Nunca se crea una config "al vuelo" dentro de un método ni se instancia el servicio a mano.
+
+### 1. Olvidar `provideSso(...)` → config vacía
+
+`SSOAuthService` está `providedIn: 'root'`, así que **siempre** es inyectable. Pero su config
+proviene del *InjectionToken* `SSO_CONFIG`, que **solo tiene valor si registras `provideSso()`**
+en los providers del bootstrap o del módulo:
+
+```ts
+bootstrapApplication(AppComponent, {
+  providers: [provideRouter(routes, withHashLocation()), provideSso(SSO_CONFIG)],
+});
+```
+
+Si olvidas `provideSso(...)`, el constructor recibe `config = null` y cae en
+`normalizeConfig({})` → **`ssoBaseUrl` y `nodeApiBaseUrl` quedan vacíos**. Consecuencias:
+`login()` navega a `/auth/google` roto, `handleCallback` no verifica el perfil local y el
+interceptor de axios no agrega `Authorization`/`unique_id` (errores `unique_id requerido`).
+Es el equivalente Angular de un error del tipo "Login local requiere nodeApiBaseUrl".
+
+### 2. NO instanciar `SSOAuthService` a mano ni en métodos
+
+Nunca hagas `new SSOAuthService(...)` ni intentes construir la config en el punto de uso.
+Eso **pierde el provider** y genera una instancia/conexión distinta a la registrada.
+El servicio debe llegar SIEMPRE por inyección en el `constructor`:
+
+```ts
+export class HomeComponent {
+  constructor(private ssoAuth: SSOAuthService) {}   // ✅ provider + config
+  // ❌ mal: const sso = new SSOAuthService(...) dentro de un método
+}
+```
+
+> **Regla:** si un componente/servicio necesita SSO, inyéctalo en su `constructor`. Nunca lo
+> crees dentro de un handler/método, porque ahí no tienes acceso garantizado al `SSO_CONFIG`
+> del provider (mismo error de "config vacía" que ocurrió en el frontend Vue con
+> `useSsoAuth()` llamado fuera de `setup()`).
+
+### 3. `normalizeConfig` / `SSO_CONFIG` son para el provider, no para uso puntual
+
+`provideSso(SSO_CONFIG)` y `normalizeConfig(...)` ya aplican los defaults (`appName`,
+`tokenKey`, `ssoRedirect`, `wsPath`). No los vuelvas a invocar en cada consumo para
+"reconstruir" la config; usa la inyectada vía `ssoAuth.config`.
+
+### Checklist rápido
+
+- [ ] `provideSso(SSO_CONFIG)` presente en `main.ts` **antes** de `bootstrapApplication`.
+- [ ] `installSsoAxiosInterceptors(SSO_CONFIG).install()` llamado **una vez** (`.install()` obligatorio).
+- [ ] `nodeApiBaseUrl` definido si usas perfil local / interceptor.
+- [ ] El servicio se inyecta en el `constructor`; nunca `new ...` ni construir config en métodos.
+
 ## Uso / Instalación de interceptores
 
 > **Importante:** `installSsoAxiosInterceptors(...)` **NO** registra los interceptores por sí sola.
@@ -148,6 +204,92 @@ Outputs: `success`, `error`, `noParams`.
   `getLocalToken()`/`setLocalToken()`.
 - **`SSOSocketService`** — WebSocket complementario (socket.io); expone `connected$`.
 - **`RoleService`** — utilidad para nombres de rol (`roleName(role_id)`).
+
+## Conexión WebSocket (socket.io) y CORS
+
+`SSOSocketService` expone un WebSocket complementario (socket.io) sobre `wsUrl`/`wsPath`.
+El servicio envía el bearer token (SSO o local) y el `unique_id` en el `handshake`; el backend
+los valida y autentica la conexión.
+
+### En el frontend
+
+Configura `wsUrl` y `wsPath` en `SSO_CONFIG`, y conecta **solo si hay sesión iniciada**:
+
+```ts
+import { SSOSocketService, SSOAuthService } from 'angular-greenborn-sso-front';
+
+// SSO_CONFIG con:
+//   wsUrl: 'https://mi-app.api2.greenborn.com.ar',
+//   wsPath: '/socket.io',
+```
+
+```ts
+// En AppComponent (o un servicio root):
+constructor(
+  private ssoAuth: SSOAuthService,
+  private ssoSocket: SSOSocketService,
+) {}
+
+ngOnInit() {
+  // Solo intentar conectar si hay sesión (SSO o token local)
+  if (!this.ssoAuth.isSSOSession() && !localStorage.getItem('token')) return;
+
+  this.ssoSocket.connected$.subscribe(connected => {
+    if (connected) console.log('[WebSocket] Conexión establecida');
+  });
+
+  this.ssoSocket.connect();
+}
+```
+
+> La reconexión automática la maneja el cliente (`reconnection: true`), no es necesario
+> implementarla manualmente.
+
+### En el backend
+
+> **Importante:** el header `Access-Control-Allow-Origin` del `/socket.io` lo emite el propio
+> servidor socket.io (no nginx). Su valor se controla con `CORS_ORIGIN`.
+
+El backend compatible (`express-greenborn-sso-back` → `createSsoSocket`) configura el CORS del
+socket con `cors: { origin: corsOrigin }`. Si el **origen del frontend no está en `CORS_ORIGIN`**,
+el navegador bloquea la lectura de la respuesta: el servidor responde `200` (con el `sid`) pero
+**sin** el header `Access-Control-Allow-Origin`, y aparece un error del tipo:
+
+```
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource
+at https://.../socket.io/?EIO=4&transport=polling...
+(Reason: CORS header 'Access-Control-Allow-Origin' missing). Status code: 200.
+```
+
+Para corregirlo, en el `.env` del backend agrega el origen del frontend a `CORS_ORIGIN`
+(separado por espacios) y reinicia el proceso:
+
+```env
+CORS_ORIGIN=http://localhost:3000 http://localhost:4200 https://mi-app.greenborn.com.ar
+```
+
+### En nginx
+
+nginx **no** agrega el header CORS del socket, pero **debe** proxear la ruta `/socket.io` y
+forwardear los headers de upgrade para que el transporte **websocket** funcione tras el
+*handshake* inicial (polling):
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:<BACKEND_PORT>;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_cache_bypass $http_upgrade;
+}
+```
+
+Sin el forward de `Upgrade`/`Connection`, el *handshake* polling funciona pero el upgrade a
+websocket falla.
 
 ## Guard de rutas
 

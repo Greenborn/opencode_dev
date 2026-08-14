@@ -1,0 +1,60 @@
+{
+  "name": "vue-greenborn-modal-manager",
+  "version": "1.0.0",
+  "description": "Gestor de modales genérico y autocontenido para Vue 3: composable de estado (sin Pinia) con soporte de modales anidados, pasaje de parámetros, componentes compuestos (body/header/footer), alertas y confirmaciones. Sin dependencias de UI (CSS propio).",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-greenborn-modal-manager.umd.cjs",
+  "module": "./dist/vue-greenborn-modal-manager.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-modal-manager.js",
+      "require": "./dist/vue-greenborn-modal-manager.umd.cjs"
+    },
+    "./style.css": "./dist/vue-greenborn-modal-manager.css",
+    "./dist/style.css": "./dist/vue-greenborn-modal-manager.css"
+  },
+  "style": "./dist/vue-greenborn-modal-manager.css",
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prepublishOnly": "npm run build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "modal",
+    "modal-manager",
+    "dialog",
+    "composable",
+    "overlay",
+    "nested"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-modal-manager",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0"
+  }
+}
