@@ -69,6 +69,9 @@ Devuelve el estado y funciones compartidos (singleton de módulo). Las funciones
 | `ocultar_modal(cod?)` | Cierra el modal con `cod`; si no se pasa, cierra todos. |
 | `mostrar_alerta(texto)` | Alerta con botón "Aceptar". `texto` admite HTML. |
 | `mostrar_confirm(params)` | Confirmación Sí/No. |
+| `traer_al_frente(cod)` | Trae el modal `cod` al frente de la pila (lo usan los clics sobre overlays/headers). |
+| `set_z_index_base(valor)` | Establece la base de z-index de la pila en caliente (default `2000`). |
+| `z_index_base` | `Ref<number>` con la base actual de z-index (para consulta/ajuste). |
 | `modals_` | `Ref` a la pila de modales (leída por `ModalContainer`). |
 
 ### `mostrar_modal` — parámetros inyectados
@@ -100,11 +103,30 @@ if (props.parametros._modalState) props.parametros._modalState.guardar = guardar
 | `styles.width` / `styles.height` | `string` | Escape hatch inline; gana a `size`. |
 | `cssClass` | `string` | Clase extra para el diálogo. |
 | `dismissableMask` | `boolean` | Si `true`, un clic en el overlay cierra el modal (default `false`). |
+| `draggable` | `boolean` | Si `false`, deshabilita el arrastre del modal por el header (default `true`). |
 | `id` | `number` | Slot explícito a ocupar en la pila (uso interno). |
 
 ## Modales anidados
 
 Basta con llamar a `mostrar_modal()` desde el body de otro modal: la pila mantiene hasta `MAX_MODALS_LVLS = 20` slots y cada capa se apila con mayor `z-index`. Cerrar el hijo no afecta al padre.
+
+## z-index (apilamiento)
+
+La pila de modales se monta en `Teleport to="body"` y siempre usa una **base de z-index alta** para sobreponerse al resto de la interfaz (navbar, sidebar, dropdowns, etc.):
+
+- La base por defecto es `Z_INDEX_BASE = 2000`, por encima de Bootstrap (`1050`) y PrimeVue (`1100`).
+- Cada capa apilada suma 1 a la base: la primera usa `2000`, la segunda `2001`, y así hasta `2000 + 19`.
+
+Si tu aplicación necesita una base distinta, ajústala en caliente desde cualquier componente sin tocar la librería:
+
+```js
+import { useModal } from 'vue-greenborn-modal-manager'
+
+const { set_z_index_base } = useModal()
+set_z_index_base(5000) // todos los modales se re-apilan al instante
+```
+
+> Si algún elemento de tu app (p. ej. un toast o overlay de debug) usa `z-index: 9999`, súbelo en consecuencia o baja la base con `set_z_index_base()` para que los modales sigan quedando por encima.
 
 ## Estilos propios
 

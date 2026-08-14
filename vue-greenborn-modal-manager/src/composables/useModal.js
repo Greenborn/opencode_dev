@@ -12,6 +12,14 @@ import ModalFooter from '../components/ModalFooter.vue'
 
 export const MAX_MODALS_LVLS = 20
 
+/**
+ * Base de z-index de la pila de modales. Siempre alta (por encima de Bootstrap
+ * 1050 y PrimeVue 1100) para sobreponerse al resto de la interfaz. Cada capa
+ * apilada suma 1 a esta base (`z_index_base + id`). Ajustable en tiempo de
+ * ejecución con `set_z_index_base()`.
+ */
+export const Z_INDEX_BASE = 2000
+
 export const MODALS_INIT = {
   activo: false,
   id: 0,
@@ -22,9 +30,11 @@ export const MODALS_INIT = {
   parametros: {},
   titulo: '',
   config_modal: {},
+  position: { x: 0, y: 0 },
 }
 
 const modals_ = ref([])
+const z_index_base = ref(Z_INDEX_BASE)
 let ultimo_cod_modal = 0
 
 // La pila se inicializa de forma eager al cargar el módulo, así `modals_.value`
@@ -138,6 +148,43 @@ function ocultar_modal(cod = null) {
 }
 
 /**
+ * Trae al frente (top de la pila) el modal con el código recibido, reordenando
+ * los slots activos y reasignando los `id` (que alimentan el z-index en el
+ * contenedor). No-op si el modal no existe o ya está al frente.
+ *
+ * @param {Number} cod - Código del modal a traer al frente.
+ */
+function traer_al_frente(cod) {
+  const activos = modals_.value.filter((m) => m.activo)
+  if (activos.length <= 1) return
+  const target = activos.find((m) => m.code === cod)
+  if (!target || activos[activos.length - 1] === target) return
+
+  const restantes = activos.filter((m) => m.code !== cod)
+  const inactivos = modals_.value.filter((m) => !m.activo)
+  const modals = restantes.concat([target]).concat(inactivos)
+  for (let i = 0; i < modals.length; i++) {
+    modals[i].id = i
+  }
+  modals_.value = modals
+}
+
+/**
+ * Actualiza la posición (offset) de un modal para el arrastre manual.
+ *
+ * @param {Number} cod - Código del modal.
+ * @param {Number} x - Desplazamiento horizontal en px.
+ * @param {Number} y - Desplazamiento vertical en px.
+ */
+function actualizar_posicion(cod, x, y) {
+  const modal = modals_.value.find((m) => m.activo && m.code === cod)
+  if (modal) {
+    modal.position.x = x
+    modal.position.y = y
+  }
+}
+
+/**
  * Alerta simple (un sólo botón "Aceptar").
  *
  * @param {String} texto - Texto del cuerpo (admite HTML).
@@ -202,13 +249,27 @@ function mostrar_confirm(params) {
   )
 }
 
+/**
+ * Establece la base de z-index de la pila. Se aplica en caliente: todos los
+ * modales activos se re-apilan al instante. El valor se fuerza a número.
+ *
+ * @param {Number} valor - Nueva base (por defecto `Z_INDEX_BASE = 2000`).
+ */
+function set_z_index_base(valor) {
+  z_index_base.value = Number(valor)
+}
+
 export function useModal() {
   return {
     modals_,
+    z_index_base,
     mostrar_modal,
     ocultar_modal,
+    traer_al_frente,
+    actualizar_posicion,
     mostrar_alerta,
     mostrar_confirm,
     inic_modals,
+    set_z_index_base,
   }
 }

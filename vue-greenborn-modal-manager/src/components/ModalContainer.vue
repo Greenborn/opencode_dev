@@ -5,7 +5,8 @@
         v-for="_modal of modals_.filter((m) => m.activo)"
         :key="_modal.code"
         class="gmm-layer"
-        :style="`z-index: ${z_index_base + _modal.id}`"
+        :style="`z-index: ${z_index_base.value + _modal.id}`"
+        @mousedown="traer_al_frente(_modal.code)"
       >
           <div
             class="gmm-overlay"
@@ -14,12 +15,17 @@
           >
           <div
             class="gmm-dialog"
-            :class="clases_modal(_modal)"
-            :style="estilo_modal(_modal)"
+            :class="[...clases_modal(_modal), ...(es_draggable(_modal) ? ['gmm-draggable'] : [])]"
+            :style="{ ...estilo_modal(_modal), ...estilo_posicion(_modal) }"
             role="dialog"
             aria-modal="true"
+            @mousedown.stop
           >
-            <div class="gmm-header">
+            <div
+              class="gmm-header"
+              :class="es_draggable(_modal) ? 'gmm-header-drag' : ''"
+              @mousedown="(e) => es_draggable(_modal) && start_drag(e, _modal)"
+            >
               <component
                 v-if="_modal.componente_header"
                 :is="_modal.componente_header"
@@ -31,6 +37,7 @@
                 type="button"
                 class="gmm-header-close"
                 aria-label="Cerrar"
+                @mousedown.stop
                 @click="ocultar_modal(_modal.code)"
               >
                 &times;
@@ -62,13 +69,14 @@
 <script setup>
 import { useModal } from '../composables/useModal'
 
-const { modals_, ocultar_modal } = useModal()
+const { modals_, ocultar_modal, traer_al_frente, actualizar_posicion, z_index_base } = useModal()
 
 // Escala de anchos. Cada valor tiene su clase en styles/modal.css.
 const SIZES = ['sm', 'md', 'lg', 'full']
 
-// Base de apilamiento: los modales anidados se dibujan encima según su posición en la pila.
-const z_index_base = 1000
+// Estado de arrastre activo.
+let dragging_code = null
+let drag_offset = { x: 0, y: 0 }
 
 /**
  * Se emite inline sólo el ancho/alto que el call site definió explícitamente en
@@ -80,6 +88,15 @@ function estilo_modal(modal) {
   return {
     ...(styles.width ? { width: styles.width } : {}),
     ...(styles.height ? { height: styles.height } : {}),
+  }
+}
+
+/**
+ * Desplazamiento por arrastre, aplicado como transform sobre el diálogo centrado.
+ */
+function estilo_posicion(modal) {
+  return {
+    transform: `translate(${modal.position.x}px, ${modal.position.y}px)`,
   }
 }
 
@@ -107,11 +124,45 @@ function clases_modal(modal) {
 }
 
 /**
+ * Un modal es arrastrable salvo que `config_modal.draggable` sea explícitamente `false`.
+ */
+function es_draggable(modal) {
+  return (modal.config_modal?.draggable ?? true) !== false
+}
+
+/**
  * Clic en el overlay para cerrar: respeta `dismissableMask`. Sólo se aplica si el
  * click se hizo directamente sobre el overlay (no sobre el diálogo).
  */
 function click_overlay(modal, event) {
   const dismiss = modal.config_modal?.dismissableMask ?? false
   if (dismiss && event.target === event.currentTarget) ocultar_modal(modal.code)
+}
+
+/**
+ * Inicia el arrastre desde el header del modal y trae el modal al frente.
+ */
+function start_drag(event, modal) {
+  dragging_code = modal.code
+  const el = event.currentTarget.closest('.gmm-dialog')
+  const rect = el.getBoundingClientRect()
+  drag_offset.x = event.clientX - (rect.left + rect.width / 2)
+  drag_offset.y = event.clientY - (rect.top + rect.height / 2)
+
+  document.addEventListener('mousemove', on_drag)
+  document.addEventListener('mouseup', stop_drag)
+}
+
+function on_drag(event) {
+  if (dragging_code == null) return
+  const x = event.clientX - drag_offset.x - window.innerWidth / 2
+  const y = event.clientY - drag_offset.y - window.innerHeight / 2
+  actualizar_posicion(dragging_code, x, y)
+}
+
+function stop_drag() {
+  dragging_code = null
+  document.removeEventListener('mousemove', on_drag)
+  document.removeEventListener('mouseup', stop_drag)
 }
 </script>

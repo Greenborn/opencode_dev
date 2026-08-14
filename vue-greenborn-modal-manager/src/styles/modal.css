@@ -72,6 +72,15 @@
   background: #e5e7eb;
 }
 
+/* Header arrastrable (cuando config_modal.draggable !== false). */
+.gmm-header-drag {
+  cursor: move;
+  user-select: none;
+}
+.gmm-header-drag .gmm-header-close {
+  cursor: pointer;
+}
+
 .gmm-body {
   flex: 1 1 auto;
   min-height: 0;
