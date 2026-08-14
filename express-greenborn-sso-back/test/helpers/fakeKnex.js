@@ -114,7 +114,7 @@ export function createFakeKnex(initialStore = {}) {
         }
         if (qb._op === 'update') {
           for (const r of matched) Object.assign(r, qb._data);
-          return 0;
+          return matched.length;
         }
         if (qb._op === 'del') {
           for (const r of matched) {

@@ -24,6 +24,7 @@ export function createMiddleware(ctx, service) {
       const cached = loadFromCache(service, cache, token);
       if (cached) {
         req.user = await syncSsoUser(cached.user);
+        req.authSource = 'sso';
         if (normalizedId && cached.uniqueId === normalizedId) {
           extendSsoSession(token, normalizedId).then((extendData) => {
             if (extendData?.bearer_token) {
@@ -54,6 +55,7 @@ export function createMiddleware(ctx, service) {
         if (extendData) {
           if (cache) cache.set(extendData.bearer_token, { user: extendData.user, uniqueId: normalizedId });
           req.user = await syncSsoUser(extendData.user);
+          req.authSource = 'sso';
           if (sendReauthHeader) res.setHeader('X-New-Token', extendData.bearer_token);
           return { ok: true };
         }
@@ -67,6 +69,7 @@ export function createMiddleware(ctx, service) {
       const ssoUser = response.data.data.user;
       if (cache) cache.set(token, { user: ssoUser, uniqueId: normalizedId });
       req.user = await syncSsoUser(ssoUser);
+      req.authSource = 'sso';
       return { ok: true };
     }
 
@@ -77,6 +80,7 @@ export function createMiddleware(ctx, service) {
       if (extendData) {
         if (cache) cache.set(extendData.bearer_token, { user: extendData.user, uniqueId: normalizedId });
         req.user = await syncSsoUser(extendData.user);
+        req.authSource = 'sso';
         if (sendReauthHeader) res.setHeader('X-New-Token', extendData.bearer_token);
         return { ok: true };
       }
@@ -98,6 +102,7 @@ export function createMiddleware(ctx, service) {
       const localUser = await findLocalUserByToken(token);
       if (localUser) {
         req.user = localUser;
+        req.authSource = 'local';
         return next();
       }
 
@@ -118,6 +123,7 @@ export function createMiddleware(ctx, service) {
       const localUser = await findLocalUserByToken(token);
       if (localUser) {
         req.user = localUser;
+        req.authSource = 'local';
         return next();
       }
 

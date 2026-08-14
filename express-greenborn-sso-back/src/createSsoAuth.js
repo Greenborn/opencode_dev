@@ -109,6 +109,7 @@ export function createSsoAuth(options = {}) {
     resolveUserPermissions: service.resolveUserPermissions,
     verifySsoToken: service.verifySsoToken,
     extendSsoSession: service.extendSsoSession,
+    deactivateToken: service.deactivateToken,
     localLoginUser: service.localLoginUser,
     normalizeUniqueId,
     rbac,

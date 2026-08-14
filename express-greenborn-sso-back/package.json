@@ -1,6 +1,6 @@
 {
   "name": "express-greenborn-sso-back",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Autenticación SSO para backends Express/Node que se integra con el servidor de autenticación Greenborn (auth.greenborn.com.ar). Middlewares (authMiddleware/authMiddlewareOptional) y router Express (/me, /sso-profile, /register) reutilizables, con inyección de dependencias (knex, logger, caché) y agnóstico del esquema de base de datos.",
   "type": "module",
   "files": [

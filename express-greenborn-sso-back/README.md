@@ -122,6 +122,7 @@ Monta un router Express con:
 | GET | `/me` | `authMiddleware` | Devuelve el usuario autenticado (filtra campos sensibles). |
 | GET | `/sso-profile` | manual | Verifica el token SSO y busca el usuario local por email (`{ success, exists, user }`). |
 | POST | `/register` | manual | Registro SSO: valida token + `unique_id` y crea el usuario. |
+| POST | `/logout` | `authMiddleware` | Cierra la sesión. Si la sesión es SSO revoca tokens de Google vía `/auth/logout` del servicio SSO; además desactiva el token local en `user_tokens`. Requiere `unique_id` en query param cuando la sesión es SSO. Responde `{ success, message, data: { local, sso } }`. |
 
 Ejemplo de respuesta `/me`:
 
@@ -154,6 +155,7 @@ Los endpoints que consume el frontend son justamente los que expone este router:
 |--------------------------|-------------------------|
 | `user/sso-profile?unique_id=...` | `GET /sso-profile` |
 | `user/me` | `GET /me` |
+| `user/logout?unique_id=...` | `POST /logout` |
 
 ## Modo RBAC (roles y permisos M2M)
 

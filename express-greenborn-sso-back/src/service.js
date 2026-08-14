@@ -176,6 +176,20 @@ export function createService(ctx) {
     }
   }
 
+  async function deactivateToken(token) {
+    if (!token) return null;
+    try {
+      const update = { [tables.activeTokensField]: false };
+      const affected = await knex(tables.userTokens)
+        .where({ [tables.tokenField]: token, [tables.activeTokensField]: true })
+        .update(update);
+      return affected;
+    } catch (err) {
+      log.error(`[SSO] Error al desactivar token local: ${err.message}`);
+      return null;
+    }
+  }
+
   return {
     normalizeUniqueId,
     resolveSsoRoleFor,
@@ -183,6 +197,7 @@ export function createService(ctx) {
     findLocalUserByToken,
     verifySsoToken,
     extendSsoSession,
+    deactivateToken,
     localLoginUser,
     resolveUserRoles: (userId) => rbac ? resolveUserRoles(knex, rbac, userId) : Promise.resolve([]),
     resolveUserPermissions: (userId) => rbac ? resolveUserPermissions(knex, rbac, userId) : Promise.resolve([]),

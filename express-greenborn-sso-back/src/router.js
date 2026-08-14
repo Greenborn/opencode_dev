@@ -3,9 +3,10 @@ import { getBearerToken, filterSensitive } from './utils.js';
 
 export function createRouter(ctx, service, middleware) {
   const router = express.Router();
-  const { sensitiveFields, rbac, localLogin } = ctx;
-  const { verifySsoToken, syncSsoUser, findLocalUserByToken, normalizeUniqueId, resolveUserRoles, resolveUserPermissions, localLoginUser } = service;
+  const { sensitiveFields, rbac, localLogin, ssoClient, logger } = ctx;
+  const { verifySsoToken, syncSsoUser, findLocalUserByToken, normalizeUniqueId, resolveUserRoles, resolveUserPermissions, localLoginUser, deactivateToken } = service;
   const { authMiddleware } = middleware;
+  const log = logger && typeof logger.error === 'function' ? logger : console;
 
   // POST /login — Login local (usuario/contraseña). Solo si localLogin está activo.
   if (localLogin) {
@@ -49,6 +50,44 @@ export function createRouter(ctx, service, middleware) {
       };
     }
     res.json({ success: true, user: filterSensitive(user, sensitiveFields) });
+  });
+
+  // POST /logout — Cierra sesión. Revoca tokens de Google en el SSO si la
+  // sesión es SSO (se detecta por req.authSource) y desactiva el token local.
+  router.post('/logout', authMiddleware, async (req, res) => {
+    const token = getBearerToken(req);
+    const uniqueId = req.query?.unique_id;
+    const results = { local: false, sso: false };
+
+    try {
+      if (req.authSource === 'sso') {
+        if (!uniqueId) {
+          return res.status(400).json({ success: false, message: 'unique_id requerido en query param' });
+        }
+        try {
+          await ssoClient.logout(token, uniqueId);
+          results.sso = true;
+        } catch (ssoErr) {
+          const ssoStatus = ssoErr.response?.status;
+          const ssoBody = ssoErr.response?.data;
+          if (ssoStatus === 400 && ssoBody?.error === 'MISSING_UNIQUE_ID') {
+            return res.status(400).json({ success: false, message: 'unique_id requerido' });
+          }
+          if (ssoStatus === 401 && ssoBody?.error === 'UNIQUE_ID_MISMATCH') {
+            return res.status(401).json({ success: false, message: 'unique_id no coincide con la sesión activa' });
+          }
+          log.error(`[Logout] Error al revocar en SSO (${ssoStatus}): ${JSON.stringify(ssoBody)}`);
+        }
+      }
+
+      const affected = await deactivateToken(token);
+      results.local = affected > 0;
+
+      return res.json({ success: true, message: 'Sesión cerrada exitosamente', data: results });
+    } catch (err) {
+      log.error(`[Logout] Error inesperado: ${err.message}`);
+      return res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
   });
 
   // GET /sso-profile — Busca usuario local por email del SSO sin crearlo

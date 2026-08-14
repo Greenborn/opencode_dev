@@ -24,9 +24,18 @@ export function createSsoClient({ ssoBaseUrl, timeoutMs, logger }) {
     return response;
   }
 
+  async function logout(token, uniqueId) {
+    const response = await axios.post(
+      `${base}/auth/logout?unique_id=${encodeURIComponent(uniqueId)}`,
+      null,
+      { headers: { Authorization: `Bearer ${token}` }, timeout: timeoutMs },
+    );
+    return response;
+  }
+
   function isTokenValid(response) {
     return Boolean(response?.data?.success && response?.data?.data?.valid);
   }
 
-  return { base, verifyToken, extendSession, isTokenValid, log };
+  return { base, verifyToken, extendSession, logout, isTokenValid, log };
 }
