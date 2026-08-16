@@ -1,6 +1,6 @@
 {
   "name": "vue-greenborn-sso-front",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Cliente SSO para aplicaciones Vue 3 que se integra con el servidor de autenticación Greenborn (auth.greenborn.com.ar). Proporciona login con Google (OAuth), intercambio de token temporal por bearer token, verificación de sesión, logout y componente callback reutilizable para vue-router.",
   "type": "module",
   "files": [
