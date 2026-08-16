@@ -18,3 +18,10 @@ export {
   attachRolesPermissions,
   ensureUserRole,
 } from './rbac.js';
+export {
+  filterInputData,
+  isBase64String,
+  parseIp,
+  ensureActivityTable,
+  DEFAULT_ACTIVITY_TABLE,
+} from './activityLog.js';

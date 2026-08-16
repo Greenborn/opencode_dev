@@ -73,6 +73,7 @@ app.listen(3000);
 | `ssoClient` | object | interno | Cliente HTTP SSO (`{ verifyToken, extendSession }`), útil para testear. |
 | `rbac` | boolean \| object | `false` | Habilita el modo RBAC M2M (esquema de roles/permisos). Ver abajo. |
 | `localLogin` | boolean \| object | `null` | Habilita el **login local** (usuario/contraseña) como alternativa a Google. Ver abajo. |
+| `activityLog` | boolean \| object | `false` | Habilita el **registro de actividad** en todas las rutas autenticadas. Ver abajo. |
 
 ### `tables` por defecto
 
@@ -253,6 +254,52 @@ localLogin: {
 - El token emitido se guarda en la tabla de tokens (`user_tokens` por defecto), por lo que `authMiddleware` lo acepta igual que un token local.
 
 > Sin `localLogin` no se expone la ruta `/login` y el paquete solo valida tokens (SSO y/o locales).
+
+## Registro de actividad (`activityLog`)
+
+Registra una fila por cada request autenticado (todas las rutas protegidas con `authMiddleware` o `authMiddlewareOptional` con sesión) en la tabla `gb_sso_log_actividad` (prefijo abreviado del paquete).
+
+Se activa con la opción `activityLog`:
+
+```js
+const sso = createSsoAuth({
+  knex: db,
+  activityLog: true, // o un objeto de configuración
+});
+```
+
+### Configuración
+
+```js
+activityLog: {
+  table: 'gb_sso_log_actividad', // nombre de la tabla
+  maxStringLen: 4096,            // strings más largos se excluyen
+  captureBody: true,             // incluir req.body en datos de entrada
+  captureQuery: true,            // incluir req.query en datos de entrada
+}
+```
+
+### Campos de la tabla
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id` | bigint PK | Autoincremental. |
+| `fecha_hora` | timestamp | Fecha y hora del request (default `NOW()`). |
+| `endpoint` | varchar(512) | Ruta del request (`req.originalUrl`). |
+| `id_usuario` | bigint nullable | ID del usuario autenticado (`req.user.id` o `userPk`). |
+| `metodo` | varchar(10) | Método HTTP (`GET`, `POST`, ...). |
+| `ipv4` | varchar(45) nullable | Dirección IPv4 del cliente. |
+| `ipv6` | varchar(45) nullable | Dirección IPv6 del cliente. |
+| `datos_entrada` | json nullable | Body + query serializados (solo si hay). |
+
+> **Datos de entrada**: se excluyen automáticamente los campos cuyo valor sea una cadena **base64** o una cadena de **más de 4096 caracteres**. Los strings excesivos en posiciones anidadas se reemplazan por `[excluido: ...]`.
+
+### Migración y creación automática
+
+- Se incluye el archivo de migración `migrations/20260816000000_create_gb_sso_log_actividad.js` (ejecutalo con `knex migrate:latest`).
+- Además, al inicializar con `activityLog` activo la librería ejecuta `CREATE TABLE IF NOT EXISTS` de forma no bloqueante (auto-provisioning).
+
+> **IP / proxy**: la IP se obtiene de `req.ip`, por lo que si la app corre detrás de un proxy reverso debes configurar `app.set('trust proxy', true)` (o el valor adecuado) para obtener la IP real del cliente. Las direcciones IPv4 mapeadas a IPv6 (`::ffff:x.x.x.x`) se normalizan a IPv4.
 
 ## WebSocket complementario (socket.io)
 

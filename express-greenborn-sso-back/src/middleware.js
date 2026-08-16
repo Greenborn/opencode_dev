@@ -1,4 +1,5 @@
 import { getBearerToken, tokenPreview } from './utils.js';
+import { createActivityLogger } from './activityLog.js';
 
 function loadFromCache(service, cache, token) {
   if (!cache) return null;
@@ -8,13 +9,22 @@ function loadFromCache(service, cache, token) {
 }
 
 export function createMiddleware(ctx, service) {
-  const { cache, logger, sendReauthHeader, rbac } = ctx;
+  const { cache, logger, sendReauthHeader, rbac, activityLog } = ctx;
   const { verifySsoToken, syncSsoUser, findLocalUserByToken, extendSsoSession, normalizeUniqueId } = service;
 
   const log = {
     error: (a) => (logger?.error ? logger.error(a) : console.error(a)),
     warn: (a) => (logger?.warn ? logger.warn(a) : console.warn(a)),
   };
+
+  const activity = activityLog ? createActivityLogger(ctx) : null;
+
+  function registerActivityLog(req, res) {
+    if (!activity) return;
+    res.on('finish', () => {
+      if (req.user) activity.logActivity(req, req.user);
+    });
+  }
 
   async function handleSsoToken(req, res, token, uniqueId, optional) {
     const ruta = req.originalUrl || req.url;
@@ -93,6 +103,7 @@ export function createMiddleware(ctx, service) {
   }
 
   async function authMiddleware(req, res, next) {
+    registerActivityLog(req, res);
     const token = getBearerToken(req);
     if (!token) {
       return res.status(401).json({ success: false, message: 'Token de autenticación requerido' });
@@ -116,6 +127,7 @@ export function createMiddleware(ctx, service) {
   }
 
   async function authMiddlewareOptional(req, res, next) {
+    registerActivityLog(req, res);
     const token = getBearerToken(req);
     if (!token) return next();
 

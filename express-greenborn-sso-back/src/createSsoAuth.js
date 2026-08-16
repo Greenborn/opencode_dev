@@ -6,6 +6,7 @@ import { createRouter } from './router.js';
 import { createSsoSocket } from './socket.js';
 import { normalizeRbacConfig } from './rbac.js';
 import { normalizeUniqueId, parseSsoRoleMap } from './utils.js';
+import { ensureActivityTable, DEFAULT_ACTIVITY_TABLE } from './activityLog.js';
 
 const DEFAULT_TABLES = {
   user: 'user',
@@ -59,6 +60,17 @@ export function createSsoAuth(options = {}) {
 
   const rbac = normalizeRbacConfig(options.rbac);
 
+  let activityLog = options.activityLog;
+  if (activityLog && typeof activityLog === 'object') {
+    activityLog = { table: DEFAULT_ACTIVITY_TABLE, ...activityLog };
+  }
+  if (activityLog) {
+    ensureActivityTable(options.knex, activityLog.table || DEFAULT_ACTIVITY_TABLE)
+      .catch((err) => {
+        (logger?.error || console.error)(`[ActivityLog] Error al asegurar la tabla: ${err.message}`);
+      });
+  }
+
   let localLogin = options.localLogin;
   if (localLogin && localLogin !== true) {
     localLogin = { ...DEFAULT_LOCAL_LOGIN, ...(typeof localLogin === 'object' ? localLogin : {}) };
@@ -81,6 +93,7 @@ export function createSsoAuth(options = {}) {
     localLogin,
     logger,
     cache,
+    activityLog,
     findLocalUserByToken: options.findLocalUserByToken,
     createUserFromSso: options.createUserFromSso,
   };
@@ -114,6 +127,7 @@ export function createSsoAuth(options = {}) {
     normalizeUniqueId,
     rbac,
     localLogin,
+    activityLog,
     attachSocket,
     logger,
   };
