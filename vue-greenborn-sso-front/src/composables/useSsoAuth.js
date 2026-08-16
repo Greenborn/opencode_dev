@@ -12,7 +12,12 @@ function makeStore(config) {
   const wsUrl = config.wsUrl || ''
   const wsPath = config.wsPath || '/socket.io'
 
-  const socketClient = createSocketClient({ url: wsUrl, path: wsPath })
+  const socketClient = createSocketClient({
+    url: wsUrl,
+    path: wsPath,
+    token: client.getToken(),
+    uniqueId: client.getUniqueId(),
+  })
   const connected = ref(false)
   const socketError = ref(null)
 
@@ -56,7 +61,7 @@ function makeStore(config) {
       if (value) connectSocket()
       else disconnectSocket()
     },
-    { immediate: false },
+    { immediate: true },
   )
 
   function refreshState() {
