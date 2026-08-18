@@ -2,7 +2,7 @@
   <Teleport to="body">
     <div class="gmm-stack">
       <div
-        v-for="_modal of modals_.filter((m) => m.activo)"
+        v-for="_modal of modales_.filter((m) => m.activo && !m.minimized)"
         :key="_modal.code"
         class="gmm-layer"
         :style="`z-index: ${z_index_base.value + _modal.id}`"
@@ -32,16 +32,28 @@
                 :parametros="_modal.parametros"
               />
               <span v-else class="gmm-header-title">{{ _modal.titulo }}</span>
-              <button
-                v-if="_modal.config_modal?.closable !== false"
-                type="button"
-                class="gmm-header-close"
-                aria-label="Cerrar"
-                @mousedown.stop
-                @click="ocultar_modal(_modal.code)"
-              >
-                &times;
-              </button>
+              <div class="gmm-header-controls">
+                <button
+                  v-if="_modal.config_modal?.minimizable !== false"
+                  type="button"
+                  class="gmm-header-minimize"
+                  aria-label="Minimizar"
+                  @mousedown.stop
+                  @click="minimizar(_modal.code)"
+                >
+                  &minus;
+                </button>
+                <button
+                  v-if="_modal.config_modal?.closable !== false"
+                  type="button"
+                  class="gmm-header-close"
+                  aria-label="Cerrar"
+                  @mousedown.stop
+                  @click="ocultar_modal(_modal.code)"
+                >
+                  &times;
+                </button>
+              </div>
             </div>
 
             <div class="gmm-body">
@@ -62,14 +74,76 @@
           </div>
         </div>
       </div>
+
+      <div
+        v-if="modales_.some((m) => m.activo && m.minimized)"
+        class="gmm-taskbar"
+        :class="{ visible: show_taskbar }"
+        @mouseenter="on_taskbar_enter"
+        @mouseleave="on_taskbar_leave"
+      >
+        <div class="gmm-taskbar-inner">
+          <div
+            v-for="_modal of modales_.filter((m) => m.activo && m.minimized)"
+            :key="`min-${_modal.code}`"
+            class="gmm-taskbar-item"
+            :title="_modal.titulo"
+            @click="restaurar(_modal.code)"
+          >
+            <span class="gmm-taskbar-title">{{ _modal.titulo }}</span>
+          </div>
+        </div>
+      </div>
     </div>
   </Teleport>
 </template>
 
 <script setup>
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useModal } from '../composables/useModal'
 
-const { modals_, ocultar_modal, traer_al_frente, actualizar_posicion, z_index_base } = useModal()
+const { modals_, ocultar_modal, minimizar, restaurar, traer_al_frente, actualizar_posicion, z_index_base } = useModal()
+
+const show_taskbar = ref(false)
+let hide_taskbar_timer = null
+const BOTTOM_THRESHOLD = 12
+
+function on_global_mousemove(e) {
+  const nearBottom = window.innerHeight - e.clientY < BOTTOM_THRESHOLD
+  if (nearBottom && modals_.value.some((m) => m.activo && m.minimized)) {
+    if (hide_taskbar_timer) {
+      clearTimeout(hide_taskbar_timer)
+      hide_taskbar_timer = null
+    }
+    show_taskbar.value = true
+  }
+}
+
+function on_taskbar_enter() {
+  if (hide_taskbar_timer) {
+    clearTimeout(hide_taskbar_timer)
+    hide_taskbar_timer = null
+  }
+  show_taskbar.value = true
+}
+
+function on_taskbar_leave() {
+  if (hide_taskbar_timer) clearTimeout(hide_taskbar_timer)
+  hide_taskbar_timer = setTimeout(() => {
+    show_taskbar.value = false
+    hide_taskbar_timer = null
+  }, 300)
+}
+
+onMounted(() => {
+  document.addEventListener('mousemove', on_global_mousemove)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousemove', on_global_mousemove)
+  if (hide_taskbar_timer) clearTimeout(hide_taskbar_timer)
+})
+
 
 // Escala de anchos. Cada valor tiene su clase en styles/modal.css.
 const SIZES = ['sm', 'md', 'lg', 'full']

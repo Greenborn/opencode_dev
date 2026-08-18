@@ -54,10 +54,23 @@
 
 .gmm-header-title {
   font-size: 1.1rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.gmm-header-close {
-  margin-left: auto;
+.gmm-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.75rem;
+  flex-shrink: 0;
+}
+
+.gmm-header-close,
+.gmm-header-minimize {
   border: none;
   background: transparent;
   color: #6b7280;
@@ -67,7 +80,11 @@
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
 }
-.gmm-header-close:hover {
+.gmm-header-minimize {
+  font-size: 1.1rem;
+}
+.gmm-header-close:hover,
+.gmm-header-minimize:hover {
   color: #111827;
   background: #e5e7eb;
 }
@@ -77,8 +94,61 @@
   cursor: move;
   user-select: none;
 }
-.gmm-header-drag .gmm-header-close {
+.gmm-header-drag .gmm-header-close,
+.gmm-header-drag .gmm-header-minimize {
   cursor: pointer;
+}
+
+/* Taskbar de modales minimizados (aparece al acercar el puntero al borde inferior). */
+.gmm-taskbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 38px;
+  z-index: calc(999999);
+  background: #16162a;
+  border-top: 1px solid #374151;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  transform: translateY(100%);
+  transition: transform 0.2s ease;
+}
+.gmm-taskbar.visible {
+  transform: translateY(0);
+}
+.gmm-taskbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  height: 100%;
+  width: 100%;
+}
+.gmm-taskbar-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: #1e1e3a;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 200px;
+  height: 28px;
+}
+.gmm-taskbar-item:hover {
+  background: #2a2a4a;
+}
+.gmm-taskbar-title {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .gmm-body {

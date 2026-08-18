@@ -31,6 +31,7 @@ export const MODALS_INIT = {
   titulo: '',
   config_modal: {},
   position: { x: 0, y: 0 },
+  minimized: false,
 }
 
 const modals_ = ref([])
@@ -144,6 +145,34 @@ function ocultar_modal(cod = null) {
     for (let i = 0; i < modals_.value.length; i++) {
       modals_.value[i].activo = false
     }
+  }
+}
+
+/**
+ * Minimiza el modal con el código recibido. Un modal minimizado deja de renderizar
+ * su overlay/diálogo y pasa a mostrarse únicamente como entrada en la taskbar del
+ * contenedor. No-op si el modal no existe o no está activo.
+ *
+ * @param {Number} cod - Código del modal a minimizar.
+ */
+function minimizar(cod) {
+  const modal = modals_.value.find((m) => m.activo && m.code === cod)
+  if (modal) {
+    modal.minimized = true
+  }
+}
+
+/**
+ * Restaura (maximiza) el modal con el código recibido, volviendo a renderizar su
+ * overlay/diálogo y quitándolo de la taskbar. Lo trae al frente de la pila.
+ *
+ * @param {Number} cod - Código del modal a restaurar.
+ */
+function restaurar(cod) {
+  const modal = modals_.value.find((m) => m.activo && m.code === cod)
+  if (modal) {
+    modal.minimized = false
+    traer_al_frente(cod)
   }
 }
 
@@ -265,6 +294,8 @@ export function useModal() {
     z_index_base,
     mostrar_modal,
     ocultar_modal,
+    minimizar,
+    restaurar,
     traer_al_frente,
     actualizar_posicion,
     mostrar_alerta,
