@@ -2,10 +2,10 @@
   <Teleport to="body">
     <div class="gmm-stack">
       <div
-        v-for="_modal of modales_.filter((m) => m.activo && !m.minimized)"
+        v-for="_modal of activos"
         :key="_modal.code"
         class="gmm-layer"
-        :style="`z-index: ${z_index_base.value + _modal.id}`"
+        :style="`z-index: ${z_index_base + _modal.id}`"
         @mousedown="traer_al_frente(_modal.code)"
       >
           <div
@@ -76,7 +76,7 @@
       </div>
 
       <div
-        v-if="modales_.some((m) => m.activo && m.minimized)"
+        v-if="minimizados.length"
         class="gmm-taskbar"
         :class="{ visible: show_taskbar }"
         @mouseenter="on_taskbar_enter"
@@ -84,7 +84,7 @@
       >
         <div class="gmm-taskbar-inner">
           <div
-            v-for="_modal of modales_.filter((m) => m.activo && m.minimized)"
+            v-for="_modal of minimizados"
             :key="`min-${_modal.code}`"
             class="gmm-taskbar-item"
             :title="_modal.titulo"
@@ -99,10 +99,13 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useModal } from '../composables/useModal'
 
 const { modals_, ocultar_modal, minimizar, restaurar, traer_al_frente, actualizar_posicion, z_index_base } = useModal()
+
+const activos = computed(() => modals_.value.filter((m) => m.activo && !m.minimized))
+const minimizados = computed(() => modals_.value.filter((m) => m.activo && m.minimized))
 
 const show_taskbar = ref(false)
 let hide_taskbar_timer = null
@@ -110,7 +113,7 @@ const BOTTOM_THRESHOLD = 12
 
 function on_global_mousemove(e) {
   const nearBottom = window.innerHeight - e.clientY < BOTTOM_THRESHOLD
-  if (nearBottom && modals_.value.some((m) => m.activo && m.minimized)) {
+  if (nearBottom && minimizados.value.length) {
     if (hide_taskbar_timer) {
       clearTimeout(hide_taskbar_timer)
       hide_taskbar_timer = null

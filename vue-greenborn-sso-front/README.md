@@ -65,6 +65,29 @@ app.mount('#app')
 | `loginEndpoint`   | string | no          | Ruta del login local para `loginLocal`, default `/login`                  |
 | `wsUrl`           | string | no          | Base del servidor WebSocket (solo si se quiere la conexión complementaria) |
 | `wsPath`          | string | no          | Ruta del socket, default `/socket.io`                                    |
+| `storagePrefix`   | string | no          | Prefijo que reemplaza a `sso_` en las claves de `localStorage`. Si no se define, se usan las claves por defecto (`sso_bearer_token`, `sso_user_data`, ...). |
+| `keyMap`          | object | no          | Nomenclatura personalizada por clave. `{ token?, user?, redirectUrl?, uniqueId? }`. Tiene prioridad sobre `storagePrefix`. |
+
+### Claves de `localStorage` personalizadas
+
+Por defecto el paquete usa las claves `sso_bearer_token`, `sso_user_data`, `sso_redirect_url` y `sso_client_unique_id`. Si tu aplicación ya maneja sesiones con otras claves, puedes adaptarlas sin perder sesiones activas:
+
+```js
+installSso(app, {
+  ssoBaseUrl: 'https://auth.greenborn.com.ar',
+  ssoRedirect: '/login-redirect',
+  storagePrefix: 'app_mascotas_',          // reemplaza el prefijo sso_
+  keyMap: {                                // anula clave por clave (prioridad sobre el prefijo)
+    user: 'app_mascotas_user',
+    uniqueId: 'app_mascotas_unique_id',
+    redirectUrl: 'app_mascota_url_login_redirect',
+  },
+})
+```
+
+- Con `storagePrefix: 'app_mascotas_'`, la clave del token pasa a ser `app_mascotas_bearer_token`, la de usuario `app_mascotas_user_data`, etc. (reemplaza `sso_` por el prefijo).
+- `keyMap` permite fijar el nombre exacto de cualquier clave individual.
+- Sin ninguna de las dos opciones, el comportamiento es idéntico al de versiones previas (retrocompatible).
 
 ## Uso básico
 

@@ -8,6 +8,7 @@ import {
   SSO_USER_KEY,
   SSO_REDIRECT_URL_KEY,
   SSO_CLIENT_UNIQUE_ID,
+  resolveStorageKeys,
 } from './core/keys.js'
 
 export {
@@ -18,6 +19,7 @@ export {
   useSsoSocket,
   createSsoClient,
   createSocketClient,
+  resolveStorageKeys,
   SSO_TOKEN_KEY,
   SSO_USER_KEY,
   SSO_REDIRECT_URL_KEY,

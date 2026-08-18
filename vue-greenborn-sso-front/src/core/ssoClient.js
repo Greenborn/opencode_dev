@@ -1,9 +1,6 @@
 import {
-  SSO_TOKEN_KEY,
-  SSO_USER_KEY,
-  SSO_REDIRECT_URL_KEY,
-  SSO_CLIENT_UNIQUE_ID,
   generateUniqueId,
+  resolveStorageKeys,
   safeGet,
   safeSet,
 } from './keys.js'
@@ -33,6 +30,7 @@ export function createSsoClient(config = {}) {
     loginEndpoint = '/login',
   } = config
 
+  const keys = resolveStorageKeys(config)
   const ssoBase = normUrl(ssoBaseUrl)
 
   function login() {
@@ -46,7 +44,7 @@ export function createSsoClient(config = {}) {
       }
     })()
     if (inAppPath && inAppPath !== '/login' && inAppPath !== '/login-redirect') {
-      safeSet(SSO_REDIRECT_URL_KEY, currentUrl)
+      safeSet(keys.redirectUrl, currentUrl)
     }
 
     const params = new URLSearchParams({
@@ -82,8 +80,8 @@ export function createSsoClient(config = {}) {
       throw new Error('No se recibió bearer token del servidor SSO')
     }
 
-    safeSet(SSO_TOKEN_KEY, bearerToken)
-    safeSet(SSO_USER_KEY, JSON.stringify(data?.data?.user || {}))
+    safeSet(keys.token, bearerToken)
+    safeSet(keys.user, JSON.stringify(data?.data?.user || {}))
 
     if (nodeApiBaseUrl) {
       const profileResponse = await fetch(
@@ -151,7 +149,7 @@ export function createSsoClient(config = {}) {
       }
 
       const result = await response.json()
-      safeSet(SSO_USER_KEY, JSON.stringify(result?.data?.user || {}))
+      safeSet(keys.user, JSON.stringify(result?.data?.user || {}))
 
       return {
         authenticated: true,
@@ -190,7 +188,7 @@ export function createSsoClient(config = {}) {
       const result = await response.json()
       const user = result?.data?.user ?? result?.user
       if (user) {
-        safeSet(SSO_USER_KEY, JSON.stringify(user))
+        safeSet(keys.user, JSON.stringify(user))
       }
 
       return {
@@ -232,8 +230,8 @@ export function createSsoClient(config = {}) {
       throw new Error('No se recibió token del servidor')
     }
 
-    safeSet(SSO_TOKEN_KEY, bearerToken)
-    safeSet(SSO_USER_KEY, JSON.stringify(body?.data?.user || {}))
+    safeSet(keys.token, bearerToken)
+    safeSet(keys.user, JSON.stringify(body?.data?.user || {}))
 
     return {
       success: true,
@@ -258,11 +256,11 @@ export function createSsoClient(config = {}) {
   }
 
   function getToken() {
-    return safeGet(SSO_TOKEN_KEY)
+    return safeGet(keys.token)
   }
 
   function getUser() {
-    const raw = safeGet(SSO_USER_KEY)
+    const raw = safeGet(keys.user)
     if (!raw) return null
     try {
       return JSON.parse(raw)
@@ -272,29 +270,29 @@ export function createSsoClient(config = {}) {
   }
 
   function isSSOSession() {
-    return safeGet(SSO_TOKEN_KEY) !== null
+    return safeGet(keys.token) !== null
   }
 
   function getUniqueId() {
-    let id = safeGet(SSO_CLIENT_UNIQUE_ID)
+    let id = safeGet(keys.uniqueId)
     if (!id) {
       id = generateUniqueId()
-      safeSet(SSO_CLIENT_UNIQUE_ID, id)
+      safeSet(keys.uniqueId, id)
     }
     return id
   }
 
   function getAndClearRedirectUrl() {
-    const url = safeGet(SSO_REDIRECT_URL_KEY)
-    safeSet(SSO_REDIRECT_URL_KEY, null)
+    const url = safeGet(keys.redirectUrl)
+    safeSet(keys.redirectUrl, null)
     return url
   }
 
   function clearSession() {
-    safeSet(SSO_TOKEN_KEY, null)
-    safeSet(SSO_USER_KEY, null)
-    safeSet(SSO_REDIRECT_URL_KEY, null)
-    safeSet(SSO_CLIENT_UNIQUE_ID, null)
+    safeSet(keys.token, null)
+    safeSet(keys.user, null)
+    safeSet(keys.redirectUrl, null)
+    safeSet(keys.uniqueId, null)
   }
 
   return {
