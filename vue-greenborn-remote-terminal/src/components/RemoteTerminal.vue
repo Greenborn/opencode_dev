@@ -2,6 +2,14 @@
   <div class="rt-wrapper" ref="wrapperRef" :class="{ 'rt-fullscreen': fullscreen }" @contextmenu.prevent="onContextMenu">
     <div class="rt-toolbar">
       <span class="rt-title">{{ title }}</span>
+      <div class="rt-mob-controls">
+        <button class="rt-btn" @click="sendInput('\t')" title="Enviar Tab">Tab</button>
+        <button class="rt-btn" @click="sendInput('\x1b[A')" title="Enviar flecha arriba">↑</button>
+        <button class="rt-btn" @click="paste" :disabled="pasting" title="Pegar contenido del portapapeles">
+          <span v-if="pasting" class="rt-spin"></span>
+          <template v-else>Pegar</template>
+        </button>
+      </div>
       <div class="rt-actions">
         <button class="rt-btn" @click="toggleFullscreen" :title="fullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'">⛶</button>
         <button class="rt-btn" @click="emitClose" title="Cerrar terminal">✕</button>
@@ -34,6 +42,7 @@ export default {
     const ctxMenu = ref({ show: false, x: 0, y: 0 })
     const menuRef = ref(null)
     const hasSelection = ref(false)
+    const pasting = ref(false)
 
     let terminal = null
     let fitAddon = null
@@ -113,6 +122,37 @@ export default {
 
     function emitClose() {
       emit('close')
+    }
+
+    function sendInput(data) {
+      if (data == null) return
+      emit('input', String(data))
+    }
+
+    async function paste() {
+      if (pasting.value) return
+      pasting.value = true
+      try {
+        let texto = ''
+        try {
+          texto = (await navigator.clipboard.readText()) || ''
+        } catch (err) {
+          console.log('[RemoteTerminal] clipboard no disponible, probando lectura legacy:', err.message)
+          const ta = document.createElement('textarea')
+          ta.style.position = 'fixed'
+          ta.style.opacity = '0'
+          document.body.appendChild(ta)
+          ta.focus()
+          document.execCommand('paste')
+          texto = ta.value || ''
+          ta.remove()
+        }
+        if (texto) emit('input', texto)
+      } catch (err) {
+        console.log('[RemoteTerminal] error al pegar:', err.message)
+      } finally {
+        pasting.value = false
+      }
     }
 
     function onContextMenu(e) {
@@ -221,11 +261,14 @@ export default {
       ctxMenu,
       menuRef,
       hasSelection,
+      pasting,
       write,
       writeExit,
       fitTerminal,
       toggleFullscreen,
       emitClose,
+      sendInput,
+      paste,
       onContextMenu,
       copySelection,
     }
@@ -270,6 +313,12 @@ export default {
   gap: 4px;
 }
 
+.rt-mob-controls {
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
 .rt-btn {
   background: none;
   border: 1px solid #30363d;
@@ -279,12 +328,33 @@ export default {
   font-size: 0.8rem;
   line-height: 1;
   padding: 2px 6px;
+  white-space: nowrap;
 }
 
-.rt-btn:hover {
+.rt-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.rt-btn:hover:not(:disabled) {
   background: #21262d;
   border-color: #58a6ff;
   color: #e6edf3;
+}
+
+.rt-spin {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #8b949e;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: rt-spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes rt-spin {
+  to { transform: rotate(360deg); }
 }
 
 .rt-container {
@@ -298,6 +368,16 @@ export default {
   z-index: 2050;
   margin: 0 !important;
   border-radius: 0;
+}
+
+.rt-wrapper.rt-fullscreen .rt-mob-controls {
+  display: flex;
+}
+
+@media (max-width: 767.98px) {
+  .rt-mob-controls {
+    display: flex;
+  }
 }
 
 .rt-wrapper.rt-fullscreen .rt-container {
