@@ -1,0 +1,77 @@
+{
+  "name": "express-greenborn-mercado-pago",
+  "version": "1.0.0",
+  "description": "Integración centralizada con Mercado Pago para backends Express/Node.js: API client (axios) sobre api.mercadopago.com y webhook receptor con deduplicación, con inyección de dependencias (knex, logger) y agnóstico del esquema de base de datos. Diseñado para absorber a futuro todo el ecosistema MP (procesador de eventos, preferencias a demanda, sucursales, POS/QR).",
+  "type": "module",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test",
+    "prepublishOnly": "npm run build",
+    "prepack": "npm run build",
+    "demo": "node demo/server.js"
+  },
+  "keywords": [
+    "mercadopago",
+    "mercado-pago",
+    "payments",
+    "webhook",
+    "express",
+    "node",
+    "payment",
+    "instore",
+    "qr",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/express-greenborn-mercado-pago",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "axios": "^1.10.0"
+  },
+  "peerDependencies": {
+    "express": "^4.21.0 || ^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2",
+    "esbuild": "^0.21.0",
+    "express": "^4.21.2",
+    "knex": "^3.3.0"
+  }
+}
