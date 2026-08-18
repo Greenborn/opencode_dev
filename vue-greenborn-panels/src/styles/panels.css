@@ -1,0 +1,153 @@
+/* vue-greenborn-panels — tema autocontenido. Clases con prefijo gp-.
+   Reproduce el look oscuro + acento verde/azul de la aplicación de origen. */
+
+:root {
+  --gp-accent: #75aadb;
+  --gp-accent-soft: rgba(117, 170, 219, 0.1);
+  --gp-bg: #1a1a2e;
+  --gp-bg-panel: #1a1a2e;
+  --gp-border: #374151;
+  --gp-text: #e0e0e0;
+  --gp-text-muted: #6b7280;
+  --gp-text-hover: #cbd5e1;
+}
+
+/* --- TabBar --- */
+.gp-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 12px 0;
+  border-bottom: 1px solid var(--gp-border);
+  overflow: hidden;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.gp-tab-btn {
+  background: none;
+  border: none;
+  color: var(--gp-text-muted);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+.gp-tab-btn:hover {
+  color: var(--gp-text-hover);
+}
+.gp-tab-btn.active {
+  color: var(--gp-accent);
+  border-bottom-color: var(--gp-accent);
+}
+.gp-tab-btn.dragging {
+  opacity: 0.4;
+}
+.gp-tab-btn.drag-over {
+  border-bottom-color: var(--gp-accent);
+}
+
+/* --- TabPanel --- */
+.gp-tab-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--gp-bg-panel);
+  min-height: 0;
+}
+.gp-tab-panel__bar {
+  flex-shrink: 0;
+}
+.gp-tab-panel__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- ResizablePanel --- */
+.gp-panel {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--gp-bg-panel);
+  overflow: hidden;
+}
+.gp-panel.collapsed {
+  padding: 0;
+  border: none;
+}
+.gp-panel__content {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.gp-panel--left {
+  border-right: 1px solid var(--gp-border);
+  padding: 8px;
+}
+.gp-panel--right {
+  border-left: 1px solid var(--gp-border);
+  padding: 8px;
+}
+.gp-panel--bottom {
+  border-top: 1px solid var(--gp-border);
+  padding: 8px;
+}
+
+/* handle de resize */
+.gp-panel__handle {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background 0.15s;
+}
+.gp-panel__handle:hover {
+  background: var(--gp-accent-soft);
+}
+.gp-panel__handle--left {
+  top: 0;
+  right: -6px;
+  width: 12px;
+  height: 100%;
+  cursor: col-resize;
+}
+.gp-panel__handle--right {
+  top: 0;
+  left: -6px;
+  width: 12px;
+  height: 100%;
+  cursor: col-resize;
+}
+.gp-panel__handle--bottom {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 7px;
+  cursor: row-resize;
+}
+.gp-panel__handle-bar {
+  width: 3px;
+  height: 36px;
+  background: var(--gp-border);
+  border-radius: 2px;
+  pointer-events: none;
+  transition: background 0.15s;
+}
+.gp-panel__handle--bottom .gp-panel__handle-bar {
+  width: 36px;
+  height: 3px;
+}
+.gp-panel__handle:hover .gp-panel__handle-bar {
+  background: var(--gp-accent);
+}

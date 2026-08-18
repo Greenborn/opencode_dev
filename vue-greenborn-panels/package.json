@@ -1,0 +1,62 @@
+{
+  "name": "vue-greenborn-panels",
+  "version": "1.0.0",
+  "description": "Sistema genérico de paneles y tabs reordenables para Vue 3: registry singleton de tabs por slot, TabBar con drag & drop nativo, panel lateral colapsable con handle de resize y estado de layout (colapso/resize) sin Pinia. Sin dependencias de UI (CSS propio).",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-greenborn-panels.umd.cjs",
+  "module": "./dist/vue-greenborn-panels.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-panels.js",
+      "require": "./dist/vue-greenborn-panels.umd.cjs"
+    },
+    "./style.css": "./dist/vue-greenborn-panels.css",
+    "./dist/style.css": "./dist/vue-greenborn-panels.css"
+  },
+  "style": "./dist/vue-greenborn-panels.css",
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prepublishOnly": "npm run build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "panels",
+    "tabs",
+    "tabbar",
+    "layout",
+    "drag",
+    "droppable",
+    "collapsible",
+    "resizable"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-panels",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0"
+  }
+}
