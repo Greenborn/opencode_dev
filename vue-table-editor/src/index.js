@@ -6,6 +6,24 @@ import {
   setGlobalPreferencesAdapter,
   getGlobalPreferencesAdapter,
 } from './core/preferenciasAdapter.js'
+import {
+  getCamposJson,
+  mapFilaJSONtabla,
+  getCamposJSONyFieldDef,
+  rowFormatter,
+  row_formatter,
+  getProcessFieldDef,
+  reOrder,
+  getFieldDefFFormated,
+  greenbornDataPipeline,
+} from './core/dataPipeline.js'
+import {
+  invertHexColor,
+  applyRowStyling,
+  applyFieldDefCss,
+  unwrapCell,
+  cellStyle,
+} from './core/styling.js'
 import './styles/table-editor.css'
 
 export {
@@ -18,4 +36,18 @@ export {
   createLocalStoragePrefsAdapter,
   setGlobalPreferencesAdapter,
   getGlobalPreferencesAdapter,
+  getCamposJson,
+  mapFilaJSONtabla,
+  getCamposJSONyFieldDef,
+  rowFormatter,
+  row_formatter,
+  getProcessFieldDef,
+  reOrder,
+  getFieldDefFFormated,
+  greenbornDataPipeline,
+  invertHexColor,
+  applyRowStyling,
+  applyFieldDefCss,
+  unwrapCell,
+  cellStyle,
 }

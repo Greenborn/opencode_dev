@@ -14,6 +14,7 @@ export class BtnConfig {
     this._isDisabled = cfg.isDisabled || (() => false)
     this.onClick = cfg.onClick || (() => {})
     this.helpKey = cfg.helpKey || null
+    this.permissions = cfg.permissions || null
   }
 
   getLabel() {

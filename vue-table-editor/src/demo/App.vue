@@ -28,6 +28,20 @@
         @rowSelected="onSelectedClient"
       />
     </div>
+
+    <h4 class="demo-h4">3) Paridad frontend: styling, acciones en toolbar, permisos y edición inline currency</h4>
+    <div style="height: 420px">
+      <TableEditor
+        id="demo-parity"
+        :data="clientData"
+        :config="configParity"
+        :permisos="permisos"
+        @rowSelected="onSelectedClient"
+        @createRequest="onCreateRequest"
+        @editRequest="onEditRequest"
+        @deleteRequest="onDeleteRequest"
+      />
+    </div>
   </div>
 </template>
 
@@ -95,14 +109,62 @@ export default {
     const selectedLazy = ref(null)
     const selectedClient = ref(null)
 
+    const permisos = { create: 'clientes:crear', edit: 'clientes:editar', delete: 'clientes:eliminar' }
+
+    const configParity = {
+      selectionMode: 'single',
+      rowActionsMode: 'toolbar',
+      showFilterRow: true,
+      extraFields: {
+        list: [{ field: 'precio_c', headerName: 'Precio (€)', type: 'number', form_type: 'currency' }],
+      },
+      inlineEditing: {
+        campos: {
+          precio: { type: 'currency', min: 0 },
+          stock: { type: 'integer', min: 0 },
+        },
+        api: async ({ id, field, value }) => {
+          console.log('[inline save parity]', id, field, value)
+          return { status: true }
+        },
+        debounce_ms: 600,
+        onSave: () => console.log('Guardado inline parity'),
+      },
+      styling: {
+        rowClassFn: (row) => (row.stock < 10 ? 'te-row-low-stock' : ''),
+        fieldStyleFns: {
+          precio: (v) => (v > 1000 ? 'color:#b91c1c;font-weight:700' : ''),
+        },
+      },
+      permissionsCheck: (permiso) => {
+        console.log('[permisos] check:', permiso)
+        return true
+      },
+      crud: {
+        openModal: (payload) => alert(`[openModal] ${payload.action}: ${payload.title}`),
+        confirmDelete: (ids) => window.confirm('¿Eliminar ' + ids.length + ' registro(s)?'),
+      },
+      buttons: {
+        rowActions: [
+          { key: 'ver', icon: 'eye', severity: 'info', label: 'Ver',
+            onClick: (r) => alert('Ver ' + r.nombre) },
+        ],
+      },
+      preferencesStore: createLocalStoragePrefsAdapter('te_demo_parity'),
+    }
+
     function onSelectedLazy(row) { selectedLazy.value = row }
     function onDblLazy(row) { alert('Doble click: ' + row.nombre) }
     function onSelectedClient(rows) { selectedClient.value = rows }
+    function onCreateRequest(payload) { alert('[createRequest] ' + payload.title) }
+    function onEditRequest(payload) { alert('[editRequest] ' + payload.title) }
+    function onDeleteRequest(payload) { alert('[deleteRequest] ids=' + payload.ids.join(',')) }
 
     return {
       apiLazy, tableLazy, tableClient, clientData,
-      configLazy, configClient, selectedLazy,
-      onSelectedLazy, onDblLazy, onSelectedClient,
+      configLazy, configClient, configParity, permisos,
+      selectedLazy, onSelectedLazy, onDblLazy, onSelectedClient,
+      onCreateRequest, onEditRequest, onDeleteRequest,
     }
   },
 }

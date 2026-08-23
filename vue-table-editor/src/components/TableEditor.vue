@@ -1,7 +1,7 @@
 <template>
   <div class="te-wrapper">
     <!-- Toolbar -->
-    <div v-if="!config?.hideToolbar" class="te-toolbar">
+    <div v-if="!config?.hideToolbar || toolbarActionButtons.length" class="te-toolbar">
       <div class="te-toolbar-start">
         <button v-for="btn in toolbarButtons" :key="btn.key"
           :class="['te-btn', severityClass(btn.severity), btn.class]"
@@ -10,8 +10,18 @@
           :title="btn.getLabel()">
           <span v-if="btn.icon" class="te-btn-icon" v-html="iconSvg(btn.icon)"></span>{{ btn.getLabel() }}
         </button>
+        <template v-if="toolbarActionButtons.length">
+          <span v-if="toolbarButtons.length" class="te-toolbar-divider">|</span>
+          <button v-for="btn in toolbarActionButtons" :key="'ra-' + btn.key"
+            :class="['te-btn', severityClass(btn.severity), btn.class]"
+            :disabled="btn.isDisabled() || !selectedRow"
+            @click="btn.onClick(selectedRow)"
+            :title="btn.getLabel()">
+            <span v-if="btn.icon" class="te-btn-icon" v-html="iconSvg(btn.icon)"></span>{{ btn.getLabel() }}
+          </button>
+        </template>
       </div>
-      <div class="te-toolbar-end">
+      <div v-if="!config?.hideToolbarEnd" class="te-toolbar-end">
         <!-- Dropdown visibilidad de columnas -->
         <div class="te-dropdown" ref="colsDropdownRef">
           <button class="te-btn te-btn-outline-secondary" type="button" title="Columnas" @click="colsDropdownOpen = !colsDropdownOpen">
@@ -49,7 +59,7 @@
       <table class="te-table" :class="{ 'te-striped': striped }">
         <colgroup>
           <col v-if="selectionMode !== null" :style="{ width: selectionColWidth }" />
-          <col v-if="rowActionButtons.length" :style="{ width: actionColWidth }" />
+          <col v-if="rowActionButtons.length && !useToolbarActions" :style="{ width: actionColWidth }" />
           <col v-for="col of visibleColumns" :key="col.field"
             :style="{ width: columnWidths[col.field] || '15rem' }" :data-field="col.field" />
           <col class="te-col-filler" />
@@ -62,7 +72,7 @@
               <input v-if="selectionMode === 'multiple'" type="checkbox"
                 :checked="isAllSelected" @change="toggleSelectAll" class="te-checkbox" />
             </th>
-            <th v-if="rowActionButtons.length" class="te-th te-th-acts" :rowspan="2">Acciones</th>
+            <th v-if="rowActionButtons.length && !useToolbarActions" class="te-th te-th-acts" :rowspan="2">Acciones</th>
             <template v-for="hcol of columnGroupHeaders" :key="hcol._key">
               <th v-if="hcol._type === 'group'" :colspan="hcol._span" class="te-th te-th-group">
                 <div class="te-th-content">
@@ -111,7 +121,7 @@
               <input v-if="selectionMode === 'multiple'" type="checkbox"
                 :checked="isAllSelected" @change="toggleSelectAll" class="te-checkbox" />
             </th>
-            <th v-if="rowActionButtons.length" class="te-th te-th-acts">Acciones</th>
+            <th v-if="rowActionButtons.length && !useToolbarActions" class="te-th te-th-acts">Acciones</th>
             <th v-for="col of visibleColumns" :key="col.field"
               :data-field="col.field"
               :class="['te-th', col.css, {
@@ -148,7 +158,7 @@
           <!-- Fila de filtros por columna -->
           <tr v-if="showFilterRow" class="te-filter-row">
             <td v-if="selectionMode !== null" class="te-td"></td>
-            <td v-if="rowActionButtons.length" class="te-td"></td>
+            <td v-if="rowActionButtons.length && !useToolbarActions" class="te-td"></td>
             <td v-for="col of visibleColumns" :key="'f-'+col.field" class="te-td">
               <input v-model="columnFilters[col.field]" @input="onColumnFilterDebounced"
                 type="text" class="te-filter-input" placeholder="" />
@@ -175,7 +185,7 @@
               <input v-else type="radio" :checked="selectedRow === row"
                 @click="selectSingle(row)" class="te-checkbox" />
             </td>
-            <td v-if="rowActionButtons.length" class="te-td te-td-acts">
+            <td v-if="rowActionButtons.length && !useToolbarActions" class="te-td te-td-acts">
               <div class="te-actions-wrap">
                 <template v-for="btn of rowActionButtons" :key="btn.key">
                   <button v-if="btn.isVisible()"
@@ -247,6 +257,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { BtnConfig, toBtnConfig } from '../core/BtnConfig.js'
 import { getGlobalPreferencesAdapter } from '../core/preferenciasAdapter.js'
 import { iconSvg } from '../core/icons.js'
+import { invertHexColor, unwrapCell, cellStyle, applyRowStyling, applyFieldDefCss } from '../core/styling.js'
 
 const props = defineProps({
   api: { type: Object, default: null },
@@ -256,7 +267,7 @@ const props = defineProps({
   id: { type: String, default: null },
 })
 
-const emit = defineEmits(['loaded', 'rowSelected', 'rowDoubleClick'])
+const emit = defineEmits(['loaded', 'rowSelected', 'rowDoubleClick', 'createRequest', 'editRequest', 'deleteRequest'])
 
 const STORAGE_KEY_PREFIX = 'te_cfg'
 
@@ -345,6 +356,7 @@ let resizeStartWidth = null
 const editingCell = ref(null)
 const inlineEditValue = ref('')
 const inlineEditRef = ref(null)
+const inlineOriginalValue = ref(null)
 let inlineSaveTimer = null
 let pendingInlineSave = null
 
@@ -375,11 +387,17 @@ const visibleColumns = computed(() => {
 })
 
 const rowActionButtons = computed(() => buttonGroups.value.rowActions || [])
+const useToolbarActions = computed(() => props.config?.rowActionsMode === 'toolbar')
+const toolbarActionButtons = computed(() => (useToolbarActions.value ? rowActionButtons.value : []))
+const legacyLazy = computed(() => props.config?.lazyProtocol === 'legacy')
+const dataPipeline = computed(() => props.config?.dataPipeline || null)
+const stylingCfg = computed(() => props.config?.styling || null)
+const hasPermissionsCheck = computed(() => typeof props.config?.permissionsCheck === 'function')
 
 const totalColspan = computed(() => {
   let n = visibleColumns.value.length + 1
   if (selectionMode.value !== null) n++
-  if (rowActionButtons.value.length) n++
+  if (rowActionButtons.value.length && !useToolbarActions.value) n++
   return n
 })
 
@@ -479,22 +497,28 @@ const buttonGroups = ref({
       isVisible: () => !props.config?.hideCsvExport,
       onClick: () => exportCsv() }),
     new BtnConfig({ key: 'create', icon: 'plus', severity: 'success',
-      isVisible: () => props.api?.create != null,
+      isVisible: () => props.api?.create != null && hasPermission(props.permisos?.create),
       getLabel: () => elementLabels.value.create,
-      onClick: () => createRecord() }),
+      onClick: () => openCrud('create') }),
     new BtnConfig({ key: 'edit', icon: 'pencil', severity: 'warning',
-      isVisible: () => props.api?.edit != null,
+      isVisible: () => props.api?.edit != null && hasPermission(props.permisos?.edit),
       getLabel: () => elementLabels.value.edit,
       isDisabled: () => editEnabled.value,
-      onClick: () => editRecord() }),
+      onClick: () => openCrud('edit') }),
     new BtnConfig({ key: 'delete', icon: 'trash', severity: 'danger',
-      isVisible: () => props.api?.delete != null,
+      isVisible: () => props.api?.delete != null && hasPermission(props.permisos?.delete),
       getLabel: () => elementLabels.value.delete,
       isDisabled: () => editEnabled.value,
       onClick: () => deleteRecord() }),
   ],
   rowActions: []
 })
+
+function hasPermission(permiso) {
+  if (!permiso) return true
+  if (!hasPermissionsCheck.value) return true
+  return !!props.config.permissionsCheck(permiso)
+}
 
 const toolbarButtons = computed(() => {
   const btns = []
@@ -527,25 +551,6 @@ function applyConfig() {
 }
 
 // ── Format helpers ───────────────────────────────────
-function invertHexColor(h) {
-  if (h.length !== 7) return null
-  return '#' + (255 - parseInt(h.slice(1, 3), 16)).toString(16).padStart(2, '0') +
-    (255 - parseInt(h.slice(3, 5), 16)).toString(16).padStart(2, '0') +
-    (255 - parseInt(h.slice(5, 7), 16)).toString(16).padStart(2, '0')
-}
-
-function unwrapCell(row, col) {
-  if (row == null) return { value: null, style: null }
-  const v = row[col?.field]
-  if (v != null && typeof v === 'object' && '__style' in v) return { value: v.value, style: v.__style }
-  if (row.__field_styles?.[col?.field]) return { value: v, style: row.__field_styles[col?.field] }
-  return { value: v, style: null }
-}
-
-function cellStyle(row, col) {
-  return unwrapCell(row, col).style
-}
-
 function formatCell(row, col) {
   let { value: data } = unwrapCell(row, col)
   if (data == null || data === '') return '-'
@@ -614,6 +619,10 @@ function onRowClick(row) {
 function onRowDblClick(row) {
   if (resizingField.value || dragField.value) return
   emit('rowDoubleClick', row)
+  if (props.config?.editOnDoubleClick && props.api?.edit && hasPermission(props.permisos?.edit)) {
+    if (selectionMode.value === 'single') selectedRow.value = row
+    openCrud('edit')
+  }
 }
 
 // ── Sort ─────────────────────────────────────────────
@@ -624,6 +633,7 @@ function sortIconName(field) {
 
 function onSortClick(field) {
   if (resizingField.value || dragField.value) return
+  flushInlineEdit()
   const col = visibleColumns.value.find(c => c.field === field)
   if (col?.sortable === false) return
   if (sortField.value === field) {
@@ -784,11 +794,13 @@ function startInlineEdit(event, row, col) {
   const cfg = getInlineEditCfg(col)
   if (!cfg) return
   event?.stopPropagation?.()
-  const val = row[col.field] ?? ''
+  const raw = row.__raw?.[col.field]
+  const val = raw ?? row[col.field] ?? ''
+  inlineOriginalValue.value = val
   editingCell.value = { row, field: col.field }
   inlineEditValue.value = val
   nextTick(() => {
-    const el = inlineEditRef.value
+    const el = Array.isArray(inlineEditRef.value) ? inlineEditRef.value[0] : inlineEditRef.value
     if (el && typeof el.focus === 'function') { el.focus(); el.select() }
   })
 }
@@ -798,24 +810,34 @@ function confirmInlineEdit(row, col) {
   const cfg = getInlineEditCfg(col)
   if (!cfg) { cancelInlineEdit(); return }
   let val = inlineEditValue.value
-  if (cfg.type === 'integer') {
+  if (cfg.type === 'currency') {
+    const cleaned = String(val).replace(/[^0-9,\-]/g, '').replace(',', '.')
+    val = parseFloat(cleaned)
+    if (isNaN(val)) { cancelInlineEdit(); return }
+  } else if (cfg.type === 'integer') {
     val = parseInt(val, 10)
     if (isNaN(val) || (cfg.min !== undefined && val < cfg.min)) { cancelInlineEdit(); return }
   } else if (cfg.type === 'number') {
     val = parseFloat(val)
     if (isNaN(val) || (cfg.min !== undefined && val < cfg.min)) { cancelInlineEdit(); return }
   }
-  row[col.field] = val
+  row[col.field] = cfg.format ? cfg.format(val) : val
   if (!row.__raw) row.__raw = {}
   row.__raw[col.field] = val
   if (cfg.afterEdit) cfg.afterEdit(row, col.field, val)
   editingCell.value = null
+  inlineEditValue.value = ''
   debouncedInlineSave(row, col.field, val)
 }
 
 function cancelInlineEdit() {
+  if (editingCell.value && inlineOriginalValue.value !== null) {
+    const { row, field } = editingCell.value
+    row[field] = inlineOriginalValue.value
+  }
   editingCell.value = null
   inlineEditValue.value = ''
+  inlineOriginalValue.value = null
 }
 
 function debouncedInlineSave(row, field, value) {
@@ -825,37 +847,115 @@ function debouncedInlineSave(row, field, value) {
   if (!id) return
   if (inlineSaveTimer) { clearTimeout(inlineSaveTimer); inlineSaveTimer = null }
   if (pendingInlineSave) { pendingInlineSave.api(pendingInlineSave.data); pendingInlineSave = null }
+  const originalValue = inlineOriginalValue.value ?? row[field]
   pendingInlineSave = { api: cfg.api, data: { id, field, value } }
   inlineSaveTimer = setTimeout(async () => {
     const res = await cfg.api({ id, field, value })
     pendingInlineSave = null
-    if (res?.status !== false && cfg.onSave) cfg.onSave()
+    if (isFailedResponse(res)) {
+      row[field] = originalValue
+      console.error('[TableEditor] inline save failed:', res)
+    } else if (cfg.onSave) {
+      cfg.onSave()
+    }
   }, cfg.debounce_ms ?? 1000)
 }
 
 function flushInlineEdit() {
   editingCell.value = null
   inlineEditValue.value = ''
+  inlineOriginalValue.value = null
   if (inlineSaveTimer) { clearTimeout(inlineSaveTimer); inlineSaveTimer = null }
   if (pendingInlineSave) { pendingInlineSave.api(pendingInlineSave.data); pendingInlineSave = null }
 }
 
 // ── CRUD ─────────────────────────────────────────────
-async function createRecord() {
-  console.log('[TableEditor] createRecord - implementar via api.create')
+function crudPayload(action) {
+  const extra = props.config?.extraFields?.[action === 'create' ? 'create' : (action === 'edit' ? 'edit' : 'list')] || []
+  const isEdit = action === 'edit'
+  return {
+    action,
+    title: `${elementLabels.value[action]} ${props.config?.elementName?.singular || ''}`.trim(),
+    campos: [...columnDefs.value, ...extra],
+    modelo: isEdit ? selectedRow.value : {},
+    onSubmit: props.api?.[action],
+    guardado: () => refresh(),
+    selectedRows: selectionMode.value === 'multiple' ? [...selectedRows.value.keys()] : [selectedRow.value],
+  }
 }
 
-async function editRecord() {
-  console.log('[TableEditor] editRecord - implementar via api.edit')
+function openCrud(action) {
+  if (!props.api?.[action]) return
+  const hook = props.config?.crud?.openModal
+  if (typeof hook === 'function') {
+    hook(crudPayload(action))
+    return
+  }
+  emit(action + 'Request', crudPayload(action))
 }
 
 async function deleteRecord() {
-  console.log('[TableEditor] deleteRecord - implementar via api.delete')
+  const rows = selectionMode.value === 'multiple'
+    ? [...selectedRows.value.keys()]
+    : [selectedRow.value]
+  const ids = rows.map(r => r?.id).filter(Boolean)
+  if (!ids.length) {
+    emit('deleteRequest', { ids: [], action: 'delete' })
+    return
+  }
+  const confirmFn = props.config?.crud?.confirmDelete
+  if (typeof confirmFn === 'function') {
+    Promise.resolve(confirmFn(ids)).then(ok => {
+      if (ok) executeDelete(ids)
+    }).catch(err => console.error('[TableEditor] confirmDelete error:', err))
+  } else {
+    emit('deleteRequest', { ids, action: 'delete' })
+  }
+}
+
+async function executeDelete(ids) {
+  if (!props.api?.delete || !ids.length) return
+  try {
+    const res = await props.api.delete({ id: ids[0] })
+    if (isFailedResponse(res)) {
+      console.error('[TableEditor] delete failed:', res)
+      return
+    }
+    selectedRow.value = null
+    selectedRows.value = new Map()
+    editEnabled.value = true
+    refresh()
+  } catch (err) {
+    console.error('[TableEditor] delete error:', err)
+  }
 }
 
 // ── CSV Export ───────────────────────────────────────
+function isFailedResponse(res) {
+  return res != null && (res.status === false || res.stat === false)
+}
+
 async function exportCsv() {
-  let data = rows.value || []
+  if (lazy.value && props.config?.csvFetchAll && props.api?.list) {
+    try {
+      const p = listParams({ page: 1 })
+      p[legacyLazy.value ? 'rows' : 'pageSize'] = Math.max(totalRecords.value || 0, pageSize.value)
+      const res = await props.api.list(p)
+      if (isFailedResponse(res)) {
+        console.error('[TableEditor] CSV fetch error:', res)
+        return
+      }
+      downloadCsv(res?.data?.rows || [])
+      return
+    } catch (err) {
+      console.error('[TableEditor] CSV fetch error:', err)
+      return
+    }
+  }
+  downloadCsv(rows.value || [])
+}
+
+function downloadCsv(data) {
   if (!data.length) return
   const cols = visibleColumns.value
   let csv = cols.map(c => csvEscape(c.headerName)).join(',') + '\n'
@@ -897,24 +997,31 @@ function refresh() {
   loadData()
 }
 
-async function loadLazyData() {
-  flushInlineEdit()
-  loading.value = true
+function listParams(opts = {}) {
+  const page = opts.page ?? (infiniteScroll.value ? infinitePage.value : page.value)
   const p = {
-    page: infiniteScroll.value ? infinitePage.value : page.value,
-    pageSize: pageSize.value,
+    page,
+    [legacyLazy.value ? 'rows' : 'pageSize']: pageSize.value,
     sortField: sortField.value || '',
     sortOrder: sortOrder.value,
-    search: globalFilterValue.value || '',
+    [legacyLazy.value ? 'globalSearch' : 'search']: globalFilterValue.value || '',
   }
   const cf = {}
   for (const k of Object.keys(columnFilters.value)) {
-    if (columnFilters.value[k]) cf[k] = columnFilters.value[k]
+    if (columnFilters.value[k]) {
+      cf[k] = legacyLazy.value ? { value: columnFilters.value[k], matchMode: 'contains' } : columnFilters.value[k]
+    }
   }
   if (Object.keys(cf).length) p.filters = JSON.stringify(cf)
+  return p
+}
+
+async function loadLazyData() {
+  flushInlineEdit()
+  loading.value = true
   try {
-    const res = await props.api.list(p)
-    if (res?.status !== false) {
+    const res = await props.api.list(listParams())
+    if (!isFailedResponse(res)) {
       totalRecords.value = res?.data?.totalRecords || res?.data?.total || 0
       processData(res?.data)
     }
@@ -933,7 +1040,7 @@ async function loadData(dataOverride) {
     loading.value = true
     try {
       const res = await props.api.list()
-      if (res?.status !== false) processData(res?.data)
+      if (!isFailedResponse(res)) processData(res?.data)
     } catch (err) {
       console.error('[TableEditor] load error:', err)
     } finally {
@@ -947,12 +1054,24 @@ async function loadData(dataOverride) {
 
 function processData(data) {
   if (!data) { isLoaded.value = true; emit('loaded', true); return }
-  rows.value = data.rows || []
+  let rowsArr = data.rows || []
   let fields_def = data.fields_def
+  if (dataPipeline.value) {
+    if (dataPipeline.value.processRows) rowsArr = dataPipeline.value.processRows(rowsArr, fields_def) || rowsArr
+    if (dataPipeline.value.processFields) fields_def = dataPipeline.value.processFields(fields_def, rowsArr[0]) ?? fields_def
+  } else if (stylingCfg.value) {
+    rowsArr = rowsArr.map(r => applyRowStyling(r, stylingCfg.value))
+  }
+  rows.value = rowsArr
   if (fields_def) {
-    columnDefs.value = [...fields_def]
-    selectedColumns.value = [...fields_def]
-    availableColumns.value = [...fields_def]
+    let cdefs = [...fields_def]
+    if (props.config?.extraFields?.list) cdefs.push(...props.config.extraFields.list)
+    if (stylingCfg.value) applyFieldDefCss(cdefs, stylingCfg.value)
+    columnDefs.value = cdefs
+    let cols = cdefs
+    if (dataPipeline.value?.processColumns) cols = dataPipeline.value.processColumns(cdefs)
+    selectedColumns.value = [...cols]
+    availableColumns.value = [...cols]
     if (props.config?.defaultColumnProps) {
       for (let c = 0; c < selectedColumns.value.length; c++) {
         selectedColumns.value[c] = { ...selectedColumns.value[c], ...props.config.defaultColumnProps }
@@ -1000,22 +1119,18 @@ async function loadMoreInfinite() {
   isLoadingMore.value = true
   if (lazy.value) {
     infinitePage.value++
-    const p = {
-      page: infinitePage.value,
-      pageSize: pageSize.value,
-      sortField: sortField.value || '',
-      sortOrder: sortOrder.value,
-      search: globalFilterValue.value || '',
-    }
     try {
-      const res = await props.api.list(p)
-      if (res?.status !== false) {
+      const res = await props.api.list(listParams({ page: infinitePage.value }))
+      if (!isFailedResponse(res)) {
         const newRows = res?.data?.rows || []
-        rows.value = [...rows.value, ...newRows]
+        if (newRows.length) rows.value = [...rows.value, ...newRows]
         totalRecords.value = res?.data?.totalRecords || res?.data?.total || 0
       }
       hasMorePages.value = rows.value.length < totalRecords.value
-    } catch { hasMorePages.value = false }
+    } catch (err) {
+      console.error('[TableEditor] load more error:', err)
+      hasMorePages.value = false
+    }
   } else {
     const total = filteredRows.value.length
     const shown = rows.value.length
@@ -1040,7 +1155,7 @@ watch(displayRows, () => measureActionsColumn())
 
 // ── Medición columna de acciones ─────────────────────
 function measureActionsColumn() {
-  if (!rowActionButtons.value.length) return
+  if (!rowActionButtons.value.length || useToolbarActions.value) return
   nextTick(() => {
     const wrap = scrollWrapRef.value
     if (!wrap) return

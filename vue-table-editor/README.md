@@ -181,6 +181,38 @@ También se aceptan valores legacy con prefijo `btn-` (p. ej. `btn-primary`) y s
 | `preferencesStore` | Object | — | Adaptador de preferencias (si no se pasa, usa localStorage) |
 | `buttons` | Object | — | `{ toolbar: BtnConfig[], rowActions: BtnConfig[] }` |
 
+### Opciones de alineación (v1.1)
+
+Todas son **opcionales y aditivas**; sin ellas el comportamiento es idéntico al de la 1.0.
+
+| Campo | Tipo | Default | Descripción |
+|-------|------|---------|-------------|
+| `rowActionsMode` | String | `'column'` | `'column'` (columna "Acciones" por fila) o `'toolbar'` (botones de fila en la toolbar, habilitados al seleccionar) |
+| `lazyProtocol` | String | `'standard'` | `'standard'` envía `{page,pageSize,search}` con filtros planos; `'legacy'` envía `{page,rows,globalSearch}` y filtros `{value,matchMode:'contains'}`. La respuesta se normaliza aceptando tanto `status` como `stat`. |
+| `dataPipeline` | Object | — | `{ processRows(rows,fields_def), processFields(fields_def,firstRow), processColumns(cols) }`. Usa `greenbornDataPipeline(styling)` para replicar el pipeline JSON/formatters/estilos del frontend. |
+| `styling` | Object | — | `{ rowClass, rowClassFn, rowStyleFn, fieldClasses, fieldStyleFns }` para estilos dinámicos por fila/celda. |
+| `extraFields` | Object | — | `{ create, edit, list }`: columnas adicionales para cada acción. |
+| `permissionsCheck` | Function | — | `(permiso) => boolean`. Si se define, los botones CRUD built-in se ocultan cuando la prop `permisos.<accion>` no pasa el chequeo. |
+| `crud.openModal` | Function | — | `(payload) => void`. Reemplaza los stubs de CRUD: recibe `{action,title,campos,modelo,onSubmit,guardado,selectedRows}`. Si no se define, se emiten `createRequest/editRequest`. |
+| `crud.confirmDelete` | Function | — | `(ids) => Promise<boolean>\|boolean`. Si se define, ejecuta `api.delete` tras confirmar; si no, emite `deleteRequest`. |
+| `editOnDoubleClick` | Boolean | `false` | Al hacer doble click en una fila, abre la edición (requiere `api.edit` y permiso). |
+| `csvFetchAll` | Boolean | `false` | En modo `lazy`, exportar a CSV pidiendo todas las filas al servidor antes de descargar. |
+
+**Pipeline legacy** (paridad con el frontend):
+
+```js
+import { greenbornDataPipeline } from 'vue-table-editor'
+
+const config = {
+  lazy: true,
+  lazyProtocol: 'legacy',
+  dataPipeline: greenbornDataPipeline(),   // opcional: pasar el objeto styling
+  permissionsCheck: (p) => usuario?.permisos?.includes(p),
+}
+```
+
+**Inne edit**: se añadieron `type: 'currency'`, `cfg.format(val)` y rollback automático al valor original si el guardado falla (respuesta `status === false` o `stat === false`). El editor inline ahora restaura el valor al cancelar (Esc).
+
 ## Eventos
 
 | Evento | Payload | Descripción |
@@ -188,6 +220,14 @@ También se aceptan valores legacy con prefijo `btn-` (p. ej. `btn-primary`) y s
 | `loaded` | `Boolean` | Datos cargados |
 | `rowSelected` | `Object \| null \| Array` | Fila(s) seleccionada(s) |
 | `rowDoubleClick` | `Object` | Fila con doble click |
+| `createRequest` | `Object` | (v1.1) Solicitud de alta cuando no hay `crud.openModal` |
+| `editRequest` | `Object` | (v1.1) Solicitud de edición cuando no hay `crud.openModal` |
+| `deleteRequest` | `{ ids, action }` | (v1.1) Solicitud de borrado cuando no hay `crud.confirmDelete` |
+
+## Dark mode
+
+La librería incluye estilos para modo oscuro activados por el atributo
+`[data-bs-theme="dark"]` (mismo convenio que Bootstrap).
 
 ## Métodos (vía `ref`)
 
