@@ -24,6 +24,7 @@ export const MODALS_INIT = {
   activo: false,
   id: 0,
   code: 0,
+  zIndex: 0,
   componente: null,
   componente_header: null,
   componente_footer: null,
@@ -37,6 +38,10 @@ export const MODALS_INIT = {
 const modals_ = ref([])
 const z_index_base = ref(Z_INDEX_BASE)
 let ultimo_cod_modal = 0
+// Contador monótono de z-index. Cada modal abierto (o traído al frente) recibe un
+// valor estrictamente creciente que nunca se reusa, garantizando que el modal más
+// reciente quede siempre por encima del resto, sin depender del orden del array/DOM.
+let z_index_counter = Z_INDEX_BASE
 
 // La pila se inicializa de forma eager al cargar el módulo, así `modals_.value`
 // siempre es un array desde el import y el render de `ModalContainer` nunca
@@ -110,6 +115,7 @@ function mostrar_modal(componente, titulo, parametros = {}, config_modal = {}) {
   }
 
   slot.activo = true
+  slot.zIndex = ++z_index_counter
 
   const esCompuesto = !!(componente && (componente.body || componente.header || componente.footer))
   const bodyComponent = esCompuesto ? componente.body : componente
@@ -177,9 +183,9 @@ function restaurar(cod) {
 }
 
 /**
- * Trae al frente (top de la pila) el modal con el código recibido, reordenando
- * los slots activos y reasignando los `id` (que alimentan el z-index en el
- * contenedor). No-op si el modal no existe o ya está al frente.
+ * Trae al frente (top de la pila) el modal con el código recibido, reasignando su
+ * z-index a un nuevo valor máximo del contador monótono. No-op si el modal no
+ * existe o ya está al frente.
  *
  * @param {Number} cod - Código del modal a traer al frente.
  */
@@ -195,6 +201,7 @@ function traer_al_frente(cod) {
   for (let i = 0; i < modals.length; i++) {
     modals[i].id = i
   }
+  target.zIndex = ++z_index_counter
   modals_.value = modals
 }
 
@@ -279,13 +286,15 @@ function mostrar_confirm(params) {
 }
 
 /**
- * Establece la base de z-index de la pila. Se aplica en caliente: todos los
- * modales activos se re-apilan al instante. El valor se fuerza a número.
+ * Establece la base de z-index de la pila. Se aplica en caliente: el contador
+ * monótono se reinicia a este valor, de modo que el siguiente modal abierto se
+ * apila desde allí. El valor se fuerza a número.
  *
  * @param {Number} valor - Nueva base (por defecto `Z_INDEX_BASE = 2000`).
  */
 function set_z_index_base(valor) {
   z_index_base.value = Number(valor)
+  z_index_counter = Number(valor)
 }
 
 export function useModal() {

@@ -5,7 +5,7 @@
         v-for="_modal of activos"
         :key="_modal.code"
         class="gmm-layer"
-        :style="`z-index: ${z_index_base + _modal.id}`"
+        :style="`z-index: ${_modal.zIndex}`"
         @mousedown="traer_al_frente(_modal.code)"
       >
           <div
@@ -102,7 +102,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useModal } from '../composables/useModal'
 
-const { modals_, ocultar_modal, minimizar, restaurar, traer_al_frente, actualizar_posicion, z_index_base } = useModal()
+const { modals_, ocultar_modal, minimizar, restaurar, traer_al_frente, actualizar_posicion } = useModal()
 
 const activos = computed(() => modals_.value.filter((m) => m.activo && !m.minimized))
 const minimizados = computed(() => modals_.value.filter((m) => m.activo && m.minimized))
