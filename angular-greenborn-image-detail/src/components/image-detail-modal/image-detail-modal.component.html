@@ -1,0 +1,73 @@
+@if (open) {
+  <div class="gb-modal-backdrop" (click)="close()">
+
+    <div class="gb-modal-shell" (click)="$event.stopPropagation()">
+
+      <div class="gb-modal-main">
+
+        <div class="gb-image-section">
+
+          <button class="gb-btn-close" (click)="close()" title="Cerrar (Esc)">
+            <i class="bi bi-x-lg"></i>
+          </button>
+
+          @if (hasPrev) {
+            <button class="gb-btn-nav gb-btn-prev" (click)="prev()" title="Anterior (←)">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+          }
+
+          <gb-zoomable-image
+            [src]="currentSrc"
+            [title]="currentTitle"
+            [resetKey]="currentIndex"
+            [showDownload]="showDownload"
+            [showFullscreen]="showFullscreen"
+            (fullscreenChange)="onFullscreenChange($event)"
+          ></gb-zoomable-image>
+
+          @if (hasNext) {
+            <button class="gb-btn-nav gb-btn-next" (click)="next()" title="Siguiente (→)">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          }
+
+        </div>
+
+        @if (showMetadata) {
+          <div class="gb-info-panel">
+            @if (currentItem) {
+              <h5 class="gb-info-title">{{ currentItem.title || 'Detalle de imagen' }}</h5>
+              @if (currentItem.section) {
+                <div class="gb-info-item">
+                  <span class="gb-info-label">Sección</span>
+                  <span class="gb-info-value">{{ currentItem.section }}</span>
+                </div>
+              }
+              @if (currentItem.caption) {
+                <div class="gb-info-item">
+                  <span class="gb-info-value gb-info-caption">{{ currentItem.caption }}</span>
+                </div>
+              }
+              @for (meta of currentItem.metadata; track $index) {
+                <div class="gb-info-item">
+                  <span class="gb-info-label">{{ meta.label }}</span>
+                  <span class="gb-info-value">{{ meta.value }}</span>
+                </div>
+              }
+            }
+          </div>
+        }
+
+      </div>
+
+      @if (images.length > 1) {
+        <div class="gb-modal-footer">
+          <span class="gb-counter">{{ currentIndex + 1 }} / {{ images.length }}</span>
+        </div>
+      }
+
+    </div>
+
+  </div>
+}

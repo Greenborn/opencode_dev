@@ -1,0 +1,77 @@
+{
+  "name": "angular-greenborn-image-detail",
+  "version": "1.0.0",
+  "description": "Visor de detalle de imagen (zoom, pan, pantalla completa, descarga) y modal de detalle con navegación prev/next para aplicaciones Angular 21. Componente standalone extraído de GFC-Front.",
+  "keywords": [
+    "angular",
+    "angular21",
+    "image",
+    "detail",
+    "viewer",
+    "zoom",
+    "pan",
+    "fullscreen",
+    "modal",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/angular-greenborn-image-detail",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "main": "dist/fesm2022/angular-greenborn-image-detail.mjs",
+  "module": "dist/fesm2022/angular-greenborn-image-detail.mjs",
+  "types": "dist/types/angular-greenborn-image-detail.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/angular-greenborn-image-detail.d.ts",
+      "import": "./dist/fesm2022/angular-greenborn-image-detail.mjs",
+      "default": "./dist/fesm2022/angular-greenborn-image-detail.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "ng build",
+    "prepublishOnly": "ng build",
+    "prepack": "ng build",
+    "demo": "ng serve demo --port 5175 --open"
+  },
+  "peerDependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/core": "^21.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@angular/common": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^21.2.19",
+    "@angular/cli": "^21.2.19",
+    "@angular/common": "^21.2.18",
+    "@angular/compiler": "^21.2.18",
+    "@angular/compiler-cli": "^21.2.18",
+    "@angular/core": "^21.2.18",
+    "@angular/platform-browser": "^21.2.18",
+    "@angular/platform-browser-dynamic": "^21.2.18",
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.13.1",
+    "ng-packagr": "^21.2.7",
+    "rxjs": "^7.5.0",
+    "typescript": "~5.9.3",
+    "zone.js": "~0.15.0"
+  }
+}

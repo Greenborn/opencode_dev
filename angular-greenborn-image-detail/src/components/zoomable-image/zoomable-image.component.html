@@ -1,0 +1,64 @@
+<div class="zoomable-container" [class.fs]="isFullscreen">
+
+  @if (imageLoading) {
+    <div class="image-loader">
+      <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+  }
+
+  <div #wrapper class="image-wrapper"
+    [class.grabbable]="scale > 1 && !isDragging"
+    [class.grabbing]="isDragging"
+    (mousedown)="onDragStart($event)"
+    (mousemove)="onDragMove($event)"
+    (mouseup)="onDragEnd()"
+    (mouseleave)="onDragEnd()"
+    (touchstart)="onTouchStart($event)"
+    (touchmove)="onTouchMove($event)"
+    (touchend)="onTouchEnd()"
+    (wheel)="onWheel($event)">
+
+    <div class="image-transform"
+      [style.transform]="imageTransform">
+      @if (yepImg) {
+        <img loading="lazy"
+          (error)="onImageError()"
+          (load)="onImageLoad()"
+          [src]="src"
+          class="img-det-modal"
+          draggable="false"
+          />
+      }
+    </div>
+
+  </div>
+
+  <div class="zoom-controls">
+    <button class="zoom-btn" (click)="zoomOut()" [disabled]="scale <= minScale" title="Alejar (-)">
+      <i class="bi bi-dash-lg"></i>
+    </button>
+    <span class="zoom-level">{{ scale | number:'1.1-1' }}x</span>
+    <button class="zoom-btn" (click)="zoomIn()" [disabled]="scale >= maxScale" title="Acercar (+)">
+      <i class="bi bi-plus-lg"></i>
+    </button>
+    <span class="zoom-divider"></span>
+    <button class="zoom-btn" (click)="fit()" title="Ajustar (0)">
+      <i class="bi bi-arrows-fullscreen"></i>
+    </button>
+    @if (showFullscreen) {
+      <span class="zoom-divider"></span>
+      <button class="zoom-btn" (click)="toggleFullscreen()" [title]="(isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa') + ' (f)'">
+        <i class="bi" [ngClass]="isFullscreen ? 'bi-fullscreen-exit' : 'bi-fullscreen'"></i>
+      </button>
+    }
+    @if (showDownload) {
+      <span class="zoom-divider"></span>
+      <button class="zoom-btn" (click)="downloadImage()" title="Descargar imagen (d)">
+        <i class="bi bi-download"></i>
+      </button>
+    }
+  </div>
+
+</div>

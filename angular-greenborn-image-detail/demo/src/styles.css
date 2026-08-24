@@ -1,0 +1,36 @@
+body {
+  background: #0f1115;
+  color: #e6e6e6;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.card {
+  background: #1a1d24;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e6e6e6;
+}
+
+.card .card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+
+.card-title {
+  color: #7dff8a;
+}
+
+.text-muted {
+  color: rgba(230, 230, 230, 0.7) !important;
+}
+
+.btn-primary {
+  background-color: #28c75f;
+  border-color: #28c75f;
+  color: #06200c;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background-color: #35e071;
+  border-color: #35e071;
+}

@@ -1,0 +1,29 @@
+<div class="container py-5">
+  <h1 class="mb-3">angular-greenborn-image-detail</h1>
+  <p class="lead">Demostración del visor de detalle de imagen y su modal con navegación.</p>
+
+  <div class="row g-3">
+    @for (img of images; track $index) {
+      <div class="col-md-4">
+        <div class="card h-100">
+          <img [src]="img.url" class="card-img-top" [alt]="img.title" />
+          <div class="card-body">
+            <h5 class="card-title">{{ img.title }}</h5>
+            <p class="card-text text-muted">{{ img.caption }}</p>
+            <button class="btn btn-primary" (click)="openAt($index)">Ver detalle</button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<gb-image-detail-modal
+  [images]="images"
+  [startIndex]="startIndex"
+  [(open)]="open"
+  [showDownload]="true"
+  [showFullscreen]="true"
+  [showMetadata]="true"
+  (closed)="onClosed()"
+></gb-image-detail-modal>
