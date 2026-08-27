@@ -13,12 +13,19 @@ import ModalFooter from '../components/ModalFooter.vue'
 export const MAX_MODALS_LVLS = 20
 
 /**
- * Base de z-index de la pila de modales. Siempre alta (por encima de Bootstrap
- * 1050 y PrimeVue 1100) para sobreponerse al resto de la interfaz. Cada capa
- * apilada suma 1 a esta base (`z_index_base + id`). Ajustable en tiempo de
+ * Base de z-index de la pila de modales. Siempre por encima de toasts/spinners
+ * (5000/6000) y del resto de la interfaz. Cada capa apilada suma `Z_INDEX_STEP`
+ * a esta base: `z_index_base + (id + 1) * Z_INDEX_STEP`. Ajustable en tiempo de
  * ejecución con `set_z_index_base()`.
  */
-export const Z_INDEX_BASE = 2000
+export const Z_INDEX_BASE = 10000
+
+/**
+ * Incremento de z-index entre capas consecutivas. Con 20 niveles máximo, la
+ * banda resultante va de `Z_INDEX_BASE + Z_INDEX_STEP` a `Z_INDEX_BASE +
+ * MAX_MODALS_LVLS * Z_INDEX_STEP` (10100…12000), muy por debajo del taskbar.
+ */
+export const Z_INDEX_STEP = 100
 
 export const MODALS_INIT = {
   activo: false,
@@ -38,10 +45,18 @@ export const MODALS_INIT = {
 const modals_ = ref([])
 const z_index_base = ref(Z_INDEX_BASE)
 let ultimo_cod_modal = 0
-// Contador monótono de z-index. Cada modal abierto (o traído al frente) recibe un
-// valor estrictamente creciente que nunca se reusa, garantizando que el modal más
-// reciente quede siempre por encima del resto, sin depender del orden del array/DOM.
-let z_index_counter = Z_INDEX_BASE
+
+/**
+ * z-index determinístico de una capa según su posición en la pila (`id`, 0 =
+ * fondo). Cada capa queda `Z_INDEX_STEP` por encima de la anterior, y toda la
+ * pila por encima de `z_index_base` (que es el z-index del contenedor `.gmm-stack`).
+ *
+ * @param {Number} id - Índice de la capa en la pila (0..MAX_MODALS_LVLS-1).
+ * @returns {Number}
+ */
+function z_index_de_capa(id) {
+  return z_index_base.value + (id + 1) * Z_INDEX_STEP
+}
 
 // La pila se inicializa de forma eager al cargar el módulo, así `modals_.value`
 // siempre es un array desde el import y el render de `ModalContainer` nunca
@@ -115,7 +130,7 @@ function mostrar_modal(componente, titulo, parametros = {}, config_modal = {}) {
   }
 
   slot.activo = true
-  slot.zIndex = ++z_index_counter
+  slot.zIndex = z_index_de_capa(slot.id)
 
   const esCompuesto = !!(componente && (componente.body || componente.header || componente.footer))
   const bodyComponent = esCompuesto ? componente.body : componente
@@ -184,8 +199,8 @@ function restaurar(cod) {
 
 /**
  * Trae al frente (top de la pila) el modal con el código recibido, reasignando su
- * z-index a un nuevo valor máximo del contador monótono. No-op si el modal no
- * existe o ya está al frente.
+ * z-index determinístico según su nueva posición. No-op si el modal no existe o
+ * ya está al frente.
  *
  * @param {Number} cod - Código del modal a traer al frente.
  */
@@ -201,7 +216,11 @@ function traer_al_frente(cod) {
   for (let i = 0; i < modals.length; i++) {
     modals[i].id = i
   }
-  target.zIndex = ++z_index_counter
+  // Los `id` se reasignaron, así que se recalcula el z-index de las capas activas
+  // para que reflejen su nueva posición en la pila (fondo = menor, frente = mayor).
+  for (let i = 0; i < modals.length; i++) {
+    if (modals[i].activo) modals[i].zIndex = z_index_de_capa(modals[i].id)
+  }
   modals_.value = modals
 }
 
@@ -286,15 +305,20 @@ function mostrar_confirm(params) {
 }
 
 /**
- * Establece la base de z-index de la pila. Se aplica en caliente: el contador
- * monótono se reinicia a este valor, de modo que el siguiente modal abierto se
- * apila desde allí. El valor se fuerza a número.
+ * Establece la base de z-index de la pila. Se aplica en caliente: las capas
+ * activas recalculan su z-index determinístico (`base + (id + 1) * Z_INDEX_STEP`)
+ * y el contenedor `.gmm-stack` (que lee `z_index_base`) se reajusta al valor.
+ * El valor se fuerza a número.
  *
- * @param {Number} valor - Nueva base (por defecto `Z_INDEX_BASE = 2000`).
+ * @param {Number} valor - Nueva base (por defecto `Z_INDEX_BASE = 10000`).
  */
 function set_z_index_base(valor) {
   z_index_base.value = Number(valor)
-  z_index_counter = Number(valor)
+  for (let i = 0; i < modals_.value.length; i++) {
+    if (modals_.value[i].activo) {
+      modals_.value[i].zIndex = z_index_de_capa(modals_.value[i].id)
+    }
+  }
 }
 
 export function useModal() {

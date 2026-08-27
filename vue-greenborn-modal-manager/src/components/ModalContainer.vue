@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <div class="gmm-stack">
+    <div class="gmm-stack" :style="`z-index: ${z_index_base}`">
       <div
         v-for="_modal of activos"
         :key="_modal.code"
@@ -102,7 +102,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useModal } from '../composables/useModal'
 
-const { modals_, ocultar_modal, minimizar, restaurar, traer_al_frente, actualizar_posicion } = useModal()
+const { modals_, z_index_base, ocultar_modal, minimizar, restaurar, traer_al_frente, actualizar_posicion } = useModal()
 
 const activos = computed(() => modals_.value.filter((m) => m.activo && !m.minimized))
 const minimizados = computed(() => modals_.value.filter((m) => m.activo && m.minimized))

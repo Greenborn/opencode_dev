@@ -8,12 +8,21 @@
   position: fixed;
   inset: 0;
   pointer-events: none;
+  /* El z-index se vincula en caliente desde `useModal().z_index_base` (base de la
+     pila). El contenedor establece el contexto de apilado de todo el sistema de
+     modales: queda por encima de toasts/spinners y por debajo del taskbar. Cada
+     `.gmm-layer` recibe inline `base + (id + 1) * Z_INDEX_STEP`, de modo que las
+     capas avanzan de 100 en 100 (10100, 10200, … 12000 con 20 niveles). */
 }
 
 .gmm-layer {
   position: absolute;
   inset: 0;
   pointer-events: auto;
+  /* El z-index se asigna inline desde el store. Al tener `position` + `z-index`
+     crea un contexto de apilado propio que agrupa TODOS los elementos del modal
+     (overlay, diálogo, header/body/footer y cualquier contenido anidado como
+     dropdowns de tablas), impidiendo que escapen por encima de otras capas. */
 }
 
 .gmm-overlay {
