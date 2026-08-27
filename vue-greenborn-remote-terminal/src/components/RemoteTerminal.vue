@@ -5,6 +5,7 @@
       <div class="rt-mob-controls">
         <button class="rt-btn" @click="sendInput('\t')" title="Enviar Tab">Tab</button>
         <button class="rt-btn" @click="sendInput('\x1b[A')" title="Enviar flecha arriba">↑</button>
+        <button class="rt-btn" @click="sendInput('\x1b[B')" title="Enviar flecha abajo">↓</button>
         <button class="rt-btn" @click="paste" :disabled="pasting" title="Pegar contenido del portapapeles">
           <span v-if="pasting" class="rt-spin"></span>
           <template v-else>Pegar</template>
@@ -33,6 +34,7 @@ export default {
   props: {
     title: { type: String, default: 'terminal' },
     terminalId: { type: String, default: null },
+    fontSize: { type: Number, default: 13 },
   },
   emits: ['input', 'resize', 'close', 'ready', 'exit'],
   setup(props, { emit }) {
@@ -75,22 +77,20 @@ export default {
       if (!el) return
       const modal = el.closest('.modal-content') || el.closest('.modal-dialog')
       const host = modal || el.parentElement
-      const rect = host.getBoundingClientRect()
       el.style.position = 'fixed'
-      el.style.top = rect.top + 'px'
-      el.style.left = rect.left + 'px'
-      el.style.width = rect.width + 'px'
-      el.style.height = rect.height + 'px'
+      el.style.top = '0px'
+      el.style.left = '0px'
+      el.style.width = '100vw'
+      el.style.height = '100vh'
       el.style.zIndex = 2050
       el.style.margin = '0'
       el.style.borderRadius = '0'
       fsResizeObserver = new ResizeObserver(() => {
         if (!fullscreen.value) return
-        const r = host.getBoundingClientRect()
-        el.style.top = r.top + 'px'
-        el.style.left = r.left + 'px'
-        el.style.width = r.width + 'px'
-        el.style.height = r.height + 'px'
+        el.style.top = '0px'
+        el.style.left = '0px'
+        el.style.width = '100vw'
+        el.style.height = '100vh'
         fitTerminal()
       })
       fsResizeObserver.observe(host)
@@ -186,11 +186,17 @@ export default {
       }
     })
 
+    watch(() => props.fontSize, (val) => {
+      if (!terminal) return
+      terminal.options.fontSize = val
+      fitTerminal()
+    })
+
     onMounted(() => {
       terminal = new Terminal({
         cursorBlink: true,
         cursorStyle: 'bar',
-        fontSize: 13,
+        fontSize: props.fontSize,
         fontFamily: "'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace",
         lineHeight: 1.4,
         allowTransparency: true,
