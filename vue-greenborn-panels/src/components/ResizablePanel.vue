@@ -20,6 +20,8 @@
 </template>
 
 <script>
+import { computed } from 'vue'
+
 // Panel colapsable con handle de redimensionado. Admite tres orientaciones:
 //   - 'left'   → panel lateral izquierdo (colapsa a 0 de ancho, handle a la derecha)
 //   - 'right'  → panel lateral derecho (colapsa a 0 de ancho, handle a la izquierda)
@@ -40,17 +42,15 @@ export default {
   setup(props, { emit }) {
     const isHorizontal = () => props.side === 'left' || props.side === 'right'
 
-    const panelStyle = {
-      get() {
-        if (props.collapsed) {
-          return isHorizontal() ? { width: '0px', minWidth: '0px' } : { height: '0px' }
-        }
-        if (isHorizontal()) {
-          return { width: props.size + 'px', minWidth: props.size + 'px' }
-        }
-        return { height: props.size + 'px' }
-      },
-    }
+    const panelStyle = computed(() => {
+      if (props.collapsed) {
+        return isHorizontal() ? { width: '0px', minWidth: '0px' } : { height: '0px' }
+      }
+      if (isHorizontal()) {
+        return { width: props.size + 'px', minWidth: props.size + 'px' }
+      }
+      return { height: props.size + 'px' }
+    })
 
     function onResizeStart(e) {
       const handle = e.currentTarget

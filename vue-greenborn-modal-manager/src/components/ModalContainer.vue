@@ -99,7 +99,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useModal } from '../composables/useModal'
 
 const { modals_, z_index_base, ocultar_modal, minimizar, restaurar, traer_al_frente, actualizar_posicion } = useModal()
@@ -140,11 +140,14 @@ function on_taskbar_leave() {
 
 onMounted(() => {
   document.addEventListener('mousemove', on_global_mousemove)
+  window.addEventListener('resize', reclamp_all)
 })
 
 onUnmounted(() => {
   document.removeEventListener('mousemove', on_global_mousemove)
+  window.removeEventListener('resize', reclamp_all)
   if (hide_taskbar_timer) clearTimeout(hide_taskbar_timer)
+  if (reclamp_timer) clearTimeout(reclamp_timer)
 })
 
 
@@ -153,7 +156,7 @@ const SIZES = ['sm', 'md', 'lg', 'full']
 
 // Estado de arrastre activo.
 let dragging_code = null
-let drag_offset = { x: 0, y: 0 }
+let drag_start = null
 
 /**
  * Se emite inline sólo el ancho/alto que el call site definió explícitamente en
@@ -217,29 +220,120 @@ function click_overlay(modal, event) {
 }
 
 /**
+ * Visibilidad mínima garantizada del header sobre el borde de la pantalla:
+ * 3rem según el font-size raíz (fallback 48px).
+ */
+function min_visible_px() {
+  const fs = parseFloat(getComputedStyle(document.documentElement).fontSize)
+  return Number.isFinite(fs) && fs > 0 ? fs * 3 : 48
+}
+
+/**
+ * Rango de posiciones del header (coordenadas del viewport) que garantiza que
+ * siempre quede en pantalla un área de al menos 3rem × 3rem para agarrarlo.
+ */
+function clamp_bounds(width, height) {
+  const min = min_visible_px()
+  const min_x = Math.min(min, width)
+  const min_y = Math.min(min, height)
+  return {
+    min_left: min_x - width,
+    max_left: window.innerWidth - min_x,
+    min_top: min_y - height,
+    max_top: window.innerHeight - min_y,
+  }
+}
+
+function clamp_value(value, min, max) {
+  return Math.min(Math.max(value, min), max)
+}
+
+/**
  * Inicia el arrastre desde el header del modal y trae el modal al frente.
  */
 function start_drag(event, modal) {
   dragging_code = modal.code
-  const el = event.currentTarget.closest('.gmm-dialog')
-  const rect = el.getBoundingClientRect()
-  drag_offset.x = event.clientX - (rect.left + rect.width / 2)
-  drag_offset.y = event.clientY - (rect.top + rect.height / 2)
+  const header_rect = event.currentTarget.getBoundingClientRect()
+  drag_start = {
+    mouse_x: event.clientX,
+    mouse_y: event.clientY,
+    header_left: header_rect.left,
+    header_top: header_rect.top,
+    bounds: clamp_bounds(header_rect.width, header_rect.height),
+    pos_x: modal.position.x,
+    pos_y: modal.position.y,
+  }
 
   document.addEventListener('mousemove', on_drag)
   document.addEventListener('mouseup', stop_drag)
 }
 
 function on_drag(event) {
-  if (dragging_code == null) return
-  const x = event.clientX - drag_offset.x - window.innerWidth / 2
-  const y = event.clientY - drag_offset.y - window.innerHeight / 2
-  actualizar_posicion(dragging_code, x, y)
+  if (dragging_code == null || !drag_start) return
+  const left = clamp_value(
+    drag_start.header_left + (event.clientX - drag_start.mouse_x),
+    drag_start.bounds.min_left,
+    drag_start.bounds.max_left
+  )
+  const top = clamp_value(
+    drag_start.header_top + (event.clientY - drag_start.mouse_y),
+    drag_start.bounds.min_top,
+    drag_start.bounds.max_top
+  )
+  actualizar_posicion(
+    dragging_code,
+    drag_start.pos_x + (left - drag_start.header_left),
+    drag_start.pos_y + (top - drag_start.header_top)
+  )
 }
 
 function stop_drag() {
   dragging_code = null
+  drag_start = null
   document.removeEventListener('mousemove', on_drag)
   document.removeEventListener('mouseup', stop_drag)
 }
+
+/**
+ * Re-clampea la posición de todos los modales visibles contra el viewport:
+ * cubre cambios de tamaño de ventana y restauraciones de minimizados, para que
+ * el header nunca quede fuera de pantalla fuera del arrastre.
+ */
+function reclamp_all() {
+  const overlays = document.querySelectorAll('.gmm-layer .gmm-overlay[data-modal-code]')
+  for (const overlay of overlays) {
+    const code = Number(overlay.dataset.modalCode)
+    const modal = modals_.value.find((m) => m.activo && m.code === code)
+    const header = overlay.querySelector('.gmm-header')
+    if (!modal || !header) continue
+    const rect = header.getBoundingClientRect()
+    const bounds = clamp_bounds(rect.width, rect.height)
+    const left = clamp_value(rect.left, bounds.min_left, bounds.max_left)
+    const top = clamp_value(rect.top, bounds.min_top, bounds.max_top)
+    if (left !== rect.left || top !== rect.top) {
+      actualizar_posicion(
+        code,
+        modal.position.x + (left - rect.left),
+        modal.position.y + (top - rect.top)
+      )
+    }
+  }
+}
+
+// El re-clamp se difiere hasta que termina la animación de entrada
+// (`gmm-pop-in`, 0.18s): durante la animación el transform inline (posición
+// arrastrada) queda suspendido y medir el header daría la posición centrada.
+let reclamp_timer = null
+function schedule_reclamp() {
+  if (reclamp_timer) clearTimeout(reclamp_timer)
+  reclamp_timer = setTimeout(() => {
+    reclamp_timer = null
+    reclamp_all()
+  }, 200)
+}
+
+watch(
+  () => activos.value.map((m) => m.code).join(','),
+  schedule_reclamp
+)
 </script>

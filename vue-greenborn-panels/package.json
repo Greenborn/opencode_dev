@@ -1,6 +1,6 @@
 {
   "name": "vue-greenborn-panels",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Sistema genérico de paneles y tabs reordenables para Vue 3: registry singleton de tabs por slot, TabBar con drag & drop nativo, panel lateral colapsable con handle de resize y estado de layout (colapso/resize) sin Pinia. Sin dependencias de UI (CSS propio).",
   "type": "module",
   "files": [

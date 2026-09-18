@@ -1,4 +1,4 @@
-import { ref, shallowRef, watch } from 'vue'
+import { ref, shallowRef, watch, isRef, isReactive } from 'vue'
 import { sortTabs } from '../utils/sortTabs.js'
 
 // Controlador de tabs: extrae y unifica la lógica compartida por todos los
@@ -108,9 +108,17 @@ export function useTabController(options) {
     dragOverIndex.value = null
   }
 
+  // Primera construcción síncrona: no depende del watch (fuentes no reactivas
+  // como un array plano no disparan watch ni su `immediate`).
+  buildTabs()
+
   // Reacciona a cambios del registry / orden guardado / filtro.
-  watch(slotTabs, () => buildTabs(), { immediate: true })
-  watch(savedOrder, () => buildTabs())
+  if (isRef(slotTabs) || isReactive(slotTabs)) {
+    watch(slotTabs, () => buildTabs())
+  }
+  if (isRef(savedOrder) || isReactive(savedOrder)) {
+    watch(savedOrder, () => buildTabs())
+  }
   if (Array.isArray(watchFilter)) {
     for (const src of watchFilter) {
       watch(src, () => buildTabs(), { deep: true })

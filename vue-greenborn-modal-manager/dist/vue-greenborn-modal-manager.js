@@ -1,47 +1,47 @@
-import { openBlock as u, createElementBlock as f, Fragment as T, renderList as H, normalizeClass as $, toDisplayString as E, createElementVNode as v, markRaw as I, ref as A, computed as P, onMounted as ae, onUnmounted as ie, createBlock as M, Teleport as se, normalizeStyle as D, unref as y, withModifiers as B, resolveDynamicComponent as O, createCommentVNode as w } from "vue";
-const re = ["innerHTML"], G = {
+import { openBlock as u, createElementBlock as v, Fragment as N, renderList as j, normalizeClass as S, toDisplayString as I, createElementVNode as h, markRaw as H, ref as V, computed as ee, onMounted as _e, onUnmounted as ve, watch as pe, createBlock as E, Teleport as ge, normalizeStyle as F, unref as z, withModifiers as X, resolveDynamicComponent as R, createCommentVNode as L } from "vue";
+const he = ["innerHTML"], oe = {
   __name: "DialogConfirm",
   props: ["parametros"],
   setup(e) {
-    return (o, l) => (u(), f("div", {
+    return (t, l) => (u(), v("div", {
       class: "gmm-dialog-confirm",
       innerHTML: e.parametros.texto
-    }, null, 8, re));
+    }, null, 8, he));
   }
-}, le = { class: "gmm-footer-bar" }, ce = ["autofocus", "disabled", "onClick"], U = {
+}, be = { class: "gmm-footer-bar" }, ye = ["autofocus", "disabled", "onClick"], te = {
   __name: "ModalFooter",
   props: ["parametros"],
   setup(e) {
-    const o = e, { ocultar_modal: l } = q();
-    function n() {
-      l(o.parametros._modal_cod);
+    const t = e, { ocultar_modal: l } = ie();
+    function a() {
+      l(t.parametros._modal_cod);
     }
     async function c() {
-      return await o.parametros._callback_guardar(o.parametros);
+      return await t.parametros._callback_guardar(t.parametros);
     }
-    return (d, r) => (u(), f("div", le, [
-      e.parametros.botones_footer ? (u(!0), f(T, { key: 0 }, H(e.parametros.botones_footer, (g, h) => (u(), f("button", {
-        key: h,
+    return (_, r) => (u(), v("div", be, [
+      e.parametros.botones_footer ? (u(!0), v(N, { key: 0 }, j(e.parametros.botones_footer, (g, y) => (u(), v("button", {
+        key: y,
         type: "button",
-        class: $(["gmm-btn", `gmm-btn-${g.severity || "primary"}`]),
+        class: S(["gmm-btn", `gmm-btn-${g.severity || "primary"}`]),
         autofocus: g.autofocus,
         disabled: g.disabled,
         onClick: g.onClick
-      }, E(g.label), 11, ce))), 128)) : (u(), f(T, { key: 1 }, [
-        v("button", {
+      }, I(g.label), 11, ye))), 128)) : (u(), v(N, { key: 1 }, [
+        h("button", {
           type: "button",
           class: "gmm-btn gmm-btn-secondary",
-          onClick: n
+          onClick: a
         }, " Cancelar "),
-        v("button", {
+        h("button", {
           type: "button",
           class: "gmm-btn gmm-btn-success",
           onClick: c
-        }, E(e.parametros.action === "edit" ? "Guardar" : "Nuevo"), 1)
+        }, I(e.parametros.action === "edit" ? "Guardar" : "Nuevo"), 1)
       ], 64))
     ]));
   }
-}, ue = 20, de = 1e4, me = 100, fe = {
+}, ke = 20, xe = 1e4, ze = 100, Ce = {
   activo: !1,
   id: 0,
   code: 0,
@@ -54,91 +54,91 @@ const re = ["innerHTML"], G = {
   config_modal: {},
   position: { x: 0, y: 0 },
   minimized: !1
-}, i = A([]), X = A(de);
-let k = 0;
-function F(e) {
-  return X.value + (e + 1) * me;
+}, s = V([]), Y = V(xe);
+let C = 0;
+function Z(e) {
+  return Y.value + (e + 1) * ze;
 }
-for (let e = 0; e < ue; e++)
-  i.value.push({ ...fe, id: e });
-function _e() {
+for (let e = 0; e < ke; e++)
+  s.value.push({ ...Ce, id: e });
+function we() {
 }
-function ve() {
-  const e = [], o = [];
-  for (let n = 0; n < i.value.length; n++)
-    i.value[n].activo ? e.push(i.value[n]) : o.push(i.value[n]);
-  const l = e.concat(o);
-  for (let n = 0; n < l.length; n++)
-    l[n].id = n;
+function Me() {
+  const e = [], t = [];
+  for (let a = 0; a < s.value.length; a++)
+    s.value[a].activo ? e.push(s.value[a]) : t.push(s.value[a]);
+  const l = e.concat(t);
+  for (let a = 0; a < l.length; a++)
+    l[a].id = a;
   return { modals: l, ultimo_id: e.length - 1 };
 }
-function R(e, o, l = {}, n = {}) {
-  if (k += 1, !(n != null && n.id)) {
-    const p = ve();
-    i.value = p.modals, n.id = p.ultimo_id + 1;
+function q(e, t, l = {}, a = {}) {
+  if (C += 1, !(a != null && a.id)) {
+    const k = Me();
+    s.value = k.modals, a.id = k.ultimo_id + 1;
   }
-  const c = i.value[n.id];
+  const c = s.value[a.id];
   if (!c)
-    return console.error("[useModal] No hay un slot libre para el modal; se ignora la apertura.", n), { code: Number(k) };
-  c.activo && console.warn("[useModal] Se sobreescribe un modal activo; puede dar lugar a errores inesperados.", n), c.activo = !0, c.zIndex = F(c.id);
-  const d = !!(e && (e.body || e.header || e.footer)), r = d ? e.body : e, g = d ? e.header : null, h = d ? e.footer : (e == null ? void 0 : e.footer) || null;
-  return c.componente = r ? I(r) : null, c.componente_header = g ? I(g) : null, c.componente_footer = h ? I(h) : null, c.parametros = { ...l, _config_modal: n, _modal_cod: k }, c.titulo = o, c.config_modal = n, c.code = Number(k), { code: Number(k) };
+    return console.error("[useModal] No hay un slot libre para el modal; se ignora la apertura.", a), { code: Number(C) };
+  c.activo && console.warn("[useModal] Se sobreescribe un modal activo; puede dar lugar a errores inesperados.", a), c.activo = !0, c.zIndex = Z(c.id);
+  const _ = !!(e && (e.body || e.header || e.footer)), r = _ ? e.body : e, g = _ ? e.header : null, y = _ ? e.footer : (e == null ? void 0 : e.footer) || null;
+  return c.componente = r ? H(r) : null, c.componente_header = g ? H(g) : null, c.componente_footer = y ? H(y) : null, c.parametros = { ...l, _config_modal: a, _modal_cod: C }, c.titulo = t, c.config_modal = a, c.code = Number(C), { code: Number(C) };
 }
-function L(e = null) {
+function B(e = null) {
   if (e != null) {
-    for (let o = 0; o < i.value.length; o++)
-      if (e == i.value[o].code) {
-        i.value[o].activo = !1;
+    for (let t = 0; t < s.value.length; t++)
+      if (e == s.value[t].code) {
+        s.value[t].activo = !1;
         break;
       }
   } else
-    for (let o = 0; o < i.value.length; o++)
-      i.value[o].activo = !1;
+    for (let t = 0; t < s.value.length; t++)
+      s.value[t].activo = !1;
 }
-function ge(e) {
-  const o = i.value.find((l) => l.activo && l.code === e);
-  o && (o.minimized = !0);
+function Te(e) {
+  const t = s.value.find((l) => l.activo && l.code === e);
+  t && (t.minimized = !0);
 }
-function he(e) {
-  const o = i.value.find((l) => l.activo && l.code === e);
-  o && (o.minimized = !1, W(e));
+function $e(e) {
+  const t = s.value.find((l) => l.activo && l.code === e);
+  t && (t.minimized = !1, ne(e));
 }
-function W(e) {
-  const o = i.value.filter((r) => r.activo);
-  if (o.length <= 1) return;
-  const l = o.find((r) => r.code === e);
-  if (!l || o[o.length - 1] === l) return;
-  const n = o.filter((r) => r.code !== e), c = i.value.filter((r) => !r.activo), d = n.concat([l]).concat(c);
-  for (let r = 0; r < d.length; r++)
-    d[r].id = r;
-  for (let r = 0; r < d.length; r++)
-    d[r].activo && (d[r].zIndex = F(d[r].id));
-  i.value = d;
+function ne(e) {
+  const t = s.value.filter((r) => r.activo);
+  if (t.length <= 1) return;
+  const l = t.find((r) => r.code === e);
+  if (!l || t[t.length - 1] === l) return;
+  const a = t.filter((r) => r.code !== e), c = s.value.filter((r) => !r.activo), _ = a.concat([l]).concat(c);
+  for (let r = 0; r < _.length; r++)
+    _[r].id = r;
+  for (let r = 0; r < _.length; r++)
+    _[r].activo && (_[r].zIndex = Z(_[r].id));
+  s.value = _;
 }
-function pe(e, o, l) {
-  const n = i.value.find((c) => c.activo && c.code === e);
-  n && (n.position.x = o, n.position.y = l);
+function Ee(e, t, l) {
+  const a = s.value.find((c) => c.activo && c.code === e);
+  a && (a.position.x = t, a.position.y = l);
 }
-function be(e) {
-  const o = i.value.length - 1;
-  R(
-    { body: G, footer: U },
+function Le(e) {
+  const t = s.value.length - 1;
+  q(
+    { body: oe, footer: te },
     "Info",
     {
       texto: e,
       botones_footer: [
-        { label: "Aceptar", autofocus: !0, onClick: () => L(i.value[o].code) }
+        { label: "Aceptar", autofocus: !0, onClick: () => B(s.value[t].code) }
       ]
     },
-    { id: o, size: "sm" }
+    { id: t, size: "sm" }
   );
 }
-function ye(e) {
+function Se(e) {
   Object.prototype.hasOwnProperty.call(e, "no_confirma_accion") || (e.no_confirma_accion = () => {
   });
-  const o = i.value.length - 1;
-  R(
-    { body: G, footer: U },
+  const t = s.value.length - 1;
+  q(
+    { body: oe, footer: te },
     e.title,
     {
       texto: e.text,
@@ -148,7 +148,7 @@ function ye(e) {
           severity: "secondary",
           autofocus: !0,
           onClick: () => {
-            L(i.value[o].code), e.no_confirma_accion();
+            B(s.value[t].code), e.no_confirma_accion();
           }
         },
         {
@@ -156,202 +156,260 @@ function ye(e) {
           severity: e.severity_confirmar || "success",
           autofocus: !1,
           onClick: () => {
-            L(i.value[o].code), e.confirmar_accion();
+            B(s.value[t].code), e.confirmar_accion();
           }
         }
       ]
     },
-    { id: o, size: "sm" }
+    { id: t, size: "sm" }
   );
 }
-function ke(e) {
-  X.value = Number(e);
-  for (let o = 0; o < i.value.length; o++)
-    i.value[o].activo && (i.value[o].zIndex = F(i.value[o].id));
+function Ne(e) {
+  Y.value = Number(e);
+  for (let t = 0; t < s.value.length; t++)
+    s.value[t].activo && (s.value[t].zIndex = Z(s.value[t].id));
 }
-function q() {
+function ie() {
   return {
-    modals_: i,
-    z_index_base: X,
-    mostrar_modal: R,
-    ocultar_modal: L,
-    minimizar: ge,
-    restaurar: he,
-    traer_al_frente: W,
-    actualizar_posicion: pe,
-    mostrar_alerta: be,
-    mostrar_confirm: ye,
-    inic_modals: _e,
-    set_z_index_base: ke
+    modals_: s,
+    z_index_base: Y,
+    mostrar_modal: q,
+    ocultar_modal: B,
+    minimizar: Te,
+    restaurar: $e,
+    traer_al_frente: ne,
+    actualizar_posicion: Ee,
+    mostrar_alerta: Le,
+    mostrar_confirm: Se,
+    inic_modals: we,
+    set_z_index_base: Ne
   };
 }
-const ze = ["onMousedown"], Ce = ["data-modal-code", "onClick"], xe = ["onMousedown"], Me = {
+const Ie = ["onMousedown"], Be = ["data-modal-code", "onClick"], De = ["onMousedown"], Oe = {
   key: 1,
   class: "gmm-header-title"
-}, we = { class: "gmm-header-controls" }, $e = ["onClick"], Te = ["onClick"], Ee = { class: "gmm-body" }, Le = { class: "gmm-content-wrapper" }, Ne = {
+}, Ae = { class: "gmm-header-controls" }, He = ["onClick"], Fe = ["onClick"], Xe = { class: "gmm-body" }, Re = { class: "gmm-content-wrapper" }, je = {
   key: 0,
   class: "gmm-footer"
-}, Se = { class: "gmm-taskbar-inner" }, Ie = ["title", "onClick"], De = { class: "gmm-taskbar-title" }, Be = 12, He = {
+}, Ve = { class: "gmm-taskbar-inner" }, Ye = ["title", "onClick"], Ze = { class: "gmm-taskbar-title" }, qe = 12, Ge = {
   __name: "ModalContainer",
   setup(e) {
-    const { modals_: o, z_index_base: l, ocultar_modal: n, minimizar: c, restaurar: d, traer_al_frente: r, actualizar_posicion: g } = q(), h = P(() => o.value.filter((s) => s.activo && !s.minimized)), p = P(() => o.value.filter((s) => s.activo && s.minimized)), z = A(!1);
-    let _ = null;
-    function V(s) {
-      window.innerHeight - s.clientY < Be && p.value.length && (_ && (clearTimeout(_), _ = null), z.value = !0);
+    const { modals_: t, z_index_base: l, ocultar_modal: a, minimizar: c, restaurar: _, traer_al_frente: r, actualizar_posicion: g } = ie(), y = ee(() => t.value.filter((n) => n.activo && !n.minimized)), k = ee(() => t.value.filter((n) => n.activo && n.minimized)), w = V(!1);
+    let p = null;
+    function P(n) {
+      window.innerHeight - n.clientY < qe && k.value.length && (p && (clearTimeout(p), p = null), w.value = !0);
     }
-    function J() {
-      _ && (clearTimeout(_), _ = null), z.value = !0;
+    function ae() {
+      p && (clearTimeout(p), p = null), w.value = !0;
     }
-    function K() {
-      _ && clearTimeout(_), _ = setTimeout(() => {
-        z.value = !1, _ = null;
+    function se() {
+      p && clearTimeout(p), p = setTimeout(() => {
+        w.value = !1, p = null;
       }, 300);
     }
-    ae(() => {
-      document.addEventListener("mousemove", V);
-    }), ie(() => {
-      document.removeEventListener("mousemove", V), _ && clearTimeout(_);
+    _e(() => {
+      document.addEventListener("mousemove", P), window.addEventListener("resize", A);
+    }), ve(() => {
+      document.removeEventListener("mousemove", P), window.removeEventListener("resize", A), p && clearTimeout(p), x && clearTimeout(x);
     });
-    const N = ["sm", "md", "lg", "full"];
-    let C = null, x = { x: 0, y: 0 };
-    function Q(s) {
-      var t;
-      const a = ((t = s.config_modal) == null ? void 0 : t.styles) || {};
+    const D = ["sm", "md", "lg", "full"];
+    let M = null, m = null;
+    function re(n) {
+      var o;
+      const i = ((o = n.config_modal) == null ? void 0 : o.styles) || {};
       return {
-        ...a.width ? { width: a.width } : {},
-        ...a.height ? { height: a.height } : {}
+        ...i.width ? { width: i.width } : {},
+        ...i.height ? { height: i.height } : {}
       };
     }
-    function ee(s) {
+    function le(n) {
       return {
-        transform: `translate(${s.position.x}px, ${s.position.y}px)`
+        transform: `translate(${n.position.x}px, ${n.position.y}px)`
       };
     }
-    function oe(s) {
-      const a = s.config_modal || {}, t = a.styles || {};
-      let m = null;
-      return t.width || (a.size && !N.includes(a.size) && console.warn(
-        `[ModalContainer] config_modal.size="${a.size}" no está en la escala (${N.join(", ")}); se ignora.`
-      ), m = N.includes(a.size) ? `gmm-size-${a.size}` : "gmm-ancho-auto"), [a.cssClass, m, { "gmm-alto-auto": !t.height }];
+    function ce(n) {
+      const i = n.config_modal || {}, o = i.styles || {};
+      let d = null;
+      return o.width || (i.size && !D.includes(i.size) && console.warn(
+        `[ModalContainer] config_modal.size="${i.size}" no está en la escala (${D.join(", ")}); se ignora.`
+      ), d = D.includes(i.size) ? `gmm-size-${i.size}` : "gmm-ancho-auto"), [i.cssClass, d, { "gmm-alto-auto": !o.height }];
     }
-    function S(s) {
-      var a;
-      return (((a = s.config_modal) == null ? void 0 : a.draggable) ?? !0) !== !1;
+    function O(n) {
+      var i;
+      return (((i = n.config_modal) == null ? void 0 : i.draggable) ?? !0) !== !1;
     }
-    function te(s, a) {
-      var m;
-      (((m = s.config_modal) == null ? void 0 : m.dismissableMask) ?? !1) && a.target === a.currentTarget && n(s.code);
+    function ue(n, i) {
+      var d;
+      (((d = n.config_modal) == null ? void 0 : d.dismissableMask) ?? !1) && i.target === i.currentTarget && a(n.code);
     }
-    function ne(s, a) {
-      C = a.code;
-      const m = s.currentTarget.closest(".gmm-dialog").getBoundingClientRect();
-      x.x = s.clientX - (m.left + m.width / 2), x.y = s.clientY - (m.top + m.height / 2), document.addEventListener("mousemove", Y), document.addEventListener("mouseup", Z);
+    function de() {
+      const n = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      return Number.isFinite(n) && n > 0 ? n * 3 : 48;
     }
-    function Y(s) {
-      if (C == null) return;
-      const a = s.clientX - x.x - window.innerWidth / 2, t = s.clientY - x.y - window.innerHeight / 2;
-      g(C, a, t);
+    function G(n, i) {
+      const o = de(), d = Math.min(o, n), b = Math.min(o, i);
+      return {
+        min_left: d - n,
+        max_left: window.innerWidth - d,
+        min_top: b - i,
+        max_top: window.innerHeight - b
+      };
     }
-    function Z() {
-      C = null, document.removeEventListener("mousemove", Y), document.removeEventListener("mouseup", Z);
+    function T(n, i, o) {
+      return Math.min(Math.max(n, i), o);
     }
-    return (s, a) => (u(), M(se, { to: "body" }, [
-      v("div", {
+    function me(n, i) {
+      M = i.code;
+      const o = n.currentTarget.getBoundingClientRect();
+      m = {
+        mouse_x: n.clientX,
+        mouse_y: n.clientY,
+        header_left: o.left,
+        header_top: o.top,
+        bounds: G(o.width, o.height),
+        pos_x: i.position.x,
+        pos_y: i.position.y
+      }, document.addEventListener("mousemove", U), document.addEventListener("mouseup", W);
+    }
+    function U(n) {
+      if (M == null || !m) return;
+      const i = T(
+        m.header_left + (n.clientX - m.mouse_x),
+        m.bounds.min_left,
+        m.bounds.max_left
+      ), o = T(
+        m.header_top + (n.clientY - m.mouse_y),
+        m.bounds.min_top,
+        m.bounds.max_top
+      );
+      g(
+        M,
+        m.pos_x + (i - m.header_left),
+        m.pos_y + (o - m.header_top)
+      );
+    }
+    function W() {
+      M = null, m = null, document.removeEventListener("mousemove", U), document.removeEventListener("mouseup", W);
+    }
+    function A() {
+      const n = document.querySelectorAll(".gmm-layer .gmm-overlay[data-modal-code]");
+      for (const i of n) {
+        const o = Number(i.dataset.modalCode), d = t.value.find((Q) => Q.activo && Q.code === o), b = i.querySelector(".gmm-header");
+        if (!d || !b) continue;
+        const f = b.getBoundingClientRect(), $ = G(f.width, f.height), J = T(f.left, $.min_left, $.max_left), K = T(f.top, $.min_top, $.max_top);
+        (J !== f.left || K !== f.top) && g(
+          o,
+          d.position.x + (J - f.left),
+          d.position.y + (K - f.top)
+        );
+      }
+    }
+    let x = null;
+    function fe() {
+      x && clearTimeout(x), x = setTimeout(() => {
+        x = null, A();
+      }, 200);
+    }
+    return pe(
+      () => y.value.map((n) => n.code).join(","),
+      fe
+    ), (n, i) => (u(), E(ge, { to: "body" }, [
+      h("div", {
         class: "gmm-stack",
-        style: D(`z-index: ${y(l)}`)
+        style: F(`z-index: ${z(l)}`)
       }, [
-        (u(!0), f(T, null, H(h.value, (t) => {
-          var m, j;
-          return u(), f("div", {
-            key: t.code,
+        (u(!0), v(N, null, j(y.value, (o) => {
+          var d, b;
+          return u(), v("div", {
+            key: o.code,
             class: "gmm-layer",
-            style: D(`z-index: ${t.zIndex}`),
-            onMousedown: (b) => y(r)(t.code)
+            style: F(`z-index: ${o.zIndex}`),
+            onMousedown: (f) => z(r)(o.code)
           }, [
-            v("div", {
+            h("div", {
               class: "gmm-overlay",
-              "data-modal-code": t.code,
-              onClick: (b) => te(t, b)
+              "data-modal-code": o.code,
+              onClick: (f) => ue(o, f)
             }, [
-              v("div", {
-                class: $(["gmm-dialog", [...oe(t), ...S(t) ? ["gmm-draggable"] : []]]),
-                style: D({ ...Q(t), ...ee(t) }),
+              h("div", {
+                class: S(["gmm-dialog", [...ce(o), ...O(o) ? ["gmm-draggable"] : []]]),
+                style: F({ ...re(o), ...le(o) }),
                 role: "dialog",
                 "aria-modal": "true",
-                onMousedown: a[2] || (a[2] = B(() => {
+                onMousedown: i[2] || (i[2] = X(() => {
                 }, ["stop"]))
               }, [
-                v("div", {
-                  class: $(["gmm-header", S(t) ? "gmm-header-drag" : ""]),
-                  onMousedown: (b) => S(t) && ne(b, t)
+                h("div", {
+                  class: S(["gmm-header", O(o) ? "gmm-header-drag" : ""]),
+                  onMousedown: (f) => O(o) && me(f, o)
                 }, [
-                  t.componente_header ? (u(), M(O(t.componente_header), {
+                  o.componente_header ? (u(), E(R(o.componente_header), {
                     key: 0,
-                    parametros: t.parametros
-                  }, null, 8, ["parametros"])) : (u(), f("span", Me, E(t.titulo), 1)),
-                  v("div", we, [
-                    ((m = t.config_modal) == null ? void 0 : m.minimizable) !== !1 ? (u(), f("button", {
+                    parametros: o.parametros
+                  }, null, 8, ["parametros"])) : (u(), v("span", Oe, I(o.titulo), 1)),
+                  h("div", Ae, [
+                    ((d = o.config_modal) == null ? void 0 : d.minimizable) !== !1 ? (u(), v("button", {
                       key: 0,
                       type: "button",
                       class: "gmm-header-minimize",
                       "aria-label": "Minimizar",
-                      onMousedown: a[0] || (a[0] = B(() => {
+                      onMousedown: i[0] || (i[0] = X(() => {
                       }, ["stop"])),
-                      onClick: (b) => y(c)(t.code)
-                    }, " − ", 40, $e)) : w("", !0),
-                    ((j = t.config_modal) == null ? void 0 : j.closable) !== !1 ? (u(), f("button", {
+                      onClick: (f) => z(c)(o.code)
+                    }, " − ", 40, He)) : L("", !0),
+                    ((b = o.config_modal) == null ? void 0 : b.closable) !== !1 ? (u(), v("button", {
                       key: 1,
                       type: "button",
                       class: "gmm-header-close",
                       "aria-label": "Cerrar",
-                      onMousedown: a[1] || (a[1] = B(() => {
+                      onMousedown: i[1] || (i[1] = X(() => {
                       }, ["stop"])),
-                      onClick: (b) => y(n)(t.code)
-                    }, " × ", 40, Te)) : w("", !0)
+                      onClick: (f) => z(a)(o.code)
+                    }, " × ", 40, Fe)) : L("", !0)
                   ])
-                ], 42, xe),
-                v("div", Ee, [
-                  v("div", Le, [
-                    (u(), M(O(t.componente), {
-                      parametros: t.parametros
+                ], 42, De),
+                h("div", Xe, [
+                  h("div", Re, [
+                    (u(), E(R(o.componente), {
+                      parametros: o.parametros
                     }, null, 8, ["parametros"]))
                   ])
                 ]),
-                t.componente_footer ? (u(), f("div", Ne, [
-                  (u(), M(O(t.componente_footer), {
-                    parametros: t.parametros
+                o.componente_footer ? (u(), v("div", je, [
+                  (u(), E(R(o.componente_footer), {
+                    parametros: o.parametros
                   }, null, 8, ["parametros"]))
-                ])) : w("", !0)
+                ])) : L("", !0)
               ], 38)
-            ], 8, Ce)
-          ], 44, ze);
+            ], 8, Be)
+          ], 44, Ie);
         }), 128)),
-        p.value.length ? (u(), f("div", {
+        k.value.length ? (u(), v("div", {
           key: 0,
-          class: $(["gmm-taskbar", { visible: z.value }]),
-          onMouseenter: J,
-          onMouseleave: K
+          class: S(["gmm-taskbar", { visible: w.value }]),
+          onMouseenter: ae,
+          onMouseleave: se
         }, [
-          v("div", Se, [
-            (u(!0), f(T, null, H(p.value, (t) => (u(), f("div", {
-              key: `min-${t.code}`,
+          h("div", Ve, [
+            (u(!0), v(N, null, j(k.value, (o) => (u(), v("div", {
+              key: `min-${o.code}`,
               class: "gmm-taskbar-item",
-              title: t.titulo,
-              onClick: (m) => y(d)(t.code)
+              title: o.titulo,
+              onClick: (d) => z(_)(o.code)
             }, [
-              v("span", De, E(t.titulo), 1)
-            ], 8, Ie))), 128))
+              h("span", Ze, I(o.titulo), 1)
+            ], 8, Ye))), 128))
           ])
-        ], 34)) : w("", !0)
+        ], 34)) : L("", !0)
       ], 4)
     ]));
   }
 };
 export {
-  G as DialogConfirm,
-  He as ModalContainer,
-  U as ModalFooter,
-  He as default,
-  q as useModal
+  oe as DialogConfirm,
+  Ge as ModalContainer,
+  te as ModalFooter,
+  Ge as default,
+  ie as useModal
 };
 //# sourceMappingURL=vue-greenborn-modal-manager.js.map
