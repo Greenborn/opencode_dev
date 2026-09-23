@@ -1,0 +1,64 @@
+{
+  "name": "vue-greenborn-galeria-image",
+  "version": "1.1.0",
+  "description": "Galería de imágenes para Vue 3: grilla con lazy load y lightbox tipo image-detail (zoom, pan, fullscreen, navegación prev/next, atajos de teclado, descarga y panel lateral de metadatos). Permisos opcionales vía permissionsCheck (compatible con el RBAC de greenborn pero usable sin él). Sin dependencias de UI (CSS propio) y sin dependencias runtime.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-greenborn-galeria-image.umd.cjs",
+  "module": "./dist/vue-greenborn-galeria-image.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-galeria-image.js",
+      "require": "./dist/vue-greenborn-galeria-image.umd.cjs"
+    },
+    "./style.css": "./dist/vue-greenborn-galeria-image.css",
+    "./dist/style.css": "./dist/vue-greenborn-galeria-image.css"
+  },
+  "style": "./dist/vue-greenborn-galeria-image.css",
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prepublishOnly": "npm run build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "galeria",
+    "gallery",
+    "imagenes",
+    "images",
+    "lightbox",
+    "zoom",
+    "pan",
+    "fullscreen",
+    "lazy",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-galeria-image",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0"
+  }
+}

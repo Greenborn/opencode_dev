@@ -1,0 +1,81 @@
+{
+  "name": "express-greenborn-galeria-image",
+  "version": "1.0.0",
+  "description": "Galería de imágenes para backends Express/Node.js: CRUD de imágenes con subida (multer), thumbnails y metadatos (sharp), storage en disco local y paginación. Con inyección de dependencias (knex, logger, middlewares) y agnóstico del esquema de base de datos. Compatible con el RBAC de express-greenborn-sso-back mediante middlewares inyectables, pero utilizable sin él.",
+  "type": "module",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test",
+    "prepublishOnly": "npm run build",
+    "prepack": "npm run build",
+    "demo": "node demo/server.js"
+  },
+  "keywords": [
+    "galeria",
+    "gallery",
+    "imagenes",
+    "images",
+    "upload",
+    "multer",
+    "sharp",
+    "thumbnails",
+    "express",
+    "node",
+    "knex",
+    "greenborn",
+    "rbac"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/express-greenborn-galeria-image",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "multer": "^2.0.2",
+    "sharp": "^0.33.4"
+  },
+  "peerDependencies": {
+    "express": "^4.21.0 || ^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2",
+    "esbuild": "^0.21.0",
+    "express": "^4.21.2",
+    "knex": "^3.3.0"
+  }
+}
