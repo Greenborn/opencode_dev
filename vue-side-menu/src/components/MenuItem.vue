@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { inject, ref, computed } from 'vue'
+import { inject, ref, computed, getCurrentInstance } from 'vue'
 
 export const HAS_PERMISSION_KEY = 'hasPermission'
 
@@ -54,6 +54,14 @@ export default {
     const hasPermission = inject(HAS_PERMISSION_KEY, null)
     const open = ref(false)
 
+    // vue-router registra "router-link" como componente global al instalarse;
+    // si está disponible se usa para que los "to" respeten el history del
+    // router (p.ej. hash mode => URLs con "#") y apliquen clases activas.
+    const routerLink = computed(() => {
+      const app = getCurrentInstance()?.appContext?.app
+      return !app ? false : !!app.component('router-link')
+    })
+
     const hasChildren = computed(
       () => Array.isArray(props.item.children) && props.item.children.length > 0
     )
@@ -66,7 +74,7 @@ export default {
       })
     })
 
-    return { hasPermission, open, hasChildren, visibleChildren }
+    return { hasPermission, open, hasChildren, visibleChildren, routerLink }
   },
   methods: {
     toggle() {
