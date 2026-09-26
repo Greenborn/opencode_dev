@@ -1,0 +1,66 @@
+{
+  "name": "vue-greenborn-map-selector",
+  "version": "1.0.0",
+  "description": "Selector de ubicación en mapa (Leaflet) para Vue 3, integrado con vue-greenborn-modal-manager: abre un modal apilable sobre el resto de modales, devuelve lat/lng vía callback y se cierra con el gestor genérico.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-greenborn-map-selector.umd.cjs",
+  "module": "./dist/vue-greenborn-map-selector.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-map-selector.js",
+      "require": "./dist/vue-greenborn-map-selector.umd.cjs"
+    },
+    "./style.css": "./dist/vue-greenborn-map-selector.css",
+    "./dist/style.css": "./dist/vue-greenborn-map-selector.css"
+  },
+  "style": "./dist/vue-greenborn-map-selector.css",
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prepublishOnly": "npm run build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "leaflet",
+    "map",
+    "map-picker",
+    "location",
+    "modal",
+    "vue-greenborn-modal-manager",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-map-selector",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0",
+    "vue-greenborn-modal-manager": "^1.5.0"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0",
+    "vue-greenborn-modal-manager": "^1.5.1"
+  }
+}
