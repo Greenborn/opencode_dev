@@ -198,6 +198,22 @@ Todas son **opcionales y aditivas**; sin ellas el comportamiento es idéntico al
 | `editOnDoubleClick` | Boolean | `false` | Al hacer doble click en una fila, abre la edición (requiere `api.edit` y permiso). |
 | `csvFetchAll` | Boolean | `false` | En modo `lazy`, exportar a CSV pidiendo todas las filas al servidor antes de descargar. |
 
+### Actualización en vivo (v1.2)
+
+Para datos que se reemplazan periódicamente (polling, sockets), al reasignar la prop
+`data` con forma `{ rows, fields_def }`:
+
+- Si la firma de `fields_def` no cambió, **no se reconstruyen las columnas**: se preserva
+  el estado de sesión (orden/ancho/ocultas) y no se re-leen preferencias persistidas.
+- `config.trackBy` estabiliza las row keys: nombre de campo (ej. `'pid'`) o función
+  `(row, index) => key`. Sin `trackBy` se usa `row.id`, `row.__uid` o el índice.
+
+```js
+const config = {
+  trackBy: 'pid',
+}
+```
+
 **Pipeline legacy** (paridad con el frontend):
 
 ```js

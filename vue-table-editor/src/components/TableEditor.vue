@@ -307,6 +307,10 @@ const rows = ref([])
 const columnDefs = ref([])
 const selectedColumns = ref([])
 const availableColumns = ref([])
+// Firma de los campos de la última carga de columnas: si no cambia entre
+// recargas de datos (ej. actualización en vivo), se preserva el estado de
+// columnas de la sesión y no se re-leen preferencias persistidas.
+const firmaColumnas = ref(null)
 const isLoaded = ref(false)
 const editEnabled = ref(true)
 const selectionMode = ref('single')
@@ -1063,7 +1067,11 @@ function processData(data) {
     rowsArr = rowsArr.map(r => applyRowStyling(r, stylingCfg.value))
   }
   rows.value = rowsArr
+  flushInlineEdit()
   if (fields_def) {
+    const firma = JSON.stringify(fields_def.map(f => f?.field))
+    if (firma === firmaColumnas.value) return
+    firmaColumnas.value = firma
     let cdefs = [...fields_def]
     if (props.config?.extraFields?.list) cdefs.push(...props.config.extraFields.list)
     if (stylingCfg.value) applyFieldDefCss(cdefs, stylingCfg.value)
@@ -1142,7 +1150,20 @@ async function loadMoreInfinite() {
 }
 
 // ── Track helpers ────────────────────────────────────
+// `config.trackBy` permite estabilizar las row keys cuando los datos se
+// actualizan en vivo (nuevos objetos por recarga): acepta el nombre de un
+// campo (ej. 'pid') o una función (row, index) => key. Sin trackBy se usa
+// `row.id`, luego `row.__uid` y por último el índice (comportamiento previo).
 function trackByRow(row, index) {
+  const trackBy = props.config?.trackBy
+  if (trackBy) {
+    if (typeof trackBy === 'function') {
+      const key = trackBy(row, index)
+      if (key != null) return key
+    } else if (row?.[trackBy] != null) {
+      return row[trackBy]
+    }
+  }
   return row?.id ?? row?.__uid ?? index
 }
 
