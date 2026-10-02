@@ -54,12 +54,19 @@ export default {
     const hasPermission = inject(HAS_PERMISSION_KEY, null)
     const open = ref(false)
 
-    // vue-router registra "router-link" como componente global al instalarse;
-    // si está disponible se usa para que los "to" respeten el history del
-    // router (p.ej. hash mode => URLs con "#") y apliquen clases activas.
+    // vue-router 4 instala $router/$route en globalProperties y registra
+    // RouterLink (PascalCase) como componente global. Se chequea $router
+    // (siempre presente con vue-router) con fallback a ambos nombres de
+    // registro, porque la búsqueda por clave es exacta y "router-link"
+    // nunca coincide con "RouterLink".
     const routerLink = computed(() => {
       const app = getCurrentInstance()?.appContext?.app
-      return !app ? false : !!app.component('router-link')
+      if (!app) return false
+      return (
+        !!app.config.globalProperties.$router ||
+        !!app.component('router-link') ||
+        !!app.component('RouterLink')
+      )
     })
 
     const hasChildren = computed(
