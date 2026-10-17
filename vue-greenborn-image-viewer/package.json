@@ -1,0 +1,62 @@
+{
+  "name": "vue-greenborn-image-viewer",
+  "version": "1.0.2",
+  "description": "Visor de imagen para Vue 3: núcleo de viewport reutilizable con zoom (rueda y botones, centrado en el cursor), pan (Ctrl+arrastre) y rotación libre con preview recortado. Expone un slot para overlays (ej. canvas de anotaciones/detecciones) sincronizados con la escala y el ángulo. No persiste rotaciones ni recorta píxeles reales: el consumidor decide cuándo aplicar los cambios. Sin dependencias de UI (CSS propio) y sin dependencias runtime.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-greenborn-image-viewer.umd.cjs",
+  "module": "./dist/vue-greenborn-image-viewer.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-image-viewer.js",
+      "require": "./dist/vue-greenborn-image-viewer.umd.cjs"
+    },
+    "./style.css": "./dist/vue-greenborn-image-viewer.css",
+    "./dist/style.css": "./dist/vue-greenborn-image-viewer.css"
+  },
+  "style": "./dist/vue-greenborn-image-viewer.css",
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prepublishOnly": "npm run build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "image-viewer",
+    "zoom",
+    "pan",
+    "rotate",
+    "viewport",
+    "overlay",
+    "canvas",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-image-viewer",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0"
+  }
+}

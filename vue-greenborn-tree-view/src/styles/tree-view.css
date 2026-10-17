@@ -1,0 +1,6 @@
+/*
+ * Estilos globales minimos del paquete. Los estilos propios de cada nodo
+ * estan como `scoped` dentro de GbTreeView.vue / GbTreeNode.vue; este archivo
+ * solo existe para mantener el mismo patron de build (cssFileName fijo) que
+ * el resto de los paquetes @greenborn/vue-greenborn-*.
+ */
