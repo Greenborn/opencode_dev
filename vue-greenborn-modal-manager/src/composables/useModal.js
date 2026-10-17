@@ -39,6 +39,7 @@ export const MODALS_INIT = {
   titulo: '',
   config_modal: {},
   position: { x: 0, y: 0 },
+  resize: { width: null, height: null },
   minimized: false,
 }
 
@@ -62,7 +63,12 @@ function z_index_de_capa(id) {
 // siempre es un array desde el import y el render de `ModalContainer` nunca
 // depende de que un consumidor haya invocado `useModal()` antes.
 for (let i = 0; i < MAX_MODALS_LVLS; i++) {
-  modals_.value.push({ ...MODALS_INIT, id: i })
+  modals_.value.push({
+    ...MODALS_INIT,
+    id: i,
+    position: { x: 0, y: 0 },
+    resize: { width: null, height: null },
+  })
 }
 
 /**
@@ -108,7 +114,7 @@ function modals_ordenados() {
  * @param {Object} [parametros={}] - Parámetros a pasar al componente interno (se le
  *   agregan `_modal_cod` y `_config_modal`).
  * @param {Object} [config_modal={}] - Configuración del propio modal: `size`
- *   ('sm'|'md'|'lg'|'full'), `styles` (ancho/alto inline), `cssClass`, `id`.
+ *   ('sm'|'md'|'lg'|'full'), `styles` (ancho/alto inline), `cssClass`, `resizable`, `id`.
  * @returns {Object} - `{ code }` identificador del modal para `ocultar_modal(code)`.
  */
 function mostrar_modal(componente, titulo, parametros = {}, config_modal = {}) {
@@ -131,6 +137,10 @@ function mostrar_modal(componente, titulo, parametros = {}, config_modal = {}) {
 
   slot.activo = true
   slot.zIndex = z_index_de_capa(slot.id)
+  slot.position.x = 0
+  slot.position.y = 0
+  slot.resize.width = null
+  slot.resize.height = null
 
   const esCompuesto = !!(componente && (componente.body || componente.header || componente.footer))
   const bodyComponent = esCompuesto ? componente.body : componente
@@ -255,7 +265,7 @@ function mostrar_alerta(texto) {
         { label: 'Aceptar', autofocus: true, onClick: () => ocultar_modal(modals_.value[modal_id].code) },
       ],
     },
-    { id: modal_id, size: 'sm' }
+    { id: modal_id, size: 'sm', resizable: false }
   )
 }
 
@@ -300,7 +310,7 @@ function mostrar_confirm(params) {
         },
       ],
     },
-    { id: modal_id, size: 'sm' }
+    { id: modal_id, size: 'sm', resizable: false }
   )
 }
 

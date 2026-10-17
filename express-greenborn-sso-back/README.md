@@ -212,6 +212,36 @@ app.get('/api/admin', sso.authMiddleware, sso.requireRole('ADMIN'), handler);
 
 > Sin `rbac`, `requireRole` compara contra `role_id` y `requirePermission` falla (no existen permisos en el esquema legacy); por eso `requirePermission` se recomienda únicamente con `rbac`.
 
+### Gestión administrativa de usuarios (`deleteUser` / `updateUser`)
+
+Con `rbac` configurado, `sso` expone dos funciones para borrar o modificar usuarios desde los propios endpoints del consumidor, reutilizando la limpieza de relaciones RBAC (`usuarios_roles`) para no dejar FKs huérfanas:
+
+```js
+const sso = createSsoAuth({
+  knex,
+  tables: { user: 'usuarios' },
+  rbac: true,
+  adminRoles: ['administrador'], // o: isUserAdmin: async (actorId, ctx) => { ... }
+});
+
+app.delete('/user/delete_one', requireLogin, requirePermission('usuarios.eliminar'), async (req, res) => {
+  const actorId = req.session.u_data.id;
+  await sso.deleteUser(req.body.id, { actorId });
+  res.json({ ok: true });
+});
+```
+
+Ambas funciones **exigen `actorId`** y verifican que sea administrador antes de tocar la base: por `adminRoles` (array de nombres de rol, resuelto vía `resolveUserRoles`) o por una función custom `isUserAdmin(actorId, ctx)`. Si no se configura ninguno de los dos, las funciones **fallan cerrado** (lanzan error), nunca dejan pasar por defecto. Esto hace que adoptar la función sea explícito: si no las llamás, actualizar la versión del paquete no cambia nada en tu proyecto.
+
+Este chequeo es una **defensa adicional**, no sustituye el control de acceso a nivel de ruta (`requirePermission`/middleware propio del consumidor): seguí protegiendo la ruta igual que antes.
+
+- `deleteUser(userId, { actorId, allowSelfDelete })`: borra las filas de `usuarios_roles` del usuario y luego el usuario. Lanza error si `userId` no existe (`USER_NOT_FOUND`), o si `actorId === userId` y no se pasó `allowSelfDelete: true` (`SELF_DELETE_NOT_ALLOWED`).
+- `updateUser(userId, data, { actorId })`: actualiza los campos simples de `data` en la tabla de usuarios; si `data.roles` es un array, reemplaza por completo las filas de `usuarios_roles` de ese usuario. Devuelve el usuario actualizado.
+
+Ninguna de las dos funciones toca la tabla de tokens (`userTokens`): queda fuera de alcance porque no hay una convención de columna FK confiable para esa tabla en el esquema genérico del paquete. Tampoco son atómicas (no usan una transacción entre el borrado/alta de relaciones y la escritura del usuario) — mejora pendiente.
+
+Códigos de error (`err.code`): `MISSING_ACTOR_ID`, `ADMIN_CHECK_NOT_CONFIGURED`, `FORBIDDEN_NOT_ADMIN`, `USER_NOT_FOUND`, `SELF_DELETE_NOT_ALLOWED`, `RBAC_NOT_CONFIGURED`, `INVALID_ROLES`.
+
 ### Mapeo de usuario SSO → sgi
 La tabla `usuarios` de sgi **no tiene email** y su auth es JWT local. Para integrar, proporciona el hook `createUserFromSso` en el proyecto consumidor (por ejemplo, mapeando `ssoUser.email` a `username` y asignando el rol por mapa), sin modificar el esquema de sgi:
 

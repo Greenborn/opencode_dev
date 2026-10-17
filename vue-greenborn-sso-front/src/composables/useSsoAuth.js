@@ -46,7 +46,15 @@ function makeStore(config) {
   const user = ref(client.getUser())
   const authenticated = ref(client.isSSOSession())
 
+  // Estado de verificación de sesión contra el servidor:
+  // 'unknown' (sin verificar) | 'verifying' | 'verified' | 'invalid'
+  const sessionStatus = ref('unknown')
+  let bootstrapPromise = null
+
   const isAuthenticated = computed(() => authenticated.value)
+  const isReady = computed(
+    () => sessionStatus.value === 'verified' || sessionStatus.value === 'invalid',
+  )
   const currentUser = computed(() => user.value)
   const accessToken = computed(() => token.value)
 
@@ -68,6 +76,38 @@ function makeStore(config) {
     token.value = client.getToken()
     user.value = client.getUser()
     authenticated.value = client.isSSOSession()
+    sessionStatus.value = authenticated.value ? 'verified' : 'invalid'
+  }
+
+  /**
+   * Verifica la sesión contra el servidor una única vez al arrancar.
+   * Sin token → 'invalid'. Con token → fetchMe(): ok → 'verified',
+   * fallo → limpia la sesión local y marca 'invalid'.
+   * Es idempotente: llamadas concurrentes comparten la misma promesa.
+   */
+  function bootstrap() {
+    if (isReady.value) return Promise.resolve({ authenticated: authenticated.value })
+    if (bootstrapPromise) return bootstrapPromise
+
+    if (!client.getToken()) {
+      refreshState()
+      return Promise.resolve({ authenticated: false })
+    }
+
+    sessionStatus.value = 'verifying'
+    bootstrapPromise = fetchMe()
+      .then((result) => {
+        if (result?.authenticated) {
+          return result
+        }
+        client.clearSession()
+        refreshState()
+        return result || { authenticated: false }
+      })
+      .finally(() => {
+        bootstrapPromise = null
+      })
+    return bootstrapPromise
   }
 
   async function login() {
@@ -117,6 +157,8 @@ function makeStore(config) {
     user,
     authenticated,
     isAuthenticated,
+    sessionStatus,
+    isReady,
     currentUser,
     accessToken,
     roles,
@@ -128,6 +170,7 @@ function makeStore(config) {
     handleCallback,
     verifySession,
     fetchMe,
+    bootstrap,
     logout,
     getToken: () => client.getToken(),
     getUser: () => client.getUser(),

@@ -183,6 +183,46 @@ const result = await sso.verifySession()
 
 Si el token es inválido o requiere reautenticación, se limpia la sesión.
 
+### Bootstrap de sesión (verificación al arrancar)
+
+`bootstrap()` verifica la sesión contra el servidor **una única vez** al arrancar la app, para evitar mostrar el dashboard con datos cacheados de `localStorage` cuando el token ya está vencido:
+
+```js
+// En el guard del router, antes del primer render:
+router.beforeEach(async (to) => {
+  const sso = getSso()
+  if (!verificada) {
+    verificada = true
+    await sso.bootstrap() // resuelve fetchMe() si hay token
+  }
+  if (to.meta.requiereAuth !== false && !sso.isAuthenticated.value) {
+    return { name: 'login' }
+  }
+})
+
+// En main.js, montar recién cuando la navegación inicial resolvió:
+router.isReady().then(() => app.mount('#app'))
+```
+
+- Sin token: no hace red, marca `'invalid'` al instante.
+- Con token: hace `fetchMe()`; si falla, limpia la sesión local.
+- Es idempotente: llamadas concurrentes comparten la misma promesa.
+
+```js
+sso.sessionStatus.value // 'unknown' | 'verifying' | 'verified' | 'invalid'
+sso.isReady.value       // true cuando la sesión ya fue verificada (o invalidada)
+```
+
+### Pantalla de carga (splash)
+
+Componente exportado para cubrir el tiempo de verificación (evita el "flash" del dashboard antes del redirect a login):
+
+```vue
+<SsoSplash v-if="!sso.isReady.value" />
+```
+
+Props opcionales: `texto` (string, default `''`) y `fondo` (color CSS, default `'#212529'`). Spinner minimalista centrado, fullscreen, CSS puro sin dependencias. Para cubrir también la carga inicial de JS, puede agregarse un splash estático dentro de `<div id="app">` en `index.html` (Vue lo reemplaza al montar).
+
 ### Cerrar sesión
 
 ```js
@@ -284,6 +324,7 @@ sso.socket.on('ping', (data) => console.log('ping', data));
 | `createSsoClient(c)`| Cliente SSO puro (framework-agnostic)           |
 | `createSocketClient(c)`| Cliente socket.io puro (framework-agnostic)  |
 | `SsoCallback`       | Componente callback para `vue-router`            |
+| `SsoSplash`         | Pantalla de carga mientras se verifica la sesión |
 | `SSO_TOKEN_KEY` …   | Constantes de claves de `localStorage`           |
 
 ## Demo

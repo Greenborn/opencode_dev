@@ -18,6 +18,7 @@ export {
   attachRolesPermissions,
   ensureUserRole,
 } from './rbac.js';
+export { createUserManagement } from './userManagement.js';
 export {
   filterInputData,
   isBase64String,

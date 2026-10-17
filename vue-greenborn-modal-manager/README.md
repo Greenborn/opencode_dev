@@ -104,7 +104,18 @@ if (props.parametros._modalState) props.parametros._modalState.guardar = guardar
 | `cssClass` | `string` | Clase extra para el diálogo. |
 | `dismissableMask` | `boolean` | Si `true`, un clic en el overlay cierra el modal (default `false`). |
 | `draggable` | `boolean` | Si `false`, deshabilita el arrastre del modal por el header (default `true`). |
+| `resizable` | `boolean` | Si `false`, deshabilita el redimensionado manual del modal (default `true`). |
 | `id` | `number` | Slot explícito a ocupar en la pila (uso interno). |
+
+### Redimensionado manual
+
+Todo modal es redimensionable por defecto (salvo `resizable: false`, o los helpers `mostrar_alerta`/`mostrar_confirm`, que son de tamaño fijo). Aparecen tres zonas de agarre en los bordes del diálogo, igual que en una ventana de escritorio:
+
+- **Borde derecho**: redimensiona sólo el ancho (`cursor: ew-resize`).
+- **Borde inferior**: redimensiona sólo el alto (`cursor: ns-resize`).
+- **Esquina inferior derecha**: redimensiona ancho y alto a la vez (`cursor: nwse-resize`).
+
+El tamaño manual tiene prioridad sobre `size` y `styles.width`/`styles.height` una vez que el usuario redimensiona el modal, y se descarta automáticamente al cerrarlo (la próxima apertura vuelve al tamaño definido por `config_modal`). Está acotado a un mínimo de 280×160px y a los mismos máximos que el CSS (`95vw` / `92vh`).
 
 ## Modales anidados
 

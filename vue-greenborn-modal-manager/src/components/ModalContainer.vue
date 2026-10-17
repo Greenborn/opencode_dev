@@ -71,6 +71,21 @@
                 :parametros="_modal.parametros"
               />
             </div>
+
+            <template v-if="es_resizable(_modal)">
+              <div
+                class="gmm-resize-handle gmm-resize-handle--right"
+                @mousedown.stop="(e) => start_resize(e, _modal, 'right')"
+              ></div>
+              <div
+                class="gmm-resize-handle gmm-resize-handle--bottom"
+                @mousedown.stop="(e) => start_resize(e, _modal, 'bottom')"
+              ></div>
+              <div
+                class="gmm-resize-handle gmm-resize-handle--corner"
+                @mousedown.stop="(e) => start_resize(e, _modal, 'corner')"
+              ></div>
+            </template>
           </div>
         </div>
       </div>
@@ -158,16 +173,23 @@ const SIZES = ['sm', 'md', 'lg', 'full']
 let dragging_code = null
 let drag_start = null
 
+// Estado de resize activo.
+let resizing_code = null
+let resize_start = null
+
 /**
- * Se emite inline sólo el ancho/alto que el call site definió explícitamente en
- * `config_modal.styles`. Todo lo demás (escala `size`, ancho automático, max-width,
- * max-height) vive en modal.css.
+ * Se emite inline el ancho/alto que el call site definió explícitamente en
+ * `config_modal.styles`, o el tamaño resultante de un resize manual en vivo
+ * (`modal.resize`), que tiene prioridad sobre `styles`. Todo lo demás (escala
+ * `size`, ancho automático, max-width, max-height) vive en modal.css.
  */
 function estilo_modal(modal) {
   const styles = modal.config_modal?.styles || {}
   return {
     ...(styles.width ? { width: styles.width } : {}),
     ...(styles.height ? { height: styles.height } : {}),
+    ...(modal.resize.width ? { width: modal.resize.width } : {}),
+    ...(modal.resize.height ? { height: modal.resize.height } : {}),
   }
 }
 
@@ -182,14 +204,16 @@ function estilo_posicion(modal) {
 
 /**
  * Resuelve el ancho a una clase, con esta precedencia:
- *   styles.width (inline, escape hatch) > size > automático según contenido.
+ *   resize en vivo > styles.width (inline, escape hatch) > size > automático según contenido.
  */
 function clases_modal(modal) {
   const config = modal.config_modal || {}
   const styles = config.styles || {}
+  const width_fijado = !!styles.width || !!modal.resize.width
+  const alto_fijado = !!styles.height || !!modal.resize.height
 
   let clase_ancho = null
-  if (!styles.width) {
+  if (!width_fijado) {
     if (config.size && !SIZES.includes(config.size)) {
       console.warn(
         `[ModalContainer] config_modal.size="${config.size}" no está en la escala (${SIZES.join(', ')}); se ignora.`
@@ -200,7 +224,7 @@ function clases_modal(modal) {
       : 'gmm-ancho-auto'
   }
 
-  return [config.cssClass, clase_ancho, { 'gmm-alto-auto': !styles.height }]
+  return [config.cssClass, clase_ancho, { 'gmm-alto-auto': !alto_fijado }]
 }
 
 /**
@@ -208,6 +232,13 @@ function clases_modal(modal) {
  */
 function es_draggable(modal) {
   return (modal.config_modal?.draggable ?? true) !== false
+}
+
+/**
+ * Un modal es redimensionable salvo que `config_modal.resizable` sea explícitamente `false`.
+ */
+function es_resizable(modal) {
+  return (modal.config_modal?.resizable ?? true) !== false
 }
 
 /**
@@ -292,6 +323,77 @@ function stop_drag() {
   drag_start = null
   document.removeEventListener('mousemove', on_drag)
   document.removeEventListener('mouseup', stop_drag)
+}
+
+// Tamaño mínimo utilizable de un modal (evita colapsar header/footer/contenido).
+const RESIZE_MIN_WIDTH = 280
+const RESIZE_MIN_HEIGHT = 160
+
+/**
+ * Límites de ancho/alto para el resize manual, alineados a los `max-width`/
+ * `max-height` ya definidos en CSS para `.gmm-dialog` (95vw / 92vh), para que
+ * el handle nunca se despegue visualmente del cursor más allá de ese tope.
+ */
+function resize_bounds() {
+  return {
+    max_width: window.innerWidth * 0.95,
+    max_height: window.innerHeight * 0.92,
+  }
+}
+
+/**
+ * Inicia el resize manual desde uno de los handles ('right' | 'bottom' | 'corner').
+ * Trae el modal al frente: el mousedown del handle no burbujea (`.stop`) hasta el
+ * `traer_al_frente` que normalmente dispara el mousedown sobre `.gmm-layer`.
+ */
+function start_resize(event, modal, mode) {
+  traer_al_frente(modal.code)
+  resizing_code = modal.code
+  const dialog_el = event.currentTarget.closest('.gmm-dialog')
+  const rect = dialog_el.getBoundingClientRect()
+  resize_start = {
+    mode,
+    mouse_x: event.clientX,
+    mouse_y: event.clientY,
+    start_width: rect.width,
+    start_height: rect.height,
+    bounds: resize_bounds(),
+  }
+
+  document.addEventListener('mousemove', on_resize)
+  document.addEventListener('mouseup', stop_resize)
+}
+
+function on_resize(event) {
+  if (resizing_code == null || !resize_start) return
+  const modal = modals_.value.find((m) => m.activo && m.code === resizing_code)
+  if (!modal) return
+
+  const { mode, mouse_x, mouse_y, start_width, start_height, bounds } = resize_start
+
+  if (mode === 'right' || mode === 'corner') {
+    const width = clamp_value(
+      start_width + (event.clientX - mouse_x),
+      RESIZE_MIN_WIDTH,
+      bounds.max_width
+    )
+    modal.resize.width = `${width}px`
+  }
+  if (mode === 'bottom' || mode === 'corner') {
+    const height = clamp_value(
+      start_height + (event.clientY - mouse_y),
+      RESIZE_MIN_HEIGHT,
+      bounds.max_height
+    )
+    modal.resize.height = `${height}px`
+  }
+}
+
+function stop_resize() {
+  resizing_code = null
+  resize_start = null
+  document.removeEventListener('mousemove', on_resize)
+  document.removeEventListener('mouseup', stop_resize)
 }
 
 /**

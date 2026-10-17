@@ -5,6 +5,7 @@ import { createMiddleware } from './middleware.js';
 import { createRouter } from './router.js';
 import { createSsoSocket } from './socket.js';
 import { normalizeRbacConfig } from './rbac.js';
+import { createUserManagement } from './userManagement.js';
 import { normalizeUniqueId, parseSsoRoleMap } from './utils.js';
 import { ensureActivityTable, DEFAULT_ACTIVITY_TABLE } from './activityLog.js';
 
@@ -59,6 +60,8 @@ export function createSsoAuth(options = {}) {
     : new MemoryCache({ ttlMs: cacheTtlMs, cleanupIntervalMs: 60 * 60 * 1000 });
 
   const rbac = normalizeRbacConfig(options.rbac);
+  const adminRoles = Array.isArray(options.adminRoles) ? options.adminRoles : [];
+  const isUserAdmin = typeof options.isUserAdmin === 'function' ? options.isUserAdmin : undefined;
 
   let activityLog = options.activityLog;
   if (activityLog && typeof activityLog === 'object') {
@@ -96,6 +99,8 @@ export function createSsoAuth(options = {}) {
     activityLog,
     findLocalUserByToken: options.findLocalUserByToken,
     createUserFromSso: options.createUserFromSso,
+    adminRoles,
+    isUserAdmin,
   };
 
   const ssoClient = options.ssoClient || createSsoClient({ ssoBaseUrl, timeoutMs: ssoTimeoutMs, logger });
@@ -104,6 +109,7 @@ export function createSsoAuth(options = {}) {
   const service = createService(ctx);
   const middleware = createMiddleware(ctx, service);
   const router = createRouter(ctx, service, middleware);
+  const userManagement = createUserManagement(ctx);
 
   function attachSocket(httpServer, socketOptions = {}) {
     return createSsoSocket({ sso: api, httpServer, ...socketOptions });
@@ -124,6 +130,8 @@ export function createSsoAuth(options = {}) {
     extendSsoSession: service.extendSsoSession,
     deactivateToken: service.deactivateToken,
     localLoginUser: service.localLoginUser,
+    deleteUser: userManagement.deleteUser,
+    updateUser: userManagement.updateUser,
     normalizeUniqueId,
     rbac,
     localLogin,

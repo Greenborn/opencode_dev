@@ -106,11 +106,17 @@ export function createFakeKnex(initialStore = {}) {
         const matched = qb._all();
         if (qb._op === 'insert') {
           const rowsRef = tableRef(name);
-          const nextId = rowsRef.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0) + 1;
-          const row = { id: nextId, ...qb._data };
-          rowsRef.push(row);
-          if (qb._returning) return qb._returning.map((c) => ({ [c]: row[c] }));
-          return [nextId];
+          const dataArr = Array.isArray(qb._data) ? qb._data : [qb._data];
+          const insertedIds = [];
+          let lastRow = null;
+          for (const d of dataArr) {
+            const nextId = rowsRef.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0) + 1;
+            lastRow = { id: nextId, ...d };
+            rowsRef.push(lastRow);
+            insertedIds.push(nextId);
+          }
+          if (qb._returning) return qb._returning.map((c) => ({ [c]: lastRow[c] }));
+          return insertedIds;
         }
         if (qb._op === 'update') {
           for (const r of matched) Object.assign(r, qb._data);

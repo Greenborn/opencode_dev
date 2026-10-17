@@ -1,4 +1,5 @@
 import SsoCallback from './components/SsoCallback.vue'
+import SsoSplash from './components/SsoSplash.vue'
 import { useSsoAuth, installSso } from './composables/useSsoAuth.js'
 import { useSsoSocket } from './composables/useSsoSocket.js'
 import { createSsoClient } from './core/ssoClient.js'
@@ -14,6 +15,7 @@ import {
 export {
   SsoCallback,
   SsoCallback as default,
+  SsoSplash,
   useSsoAuth,
   installSso,
   useSsoSocket,
