@@ -1,0 +1,62 @@
+{
+  "name": "vue-greenborn-directory-picker",
+  "version": "1.0.0",
+  "description": "Selector de directorios para Vue 3 sobre vue-greenborn-tree-view: navega el árbol de carpetas que devuelve una función `cargarDirectorios(nodoPadre)` provista por el consumidor (vía API, IPC, etc.) y permite elegir una ruta. No asume ningún backend concreto ni accede al filesystem por sí mismo. Sin dependencias de UI (CSS propio) más allá de vue-greenborn-tree-view.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-greenborn-directory-picker.umd.cjs",
+  "module": "./dist/vue-greenborn-directory-picker.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-directory-picker.js",
+      "require": "./dist/vue-greenborn-directory-picker.umd.cjs"
+    },
+    "./style.css": "./dist/vue-greenborn-directory-picker.css",
+    "./dist/style.css": "./dist/vue-greenborn-directory-picker.css"
+  },
+  "style": "./dist/vue-greenborn-directory-picker.css",
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prepublishOnly": "npm run build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "directory",
+    "directory-picker",
+    "filesystem",
+    "folder-picker",
+    "tree-view",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-directory-picker",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0",
+    "vue-greenborn-tree-view": "^1.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0",
+    "vue-greenborn-tree-view": "^1.0.0"
+  }
+}

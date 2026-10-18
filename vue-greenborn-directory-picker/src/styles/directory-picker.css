@@ -1,0 +1,3 @@
+/* Estilos globales del paquete (ninguno por ahora: todo vive en GbDirectoryPicker.vue
+   con <style scoped>). Este archivo existe para mantener el mismo patrón de los
+   demás paquetes (import del CSS como side-effect desde src/index.js). */
