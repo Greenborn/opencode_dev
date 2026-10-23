@@ -1,11 +1,12 @@
 {
   "name": "express-greenborn-sso-back",
-  "version": "1.7.0",
-  "description": "Autenticación SSO para backends Express/Node que se integra con el servidor de autenticación Greenborn (auth.greenborn.com.ar). Middlewares (authMiddleware/authMiddlewareOptional) y router Express (/me, /sso-profile, /register) reutilizables, con inyección de dependencias (knex, logger, caché) y agnóstico del esquema de base de datos.",
+  "version": "1.8.0",
+  "description": "Autenticación SSO para backends Express/Node que se integra con el servidor de autenticación Greenborn (auth.greenborn.com.ar). Middlewares (authMiddleware/authMiddlewareOptional) y router Express (/me, /sso-profile, /register) reutilizables, con rate limiting por IP anti fuerza bruta, inyección de dependencias (knex, logger, caché) y agnóstico del esquema de base de datos.",
   "type": "module",
   "files": [
     "dist",
-    "src"
+    "src",
+    "scripts"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -25,8 +26,11 @@
   "scripts": {
     "build": "node build.mjs",
     "test": "node --test",
+    "verify:publish": "node scripts/verify-publish.mjs",
     "prepublishOnly": "npm run build",
+    "postpublish": "npm run verify:publish",
     "prepack": "npm run build",
+    "release": "npm run build && npm publish",
     "demo": "node demo/server.js"
   },
   "keywords": [

@@ -25,7 +25,7 @@ export function createSsoSocket({
   if (!sso) throw new Error('createSsoSocket: la opción "sso" es obligatoria');
   if (!httpServer) throw new Error('createSsoSocket: la opción "httpServer" es obligatoria');
 
-  const { findLocalUserByToken, verifySsoToken, syncSsoUser, normalizeUniqueId } = sso;
+  const { findLocalUserByToken, verifySsoToken, syncSsoUser, normalizeUniqueId, rateLimiter } = sso;
   const log = sso.logger || console;
 
   const serverOpts = {
@@ -37,8 +37,16 @@ export function createSsoSocket({
   const io = new Server(httpServer, serverOpts);
 
   io.use(async (socket, next) => {
+    const handshake = socket.handshake;
     try {
-      const token = socket.handshake?.auth?.token;
+      if (rateLimiter?.config?.enabled) {
+        const status = rateLimiter.checkSocket(handshake);
+        if (status.blocked) {
+          return next(new Error('unauthorized: demasiados intentos fallidos, reintente más tarde'));
+        }
+      }
+
+      const token = handshake?.auth?.token;
       if (!token) {
         return next(new Error('unauthorized: token requerido'));
       }
@@ -47,17 +55,20 @@ export function createSsoSocket({
       if (localUser) {
         socket.data.user = localUser;
         socket.data.token = token;
-        socket.data.uniqueId = normalizeUniqueId(socket.handshake?.auth?.unique_id);
+        socket.data.uniqueId = normalizeUniqueId(handshake?.auth?.unique_id);
+        rateLimiter?.resetSocket(handshake);
         return next();
       }
 
-      const uniqueId = normalizeUniqueId(socket.handshake?.auth?.unique_id);
+      const uniqueId = normalizeUniqueId(handshake?.auth?.unique_id);
       if (!uniqueId) {
+        rateLimiter?.recordSocketFailure(handshake);
         return next(new Error('unauthorized: unique_id requerido para token SSO'));
       }
 
       const response = await verifySsoToken(token, uniqueId);
       if (!response?.data?.success || !response?.data?.data?.valid) {
+        rateLimiter?.recordSocketFailure(handshake);
         log.error(`[Socket] SSO rechazó token: ${JSON.stringify(response?.data)}`);
         return next(new Error('unauthorized: token SSO inválido'));
       }
@@ -67,9 +78,14 @@ export function createSsoSocket({
       socket.data.user = user;
       socket.data.token = token;
       socket.data.uniqueId = uniqueId;
+      rateLimiter?.resetSocket(handshake);
       return next();
     } catch (error) {
       const ssoBody = error.response?.data;
+      const ssoStatus = error.response?.status;
+      if (ssoStatus === 401 || ssoStatus === 403) {
+        rateLimiter?.recordSocketFailure(handshake);
+      }
       log.error(`[Socket] Error de autenticación: ${JSON.stringify(ssoBody) || error.message}`);
       return next(new Error('unauthorized: error de autenticación'));
     }

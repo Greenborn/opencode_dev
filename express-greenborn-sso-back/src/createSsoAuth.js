@@ -8,6 +8,7 @@ import { normalizeRbacConfig } from './rbac.js';
 import { createUserManagement } from './userManagement.js';
 import { normalizeUniqueId, parseSsoRoleMap } from './utils.js';
 import { ensureActivityTable, DEFAULT_ACTIVITY_TABLE } from './activityLog.js';
+import { createRateLimiter } from './rateLimit.js';
 
 const DEFAULT_TABLES = {
   user: 'user',
@@ -74,6 +75,8 @@ export function createSsoAuth(options = {}) {
       });
   }
 
+  const rateLimiter = createRateLimiter(options.rateLimit === undefined ? true : options.rateLimit);
+
   let localLogin = options.localLogin;
   if (localLogin && localLogin !== true) {
     localLogin = { ...DEFAULT_LOCAL_LOGIN, ...(typeof localLogin === 'object' ? localLogin : {}) };
@@ -97,6 +100,7 @@ export function createSsoAuth(options = {}) {
     logger,
     cache,
     activityLog,
+    rateLimiter,
     findLocalUserByToken: options.findLocalUserByToken,
     createUserFromSso: options.createUserFromSso,
     adminRoles,
@@ -120,6 +124,9 @@ export function createSsoAuth(options = {}) {
     authMiddlewareOptional: middleware.authMiddlewareOptional,
     requirePermission: middleware.requirePermission,
     requireRole: middleware.requireRole,
+    loginRateLimit: rateLimiter.loginMiddleware,
+    tokenRateLimit: rateLimiter.tokenMiddleware,
+    rateLimiter,
     router,
     syncSsoUser: service.syncSsoUser,
     findLocalUserByToken: service.findLocalUserByToken,

@@ -26,3 +26,10 @@ export {
   ensureActivityTable,
   DEFAULT_ACTIVITY_TABLE,
 } from './activityLog.js';
+export {
+  createRateLimiter,
+  normalizeRateLimitConfig,
+  getClientIp,
+  getSocketIp,
+  DEFAULT_RATE_LIMIT,
+} from './rateLimit.js';

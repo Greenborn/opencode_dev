@@ -9,8 +9,9 @@ function loadFromCache(service, cache, token) {
 }
 
 export function createMiddleware(ctx, service) {
-  const { cache, logger, sendReauthHeader, rbac, activityLog } = ctx;
+  const { cache, logger, sendReauthHeader, rbac, activityLog, rateLimiter } = ctx;
   const { verifySsoToken, syncSsoUser, findLocalUserByToken, extendSsoSession, normalizeUniqueId } = service;
+  const tokenRateLimit = rateLimiter?.tokenMiddleware;
 
   const log = {
     error: (a) => (logger?.error ? logger.error(a) : console.error(a)),
@@ -102,7 +103,7 @@ export function createMiddleware(ctx, service) {
     return { ok: false, status: 401, body: { success: false, message: 'Token inválido' } };
   }
 
-  async function authMiddleware(req, res, next) {
+  async function runAuthMiddleware(req, res, next) {
     registerActivityLog(req, res);
     const token = getBearerToken(req);
     if (!token) {
@@ -126,7 +127,7 @@ export function createMiddleware(ctx, service) {
     }
   }
 
-  async function authMiddlewareOptional(req, res, next) {
+  async function runAuthMiddlewareOptional(req, res, next) {
     registerActivityLog(req, res);
     const token = getBearerToken(req);
     if (!token) return next();
@@ -147,6 +148,16 @@ export function createMiddleware(ctx, service) {
       log.error(`[SSO] Error inesperado (opcional): ${error.message}`);
       return next();
     }
+  }
+
+  async function authMiddleware(req, res, next) {
+    if (!tokenRateLimit) return runAuthMiddleware(req, res, next);
+    return tokenRateLimit(req, res, () => runAuthMiddleware(req, res, next));
+  }
+
+  async function authMiddlewareOptional(req, res, next) {
+    if (!tokenRateLimit) return runAuthMiddlewareOptional(req, res, next);
+    return tokenRateLimit(req, res, () => runAuthMiddlewareOptional(req, res, next));
   }
 
   function requireRole(...roles) {

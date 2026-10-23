@@ -9,6 +9,7 @@ Incluye:
 - **`authMiddleware`** — valida tokens locales y SSO, sincroniza el usuario y maneja reautenticación/renovación.
 - **`authMiddlewareOptional`** — variante que nunca falla si falta el token.
 - **`router`** — router Express con `GET /me`, `GET /sso-profile` y `POST /register` (rama SSO).
+- **Rate limiting por IP** — protege el login local y la validación de tokens contra fuerza bruta (3 intentos fallidos cada 5 minutos por defecto).
 - Helpers expuestos: `syncSsoUser`, `resolveSsoRole`, `verifySsoToken`, `extendSsoSession`, `normalizeUniqueId`.
 
 ---
@@ -74,6 +75,7 @@ app.listen(3000);
 | `rbac` | boolean \| object | `false` | Habilita el modo RBAC M2M (esquema de roles/permisos). Ver abajo. |
 | `localLogin` | boolean \| object | `null` | Habilita el **login local** (usuario/contraseña) como alternativa a Google. Ver abajo. |
 | `activityLog` | boolean \| object | `false` | Habilita el **registro de actividad** en todas las rutas autenticadas. Ver abajo. |
+| `rateLimit` | boolean \| object | `true` | Rate limit por IP de intentos fallidos de login y de tokens. Ver abajo. |
 
 ### `tables` por defecto
 
@@ -124,6 +126,8 @@ Monta un router Express con:
 | GET | `/sso-profile` | manual | Verifica el token SSO y busca el usuario local por email (`{ success, exists, user }`). |
 | POST | `/register` | manual | Registro SSO: valida token + `unique_id` y crea el usuario. |
 | POST | `/logout` | `authMiddleware` | Cierra la sesión. Si la sesión es SSO revoca tokens de Google vía `/auth/logout` del servicio SSO; además desactiva el token local en `user_tokens`. Requiere `unique_id` en query param cuando la sesión es SSO. Responde `{ success, message, data: { local, sso } }`. |
+
+> `/sso-profile` y `/register` están cubiertos por el rate limit de tokens (ver [Rate limiting](#rate-limiting-anti-fuerza-bruta)). Si el SSO rechaza el token (`401`/`403`) responden `401 { success: false, message: 'Token SSO inválido' }`.
 
 Ejemplo de respuesta `/me`:
 
@@ -285,6 +289,96 @@ localLogin: {
 
 > Sin `localLogin` no se expone la ruta `/login` y el paquete solo valida tokens (SSO y/o locales).
 
+## Rate limiting (anti fuerza bruta)
+
+Por defecto el paquete limita por IP los intentos **fallidos** de autenticación:
+
+- **Login** (`POST /login`): hasta **3 intentos fallidos cada 5 minutos**; el 4.º intento (y los siguientes hasta vencer el bloqueo) responde `429`.
+- **Tokens** (rutas protegidas con `authMiddleware`, `GET /sso-profile`, `POST /register` y el handshake de socket.io): mismo límite, para frenar el sondeo de tokens al azar.
+- Un login/autenticación **exitosa resetea** los fallos de esa IP.
+- Los intentos bloqueados **no** extienden el bloqueo.
+- Solo cuentan fallos reales de autenticación (`401`). No cuentan: token ausente, `400`, `403`, ni `500`.
+
+La respuesta al bloquear es:
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 300
+```
+
+```json
+{
+  "success": false,
+  "error": "RATE_LIMITED",
+  "message": "Demasiados intentos de login fallidos. Intente nuevamente más tarde.",
+  "retry_after_ms": 300000
+}
+```
+
+### Configuración
+
+```js
+const sso = createSsoAuth({
+  knex: db,
+  rateLimit: {
+    maxAttempts: 3,        // intentos fallidos permitidos por ventana
+    windowMs: 5 * 60 * 1000, // ventana deslizante (5 min)
+    blockMs: 5 * 60 * 1000,  // duración del bloqueo (default = windowMs)
+    trustProxy: 1,         // cantidad de proxies confiables (lee X-Forwarded-For)
+    maxEntries: 10000,     // tope de IPs en memoria
+    onBlocked: ({ kind, key, retryAfterMs }) => { /* log opcional */ },
+  },
+});
+```
+
+| Opción | Tipo | Default | Descripción |
+|--------|------|---------|-------------|
+| `enabled` | boolean | `true` | Activa/desactiva el limiter. |
+| `maxAttempts` | number | `3` | Fallos permitidos antes de bloquear. |
+| `windowMs` | number | `300000` | Ventana deslizante de conteo (ms). |
+| `blockMs` | number | `windowMs` | Duración del bloqueo (ms). |
+| `trustProxy` | boolean \| number | `false` | Si es `true`/número, lee `X-Forwarded-For` contando esa cantidad de saltos desde la derecha. |
+| `maxEntries` | number | `10000` | Máximo de IPs guardadas (evita crecimiento de memoria). |
+| `keyGenerator` | fn | — | Sobrescribe la clave (`req` → string). |
+| `onBlocked` | fn | — | Callback al bloquear una request. |
+
+Para desactivarlo por completo:
+
+```js
+const sso = createSsoAuth({ knex: db, rateLimit: false });
+```
+
+### Proteger endpoints propios
+
+El limiter se aplica automáticamente a `authMiddleware`, `sso-profile`, `register`, `/login` y socket.io. Para rutas propias que validan credenciales o tokens a mano:
+
+```js
+// Login propio
+app.post('/api/mi-login', sso.loginRateLimit, async (req, res) => { /* ... */ });
+
+// Ruta que valida un token sin authMiddleware
+app.get('/api/mi-ruta', sso.tokenRateLimit, async (req, res) => { /* ... */ });
+```
+
+`tokenRateLimit` es idempotente: montarlo junto a `authMiddleware` no duplica el conteo.
+
+También se expone `sso.rateLimiter` para control manual:
+
+```js
+sso.rateLimiter.check('login', req);         // { blocked, retryAfterMs }
+sso.rateLimiter.recordFailure('token', req);
+sso.rateLimiter.reset('login', req);         // desbloquea una IP
+sso.rateLimiter.clear();                     // limpia todo
+```
+
+### IP real detrás de un proxy
+
+- Si configurás `app.set('trust proxy', ...)` en Express, `req.ip` ya refleja la IP real.
+- El limiter por su parte puede leer `X-Forwarded-For` con `rateLimit.trustProxy` (útil también para el handshake de socket.io, que no pasa por Express). Ajustalo a la cantidad de proxies confiables delante de la app (nginx delante del backend = `1`).
+- **No** habilites `trustProxy` si la app recibe tráfico directo sin proxy: un cliente podría falsificar `X-Forwarded-For` y evadir el límite.
+
+> **Alcance**: el rate limiter es **en memoria y por proceso**. Con múltiples instancias/PM2 en cluster cada proceso lleva su propio contador; para un límite global hace falta un store compartido (Redis), fuera del alcance del paquete.
+
 ## Registro de actividad (`activityLog`)
 
 Registra una fila por cada request autenticado (todas las rutas protegidas con `authMiddleware` o `authMiddlewareOptional` con sesión) en la tabla `gb_sso_log_actividad` (prefijo abreviado del paquete).
@@ -354,6 +448,7 @@ socket.broadcast('ping', { ts: Date.now() });
 ```
 
 - **Autenticación**: cada conexión envía el bearer token en el handshake (`auth: { token, unique_id }`). Se valida primero como token local (`findLocalUserByToken`) y luego contra el SSO (`verifySsoToken`), sincronizando el usuario. Fallo → rechazo de conexión.
+- **Rate limit**: el handshake usa el mismo contador de tokens por IP; tras `maxAttempts` fallos la conexión se rechaza con `unauthorized: demasiados intentos fallidos, reintente más tarde` hasta vencer el bloqueo.
 - Cada socket autenticado se une a las rooms `user:{id}` y `user:{email}`.
 - API del manager: `onFunction`, `onConnection`, `emitToUser`, `emitToRoom`, `broadcast`, `close`, y `io`.
 - Contraparte de frontend: `vue-greenborn-sso-front` → `useSsoSocket` / `createSocketClient`.
@@ -361,10 +456,23 @@ socket.broadcast('ping', { ts: Date.now() });
 ## Scripts
 
 ```bash
-npm run build   # genera dist/ (ESM + CJS + .d.ts) con esbuild
-npm test        # ejecuta la suite con node:test
-npm run demo    # levanta el servidor de demostración en el puerto 5175
+npm run build          # genera dist/ (ESM + CJS + .d.ts) con esbuild
+npm test               # ejecuta la suite con node:test
+npm run verify:publish # verifica que la versión de package.json esté publicada
+npm run release        # build + npm publish (postpublish corre verify:publish)
+npm run demo           # levanta el servidor de demostración en el puerto 5175
 ```
+
+### Verificación de publicación (anti caché)
+
+`npm publish` marca la versión como `latest`, pero el registry/CDN de npm puede seguir sirviendo metadatos cacheados por unos minutos. Para confirmar la publicación sin caer en ese caché, `scripts/verify-publish.mjs` consulta el registry con cache-busting (`?<timestamp>` + `Cache-Control: no-cache`) y reintenta:
+
+- Se ejecuta solo, como `postpublish`, después de cada `npm publish`.
+- Manualmente: `npm run verify:publish`.
+- Salidas: código `0` si la versión aparece en `versions` y en `dist-tags.latest`; `1` si tras los reintentos no aparece.
+- Overrides por entorno: `REGISTRY_URL`, `VERIFY_ATTEMPTS` (default `30`), `VERIFY_DELAY_MS` (default `5000`).
+
+> En los proyectos consumidores, si `npm install` no ve la versión nueva por caché local, forzá el refresco con `npm install express-greenborn-sso-back@<version> --prefer-online` (o `npm cache clean --force` antes de instalar).
 
 ## Demo
 

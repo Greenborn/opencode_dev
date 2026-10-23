@@ -3,14 +3,14 @@ import { getBearerToken, filterSensitive } from './utils.js';
 
 export function createRouter(ctx, service, middleware) {
   const router = express.Router();
-  const { sensitiveFields, rbac, localLogin, ssoClient, logger } = ctx;
+  const { sensitiveFields, rbac, localLogin, ssoClient, logger, rateLimiter } = ctx;
   const { verifySsoToken, syncSsoUser, findLocalUserByToken, normalizeUniqueId, resolveUserRoles, resolveUserPermissions, localLoginUser, deactivateToken } = service;
   const { authMiddleware } = middleware;
   const log = logger && typeof logger.error === 'function' ? logger : console;
 
   // POST /login — Login local (usuario/contraseña). Solo si localLogin está activo.
   if (localLogin) {
-    router.post(localLogin.endpoint, async (req, res) => {
+    router.post(localLogin.endpoint, rateLimiter.loginMiddleware, async (req, res) => {
       const { username, password } = req.body || {};
       if (!username || !password) {
         return res.status(400).json({ success: false, message: 'Usuario y contraseña requeridos' });
@@ -91,7 +91,7 @@ export function createRouter(ctx, service, middleware) {
   });
 
   // GET /sso-profile — Busca usuario local por email del SSO sin crearlo
-  router.get('/sso-profile', async (req, res) => {
+  router.get('/sso-profile', rateLimiter.tokenMiddleware, async (req, res) => {
     const token = getBearerToken(req);
     const uniqueId = req.query?.unique_id;
 
@@ -133,13 +133,17 @@ export function createRouter(ctx, service, middleware) {
       return res.json({ success: true, exists: true, user: filterSensitive(user, sensitiveFields) });
     } catch (error) {
       const ssoBody = error.response?.data;
+      const ssoStatus = error.response?.status;
       (ctx.logger?.error || console.error)(`[SSO-Profile] Error: ${JSON.stringify(ssoBody) || error.message}`);
+      if (ssoStatus === 401 || ssoStatus === 403) {
+        return res.status(401).json({ success: false, message: 'Token SSO inválido' });
+      }
       return res.status(500).json({ success: false, message: 'Error al verificar SSO', error: ssoBody || error.message });
     }
   });
 
   // POST /register — Registro SSO (rama SSO del register de GFC-Back)
-  router.post('/register', async (req, res) => {
+  router.post('/register', rateLimiter.tokenMiddleware, async (req, res) => {
     const { email, username, name, sso, unique_id } = req.body || {};
 
     if (!email || !username) {

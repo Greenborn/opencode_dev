@@ -1,0 +1,63 @@
+{
+  "name": "vue-greenborn-webcam-viewer",
+  "version": "1.0.2",
+  "description": "Visor de webcam para Vue 3: obtención de permisos, selección de cámara, captura de frames/fotos y visualización del stream con una capa de bounding boxes y slots para overlays extra. No asume ningún backend ni API de detección: el consumidor decide qué hacer con los frames capturados. Sin dependencias runtime más allá de Vue.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-greenborn-webcam-viewer.umd.cjs",
+  "module": "./dist/vue-greenborn-webcam-viewer.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-webcam-viewer.js",
+      "require": "./dist/vue-greenborn-webcam-viewer.umd.cjs"
+    },
+    "./style.css": "./dist/vue-greenborn-webcam-viewer.css",
+    "./dist/style.css": "./dist/vue-greenborn-webcam-viewer.css"
+  },
+  "style": "./dist/vue-greenborn-webcam-viewer.css",
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prepublishOnly": "npm run build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "webcam",
+    "camera",
+    "getusermedia",
+    "video",
+    "capture",
+    "bounding-box",
+    "detecciones",
+    "overlay",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-webcam-viewer",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0"
+  }
+}

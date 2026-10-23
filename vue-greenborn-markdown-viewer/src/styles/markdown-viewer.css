@@ -1,0 +1,109 @@
+/* Tipografía para contenido Markdown renderizado (.gb-markdown).
+   Usa variables CSS de Bootstrap cuando existen y valores propios como respaldo. */
+
+.gb-markdown {
+  color: var(--gb-md-texto, var(--bs-body-color, #212529));
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.gb-markdown > :first-child {
+  margin-top: 0;
+}
+
+.gb-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.gb-markdown h1,
+.gb-markdown h2,
+.gb-markdown h3,
+.gb-markdown h4,
+.gb-markdown h5,
+.gb-markdown h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 1.5em;
+  margin-bottom: 0.6em;
+}
+
+.gb-markdown h1 { font-size: 1.75rem; }
+.gb-markdown h2 { font-size: 1.4rem; }
+.gb-markdown h3 { font-size: 1.2rem; }
+.gb-markdown h4,
+.gb-markdown h5,
+.gb-markdown h6 { font-size: 1rem; }
+
+.gb-markdown p,
+.gb-markdown ul,
+.gb-markdown ol,
+.gb-markdown blockquote,
+.gb-markdown pre,
+.gb-markdown table {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+.gb-markdown ul,
+.gb-markdown ol {
+  padding-left: 1.5em;
+}
+
+.gb-markdown li + li {
+  margin-top: 0.25em;
+}
+
+.gb-markdown a {
+  color: var(--gb-md-enlace, var(--bs-link-color, #198754));
+  text-decoration: underline;
+}
+
+.gb-markdown blockquote {
+  padding: 0.5em 1em;
+  border-left: 4px solid var(--gb-md-borde, #d0d7d4);
+  color: var(--gb-md-texto-suave, #5b6664);
+}
+
+.gb-markdown code {
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: var(--gb-md-fondo-codigo, #f1f4f3);
+  font-size: 0.9em;
+}
+
+.gb-markdown pre {
+  padding: 0.75em 1em;
+  border-radius: 6px;
+  background: var(--gb-md-fondo-codigo, #f1f4f3);
+  overflow-x: auto;
+}
+
+.gb-markdown pre code {
+  padding: 0;
+  background: none;
+}
+
+.gb-markdown hr {
+  margin: 1.5em 0;
+  border: 0;
+  border-top: 1px solid var(--gb-md-borde, #d0d7d4);
+}
+
+.gb-markdown table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.gb-markdown th,
+.gb-markdown td {
+  padding: 0.4em 0.7em;
+  border: 1px solid var(--gb-md-borde, #d0d7d4);
+  text-align: left;
+}
+
+.gb-markdown img {
+  max-width: 100%;
+  height: auto;
+}
