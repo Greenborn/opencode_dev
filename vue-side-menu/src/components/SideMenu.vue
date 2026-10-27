@@ -28,6 +28,7 @@
 <script>
 import { inject, computed } from 'vue'
 import MenuItem from './MenuItem.vue'
+import { useEsMovil, filtrarItems } from '../utils/menu.js'
 
 export const HAS_PERMISSION_KEY = 'hasPermission'
 
@@ -44,21 +45,11 @@ export default {
   emits: ['close'],
   setup(props) {
     const hasPermission = inject(HAS_PERMISSION_KEY, null)
+    const isMobile = useEsMovil(() => props.breakpoint)
 
-    const visibleItems = computed(() => {
-      if (!hasPermission) return props.items
-      return props.items.filter((item) => {
-        if (item.divider) return true
-        return !item.permiso || hasPermission(item.permiso)
-      })
-    })
+    const visibleItems = computed(() => filtrarItems(props.items, hasPermission))
 
-    return { hasPermission, visibleItems }
-  },
-  computed: {
-    isMobile() {
-      return window.innerWidth < this.breakpoint
-    },
+    return { hasPermission, visibleItems, isMobile }
   },
 }
 </script>

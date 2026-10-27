@@ -1,0 +1,121 @@
+/* Estilos propios del paquete (sin Bootstrap). Prefijo rc- para no colisionar con la app anfitriona. */
+:root {
+  --rc-texto: #212529;
+  --rc-muted: #6c757d;
+  --rc-borde: #ced4da;
+  --rc-fondo: #ffffff;
+  --rc-primario: #198754;
+  --rc-secundario: #6c757d;
+  --rc-error: #b02a37;
+}
+
+.rc-menu {
+  position: fixed;
+  z-index: 20000;
+  min-width: 180px;
+  padding: 4px 0;
+  background: var(--rc-fondo);
+  color: var(--rc-texto);
+  border: 1px solid var(--rc-borde);
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  font-size: 0.9rem;
+}
+
+.rc-menu-item {
+  display: block;
+  width: 100%;
+  padding: 6px 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rc-menu-item:hover,
+.rc-menu-item:focus-visible {
+  background: #e9f5ef;
+  outline: none;
+}
+
+.rc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.92rem;
+}
+
+.rc-info {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  word-break: break-word;
+}
+
+.rc-label {
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.rc-req {
+  color: var(--rc-error);
+}
+
+.rc-muted {
+  color: var(--rc-muted);
+  font-size: 0.85em;
+}
+
+.rc-input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--rc-borde);
+  border-radius: 6px;
+  background: var(--rc-fondo);
+  color: var(--rc-texto);
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.rc-input:focus {
+  outline: 2px solid rgba(25, 135, 84, 0.35);
+  border-color: var(--rc-primario);
+}
+
+.rc-error {
+  padding: 6px 10px;
+  color: var(--rc-error);
+  background: #f8d7da;
+  border-radius: 6px;
+}
+
+.rc-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.rc-btn {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.rc-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.rc-btn-primario {
+  background: var(--rc-primario);
+}
+
+.rc-btn-secundario {
+  background: var(--rc-secundario);
+}

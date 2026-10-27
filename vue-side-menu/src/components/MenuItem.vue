@@ -9,6 +9,7 @@
         class="vsm-link vsm-submenu-toggle"
         :class="{ 'vsm-open': open }"
         type="button"
+        :aria-expanded="open"
         @click.stop="toggle"
       >
         <i v-if="item.icon" :class="item.icon"></i>{{ item.label }}
@@ -40,6 +41,7 @@
 
 <script>
 import { inject, ref, computed, getCurrentInstance } from 'vue'
+import { useEsMovil, filtrarItems } from '../utils/menu.js'
 
 export const HAS_PERMISSION_KEY = 'hasPermission'
 
@@ -52,36 +54,26 @@ export default {
   emits: ['close'],
   setup(props) {
     const hasPermission = inject(HAS_PERMISSION_KEY, null)
+    const isMobile = useEsMovil(() => props.breakpoint)
     const open = ref(false)
 
-    // vue-router 4 instala $router/$route en globalProperties y registra
-    // RouterLink (PascalCase) como componente global. Se chequea $router
-    // (siempre presente con vue-router) con fallback a ambos nombres de
-    // registro, porque la búsqueda por clave es exacta y "router-link"
-    // nunca coincide con "RouterLink".
-    const routerLink = computed(() => {
-      const app = getCurrentInstance()?.appContext?.app
-      if (!app) return false
-      return (
-        !!app.config.globalProperties.$router ||
-        !!app.component('router-link') ||
-        !!app.component('RouterLink')
-      )
-    })
+    // vue-router 4 instala $router en globalProperties y registra RouterLink
+    // (PascalCase) como componente global. Se resuelve una sola vez en setup,
+    // donde la instancia actual siempre está disponible.
+    const app = getCurrentInstance()?.appContext?.app
+    const routerLink = !!app && (
+      !!app.config.globalProperties.$router ||
+      !!app.component('router-link') ||
+      !!app.component('RouterLink')
+    )
 
     const hasChildren = computed(
       () => Array.isArray(props.item.children) && props.item.children.length > 0
     )
 
-    const visibleChildren = computed(() => {
-      if (!hasPermission) return props.item.children || []
-      return (props.item.children || []).filter((child) => {
-        if (child.divider) return true
-        return !child.permiso || hasPermission(child.permiso)
-      })
-    })
+    const visibleChildren = computed(() => filtrarItems(props.item.children || [], hasPermission))
 
-    return { hasPermission, open, hasChildren, visibleChildren, routerLink }
+    return { hasPermission, isMobile, open, hasChildren, visibleChildren, routerLink }
   },
   methods: {
     toggle() {
@@ -109,11 +101,6 @@ export default {
       if (typeof item.action === 'function') {
         item.action(item)
       }
-    },
-  },
-  computed: {
-    isMobile() {
-      return window.innerWidth < this.breakpoint
     },
   },
 }

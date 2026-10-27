@@ -1,0 +1,62 @@
+{
+  "name": "vue-greenborn-reporte-contextual",
+  "version": "0.1.0",
+  "description": "Menú contextual (clic derecho) para reportar cualquier elemento de la interfaz Vue 3: abre un modal precompletado con el elemento, la URL de la vista actual y el proyecto, y registra la nota de desarrollo en el SGI.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-greenborn-reporte-contextual.umd.cjs",
+  "module": "./dist/vue-greenborn-reporte-contextual.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-reporte-contextual.js",
+      "require": "./dist/vue-greenborn-reporte-contextual.umd.cjs"
+    },
+    "./style.css": "./dist/vue-greenborn-reporte-contextual.css",
+    "./dist/style.css": "./dist/vue-greenborn-reporte-contextual.css"
+  },
+  "style": "./dist/vue-greenborn-reporte-contextual.css",
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prepublishOnly": "npm run build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "reporte",
+    "contextmenu",
+    "context-menu",
+    "feedback",
+    "notas-desarrollo"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-reporte-contextual",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "dependencies": {
+    "vue-greenborn-modal-manager": "^1.7.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0"
+  }
+}
