@@ -172,6 +172,8 @@ También se aceptan valores legacy con prefijo `btn-` (p. ej. `btn-primary`) y s
 | `valueFormatters` | Object | — | `{ [field]: (row) => html }` |
 | `showFilterRow` | Boolean | `false` | Fila de filtros por columna |
 | `scrollHeight` | String | `null` | Altura de scroll |
+| `mobileListView` | Boolean | `false` | En viewports angostos muestra las filas como tarjetas (lista) en vez de tabla. Columna 1 = título, resto = etiqueta/valor, acciones de fila debajo. La edición inline no aplica en esta vista |
+| `mobileBreakpoint` | Number | `768` | Ancho máximo (px) en que se activa la vista lista cuando `mobileListView` es `true` |
 | `pageSize` | Number | `25` | Filas por página |
 | `pageSizeOptions` | Array | `[25,50,100,200]` | Opciones del selector |
 | `hideToolbar` / `hideRefresh` / `hideCsvExport` | Boolean | `false` | Oculta elementos |

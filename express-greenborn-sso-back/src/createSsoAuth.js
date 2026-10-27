@@ -9,6 +9,7 @@ import { createUserManagement } from './userManagement.js';
 import { normalizeUniqueId, parseSsoRoleMap } from './utils.js';
 import { ensureActivityTable, DEFAULT_ACTIVITY_TABLE } from './activityLog.js';
 import { createRateLimiter } from './rateLimit.js';
+import { createSecurityMiddleware } from './security.js';
 
 const DEFAULT_TABLES = {
   user: 'user',
@@ -128,6 +129,7 @@ export function createSsoAuth(options = {}) {
     tokenRateLimit: rateLimiter.tokenMiddleware,
     rateLimiter,
     router,
+    securityMiddleware: createSecurityMiddleware(options.security),
     syncSsoUser: service.syncSsoUser,
     findLocalUserByToken: service.findLocalUserByToken,
     resolveSsoRole: service.resolveSsoRoleFor,

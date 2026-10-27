@@ -56,7 +56,48 @@
         </div>
       </div>
 
-      <table class="te-table" :class="{ 'te-striped': striped }">
+      <!-- Vista lista en móviles (config.mobileListView) -->
+      <div v-if="useMobileList" class="te-mobile-list">
+        <div v-for="(row, rIdx) of displayRows" :key="trackByRow(row, rIdx)"
+          :class="['te-mobile-card', row.__css_class, {
+            'te-tr-selected': isSelected(row),
+            'te-tr-highlight': selectedRow === row
+          }]"
+          :style="row.__style"
+          @click="onRowClick(row)"
+          @dblclick="onRowDblClick(row)">
+          <div class="te-mobile-card-head">
+            <div v-if="selectionMode !== null" class="te-mobile-card-sel" @click.stop>
+              <input v-if="selectionMode === 'multiple'" type="checkbox"
+                :checked="isSelected(row)" @change="toggleRowSelection(row)" class="te-checkbox" />
+              <input v-else type="radio" :checked="selectedRow === row"
+                @click="selectSingle(row)" class="te-checkbox" />
+            </div>
+            <span v-if="mobileTitleColumn" class="te-mobile-card-title"
+              v-html="formatCell(row, mobileTitleColumn)"></span>
+          </div>
+          <dl v-if="mobileDetailColumns.length" class="te-mobile-card-body">
+            <template v-for="col of mobileDetailColumns" :key="col.field">
+              <dt>{{ col.headerName }}</dt>
+              <dd v-html="formatCell(row, col)"></dd>
+            </template>
+          </dl>
+          <div v-if="rowActionButtons.length && !useToolbarActions" class="te-mobile-card-actions" @click.stop>
+            <template v-for="btn of rowActionButtons" :key="btn.key">
+              <button v-if="btn.isVisible()"
+                :class="['te-btn', severityClass(btn.severity), btn.class]"
+                :disabled="btn.isDisabled()"
+                @click.stop="btn.onClick(row)"
+                :title="btn.getLabel()">
+                <span v-if="btn.icon" class="te-btn-icon" v-html="iconSvg(btn.icon)"></span> {{ btn.getLabel() }}
+              </button>
+            </template>
+          </div>
+        </div>
+        <div v-if="!displayRows.length" class="te-mobile-empty">Sin registros</div>
+      </div>
+
+      <table v-else class="te-table" :class="{ 'te-striped': striped }">
         <colgroup>
           <col v-if="selectionMode !== null" :style="{ width: selectionColWidth }" />
           <col v-if="rowActionButtons.length && !useToolbarActions" :style="{ width: actionColWidth }" />
@@ -406,6 +447,28 @@ const totalColspan = computed(() => {
 })
 
 const hasColumnGroups = computed(() => props.config?.columnGroups?.length > 0)
+
+// ── Vista lista en móviles ───────────────────────────
+// Parametrizable: config.mobileListView (default false) y config.mobileBreakpoint (px, default 768).
+const mobileListOption = computed(() => props.config?.mobileListView === true)
+const mobileBreakpoint = computed(() => props.config?.mobileBreakpoint ?? 768)
+const isMobileViewport = ref(false)
+const mobileTitleColumn = computed(() => visibleColumns.value[0] || null)
+const mobileDetailColumns = computed(() => visibleColumns.value.slice(1))
+const useMobileList = computed(() => mobileListOption.value && isMobileViewport.value)
+let mobileMql = null
+
+function onMobileMqlChange(e) { isMobileViewport.value = e.matches }
+
+function setupMobileQuery() {
+  if (mobileMql) mobileMql.removeEventListener('change', onMobileMqlChange)
+  mobileMql = null
+  isMobileViewport.value = false
+  if (!mobileListOption.value || typeof window === 'undefined' || !window.matchMedia) return
+  mobileMql = window.matchMedia(`(max-width: ${mobileBreakpoint.value}px)`)
+  isMobileViewport.value = mobileMql.matches
+  mobileMql.addEventListener('change', onMobileMqlChange)
+}
 
 const inlineEditingConfig = computed(() => props.config?.inlineEditing)
 const inlineEditFields = computed(() => inlineEditingConfig.value?.campos || {})
@@ -1174,6 +1237,8 @@ watch(() => props.data, (nd) => {
 
 watch(displayRows, () => measureActionsColumn())
 
+watch([mobileListOption, mobileBreakpoint], () => setupMobileQuery())
+
 // ── Medición columna de acciones ─────────────────────
 function measureActionsColumn() {
   if (!rowActionButtons.value.length || useToolbarActions.value) return
@@ -1193,6 +1258,7 @@ function measureActionsColumn() {
 // ── Lifecycle ────────────────────────────────────────
 onMounted(async () => {
   applyConfig()
+  setupMobileQuery()
   document.addEventListener('click', onGlobalClick)
   if (prefStore.value.fetchMisPreferencias) {
     await prefStore.value.fetchMisPreferencias()
@@ -1203,6 +1269,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   document.removeEventListener('click', onGlobalClick)
+  if (mobileMql) mobileMql.removeEventListener('change', onMobileMqlChange)
   document.removeEventListener('pointermove', onResizeMove)
   document.removeEventListener('pointerup', onResizeEnd)
   infiniteObserver?.disconnect()

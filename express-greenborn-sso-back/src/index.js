@@ -33,3 +33,4 @@ export {
   getSocketIp,
   DEFAULT_RATE_LIMIT,
 } from './rateLimit.js';
+export { createSecurityMiddleware } from './security.js';

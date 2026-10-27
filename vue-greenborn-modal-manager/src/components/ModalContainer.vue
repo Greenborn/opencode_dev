@@ -34,7 +34,7 @@
               <span v-else class="gmm-header-title">{{ _modal.titulo }}</span>
               <div class="gmm-header-controls">
                 <button
-                  v-if="_modal.config_modal?.minimizable !== false"
+                  v-if="_modal.config_modal?.minimizable === true"
                   type="button"
                   class="gmm-header-minimize"
                   aria-label="Minimizar"

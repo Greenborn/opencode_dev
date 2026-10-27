@@ -103,6 +103,7 @@ if (props.parametros._modalState) props.parametros._modalState.guardar = guardar
 | `styles.width` / `styles.height` | `string` | Escape hatch inline; gana a `size`. |
 | `cssClass` | `string` | Clase extra para el diálogo. |
 | `dismissableMask` | `boolean` | Si `true`, un clic en el overlay cierra el modal (default `false`). |
+| `minimizable` | `boolean` | Si `true`, muestra el botón de minimizar en el header; el modal minimizado queda en la taskbar del contenedor (default `false`). |
 | `draggable` | `boolean` | Si `false`, deshabilita el arrastre del modal por el header (default `true`). |
 | `resizable` | `boolean` | Si `false`, deshabilita el redimensionado manual del modal (default `true`). |
 | `id` | `number` | Slot explícito a ocupar en la pila (uso interno). |

@@ -10,6 +10,7 @@ Incluye:
 - **`authMiddlewareOptional`** — variante que nunca falla si falta el token.
 - **`router`** — router Express con `GET /me`, `GET /sso-profile` y `POST /register` (rama SSO).
 - **Rate limiting por IP** — protege el login local y la validación de tokens contra fuerza bruta (3 intentos fallidos cada 5 minutos por defecto).
+- **`securityMiddleware`** — middleware Helmet pre-configurado con HSTS, CSP, frameguard, XSS protection y más.
 - Helpers expuestos: `syncSsoUser`, `resolveSsoRole`, `verifySsoToken`, `extendSsoSession`, `normalizeUniqueId`.
 
 ---
@@ -76,6 +77,7 @@ app.listen(3000);
 | `localLogin` | boolean \| object | `null` | Habilita el **login local** (usuario/contraseña) como alternativa a Google. Ver abajo. |
 | `activityLog` | boolean \| object | `false` | Habilita el **registro de actividad** en todas las rutas autenticadas. Ver abajo. |
 | `rateLimit` | boolean \| object | `true` | Rate limit por IP de intentos fallidos de login y de tokens. Ver abajo. |
+| `security` | object | `{}` | Configuración de `securityMiddleware` (Helmet). Ver abajo. |
 
 ### `tables` por defecto
 
@@ -452,6 +454,53 @@ socket.broadcast('ping', { ts: Date.now() });
 - Cada socket autenticado se une a las rooms `user:{id}` y `user:{email}`.
 - API del manager: `onFunction`, `onConnection`, `emitToUser`, `emitToRoom`, `broadcast`, `close`, y `io`.
 - Contraparte de frontend: `vue-greenborn-sso-front` → `useSsoSocket` / `createSocketClient`.
+
+## Seguridad (`securityMiddleware`)
+
+El paquete expone **`securityMiddleware`**, un middleware Helmet pre-configurado que añade headers HTTP de seguridad a todas las respuestas:
+
+```js
+import { createSsoAuth } from 'express-greenborn-sso-back';
+
+const sso = createSsoAuth({ knex, ... });
+
+const app = express();
+app.use(sso.securityMiddleware); // ← Aplica headers de seguridad ANTES de las rutas
+app.use(express.json());
+app.use('/api/user', sso.router);
+```
+
+**Headers agregados automáticamente:**
+
+| Header | Beneficio |
+|--------|-----------|
+| `Strict-Transport-Security` | Fuerza HTTPS (HSTS) por 1 año. |
+| `X-Content-Type-Options: nosniff` | Evita MIME type sniffing. |
+| `X-Frame-Options: DENY` | Previene clickjacking (bloquea iframe). |
+| `Content-Security-Policy` | Controla qué scripts/recursos se cargan (XSS protection). |
+| `X-XSS-Protection` | Activación de XSS filter en navegadores antiguos. |
+| `Referrer-Policy` | No envía referrer a otros sitios. |
+| `Permissions-Policy` | Restringe acceso a features del navegador (geolocalización, cámara, etc.). |
+
+**Configuración personalizada:**
+
+```js
+const sso = createSsoAuth({
+  knex,
+  security: {
+    enableHsts: true,              // HSTS headers
+    enableCsp: true,               // Content-Security-Policy
+    enableFrameguard: true,        // X-Frame-Options
+    enableXssFilter: true,         // X-XSS-Protection
+    enableDnsPrefetch: false,      // DNS prefetch control
+    enableContentType: true,       // X-Content-Type-Options
+    enableReferrer: true,          // Referrer-Policy
+    hstsMaxAge: 31536000,          // 1 año (segundos)
+    hstsIncludeSubDomains: true,   // Incluye subdomios
+    hstsPreload: true,             // Preload HSTS
+  },
+});
+```
 
 ## Scripts
 

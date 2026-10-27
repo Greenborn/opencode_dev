@@ -403,7 +403,7 @@ const Ae = ["onMousedown"], je = ["data-modal-code", "onClick"], Fe = ["onMoused
                     parametros: e.parametros
                   }, null, 8, ["parametros"])) : (d(), h("span", Ye, R(e.titulo), 1)),
                   v("div", Ze, [
-                    ((m = e.config_modal) == null ? void 0 : m.minimizable) !== !1 ? (d(), h("button", {
+                    ((m = e.config_modal) == null ? void 0 : m.minimizable) === !0 ? (d(), h("button", {
                       key: 0,
                       type: "button",
                       class: "gmm-header-minimize",
