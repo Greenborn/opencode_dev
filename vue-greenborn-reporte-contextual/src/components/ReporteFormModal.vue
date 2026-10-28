@@ -6,20 +6,8 @@
       <div class="rc-muted"><code>{{ info.selector }}</code></div>
     </div>
 
-    <label class="rc-label" for="rc-proyecto">Proyecto <span class="rc-req">*</span></label>
-    <select
-      v-if="!modoManual"
-      id="rc-proyecto"
-      v-model="form.slug_proyecto"
-      class="rc-input"
-      required
-      :disabled="cargandoProyectos"
-    >
-      <option value="" disabled>{{ cargandoProyectos ? 'Cargando proyectos…' : 'Seleccione un proyecto' }}</option>
-      <option v-for="p in proyectos" :key="p.slug" :value="p.slug">{{ p.nombre }} ({{ p.slug }})</option>
-    </select>
+    <label class="rc-label" for="rc-proyecto">Slug del proyecto <span class="rc-req">*</span></label>
     <input
-      v-else
       id="rc-proyecto"
       v-model="form.slug_proyecto"
       class="rc-input"
@@ -53,9 +41,9 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useModal } from 'vue-greenborn-modal-manager'
-import { cargarProyectos, enviarReporte } from '../utils/reporteApi.js'
+import { enviarReporte } from '../utils/reporteApi.js'
 
 const props = defineProps({
   parametros: { type: Object, required: true },
@@ -74,9 +62,6 @@ const form = reactive({
   notas: '',
 })
 
-const proyectos = ref([])
-const cargandoProyectos = ref(true)
-const modoManual = ref(false)
 const enviando = ref(false)
 const error = ref('')
 
@@ -87,22 +72,6 @@ function cerrar() {
 function cancelar() {
   cerrar()
 }
-
-onMounted(async () => {
-  try {
-    proyectos.value = await cargarProyectos({
-      apiBaseUrl: props.parametros.apiBaseUrl,
-      getAuthHeaders: props.parametros.getAuthHeaders,
-    })
-  } catch (err) {
-    // Sin lista (sin token, CORS o API caída) se permite escribir el slug a mano.
-    console.log('[reporte-contextual] No se pudo listar proyectos:', err)
-    modoManual.value = true
-    error.value = 'No se pudo cargar la lista de proyectos. Escriba el slug manualmente.'
-  } finally {
-    cargandoProyectos.value = false
-  }
-})
 
 async function enviar() {
   error.value = ''
