@@ -1,11 +1,11 @@
 import r from "leaflet";
-import { openBlock as n, createElementBlock as i, toDisplayString as s, createCommentVNode as c, createElementVNode as u, markRaw as d } from "vue";
-const m = (a, e) => {
-  const t = a.__vccOpts || a;
-  for (const [o, l] of e)
+import { openBlock as s, createElementBlock as n, toDisplayString as i, createCommentVNode as c, createElementVNode as u, markRaw as d } from "vue";
+const m = (e, a) => {
+  const t = e.__vccOpts || e;
+  for (const [o, l] of a)
     t[o] = l;
   return t;
-}, g = {
+}, p = {
   name: "MapViewerComponent",
   props: {
     puntos: {
@@ -60,6 +60,26 @@ const m = (a, e) => {
     mensajeSinPuntos: {
       type: String,
       default: ""
+    },
+    // Zoom con la rueda del mouse (desactivado por defecto para no capturar el scroll de la página)
+    scrollWheelZoom: {
+      type: Boolean,
+      default: !1
+    },
+    // Zoom mínimo permitido (límite de alejamiento)
+    minZoom: {
+      type: Number,
+      default: null
+    },
+    // Límites de desplazamiento: [[latSur, lngOeste], [latNorte, lngEste]]
+    maxBounds: {
+      type: Array,
+      default: null
+    },
+    // 0 = el borde cede al arrastrar, 1 = el borde es sólido
+    maxBoundsViscosity: {
+      type: Number,
+      default: 1
     }
   },
   emits: ["punto-click", "mapa-listo"],
@@ -77,7 +97,7 @@ const m = (a, e) => {
         this.dibujarPuntos();
       }
     },
-    altura(a) {
+    altura(e) {
       this.mapa && this.$nextTick(() => {
         this.mapa.invalidateSize();
       });
@@ -90,8 +110,12 @@ const m = (a, e) => {
     this.mapa && (this.mapa.remove(), this.mapa = null);
   },
   methods: {
+    opcionesMapa() {
+      const e = { scrollWheelZoom: this.scrollWheelZoom };
+      return this.minZoom !== null && (e.minZoom = this.minZoom), this.maxBounds && (e.maxBounds = this.maxBounds, e.maxBoundsViscosity = this.maxBoundsViscosity), e;
+    },
     iniciarMapa() {
-      this.$refs.mapaEl && (this.mapa = d(r.map(this.$refs.mapaEl, { scrollWheelZoom: !1 }).setView(this.centro, this.zoom)), r.tileLayer(this.tileUrl, {
+      this.$refs.mapaEl && (this.mapa = d(r.map(this.$refs.mapaEl, this.opcionesMapa()).setView(this.centro, this.zoom)), r.tileLayer(this.tileUrl, {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
       }).addTo(this.mapa), this.capaPuntos = d(r.layerGroup().addTo(this.mapa)), delete r.Icon.Default.prototype._getIconUrl, r.Icon.Default.mergeOptions({
@@ -103,12 +127,12 @@ const m = (a, e) => {
     dibujarPuntos() {
       if (!this.mapa || !this.capaPuntos) return;
       this.capaPuntos.clearLayers(), this.marcadores.clear();
-      const a = [];
-      for (const e of this.puntos) {
-        if (e.lat === null || e.lat === void 0 || e.lng === null || e.lng === void 0)
+      const e = [];
+      for (const a of this.puntos) {
+        if (a.lat === null || a.lat === void 0 || a.lng === null || a.lng === void 0)
           continue;
-        const t = [e.lat, e.lng];
-        a.push(t);
+        const t = [a.lat, a.lng];
+        e.push(t);
         const o = r.circleMarker(t, {
           radius: this.radioPunto,
           color: "#fff",
@@ -116,38 +140,38 @@ const m = (a, e) => {
           fillColor: this.colorPunto,
           fillOpacity: 0.9
         });
-        e.popup && o.bindPopup(this.crearPopup(e)), o.on("click", () => {
-          this.$emit("punto-click", e);
-        }), o.addTo(this.capaPuntos), this.marcadores.set(e.id, o);
+        a.popup && o.bindPopup(this.crearPopup(a)), o.on("click", () => {
+          this.$emit("punto-click", a);
+        }), o.addTo(this.capaPuntos), this.marcadores.set(a.id, o);
       }
-      a.length > 0 ? this.mapa.fitBounds(a, { padding: [30, 30], maxZoom: 14 }) : this.mapa.setView(this.centro, this.zoom);
+      e.length > 0 ? this.mapa.fitBounds(e, { padding: [30, 30], maxZoom: 14 }) : this.mapa.setView(this.centro, this.zoom);
     },
-    crearPopup(a) {
-      const e = document.createElement("div");
-      if (a.nombre) {
+    crearPopup(e) {
+      const a = document.createElement("div");
+      if (e.nombre) {
         const t = document.createElement("strong");
-        t.textContent = a.nombre, e.appendChild(t);
+        t.textContent = e.nombre, a.appendChild(t);
       }
-      if (a.subtitulo) {
+      if (e.subtitulo) {
         const t = document.createElement("div");
-        t.className = "small", t.textContent = a.subtitulo, e.appendChild(t);
+        t.className = "small", t.textContent = e.subtitulo, a.appendChild(t);
       }
-      if (a.descripcion) {
+      if (e.descripcion) {
         const t = document.createElement("div");
-        t.className = "small text-muted", t.textContent = a.descripcion, e.appendChild(t);
+        t.className = "small text-muted", t.textContent = e.descripcion, a.appendChild(t);
       }
-      return e;
+      return a;
     },
-    resaltarPunto(a) {
-      const e = this.marcadores.get(a);
-      e && e.openPopup();
+    resaltarPunto(e) {
+      const a = this.marcadores.get(e);
+      a && a.openPopup();
     },
-    quitarResaltePunto(a) {
-      const e = this.marcadores.get(a);
-      e && e.closePopup();
+    quitarResaltePunto(e) {
+      const a = this.marcadores.get(e);
+      a && a.closePopup();
     }
   }
-}, p = { class: "vgmv-viewer" }, h = {
+}, g = { class: "vgmv-viewer" }, h = {
   key: 0,
   class: "alert alert-danger mb-2"
 }, f = {
@@ -160,25 +184,25 @@ const m = (a, e) => {
   key: 3,
   class: "vgmv-resumen small text-muted mt-2 mb-0"
 };
-function x(a, e, t, o, l, M) {
-  return n(), i("div", p, [
-    t.error ? (n(), i("div", h, s(t.error), 1)) : c("", !0),
-    !t.error && t.puntos.length === 0 && !t.cargando ? (n(), i("div", f, s(t.mensajeSinPuntos || "No hay puntos para mostrar en el mapa."), 1)) : c("", !0),
-    t.cargando ? (n(), i("div", A, s(t.mensajeCargando || "Cargando mapa…"), 1)) : c("", !0),
+function x(e, a, t, o, l, y) {
+  return s(), n("div", g, [
+    t.error ? (s(), n("div", h, i(t.error), 1)) : c("", !0),
+    !t.error && t.puntos.length === 0 && !t.cargando ? (s(), n("div", f, i(t.mensajeSinPuntos || "No hay puntos para mostrar en el mapa."), 1)) : c("", !0),
+    t.cargando ? (s(), n("div", A, i(t.mensajeCargando || "Cargando mapa…"), 1)) : c("", !0),
     u("div", {
       ref: "mapaEl",
       class: "vgmv-map",
       role: "region",
       "aria-label": t.labelAccesibilidad
     }, null, 8, b),
-    !t.error && t.mostrarResumen ? (n(), i("p", k, s(t.cargando ? t.mensajeCargando || "Cargando…" : `${t.puntos.length} ${t.puntos.length === 1 ? "punto" : "puntos"} en el mapa.`), 1)) : c("", !0)
+    !t.error && t.mostrarResumen ? (s(), n("p", k, i(t.cargando ? t.mensajeCargando || "Cargando…" : `${t.puntos.length} ${t.puntos.length === 1 ? "punto" : "puntos"} en el mapa.`), 1)) : c("", !0)
   ]);
 }
-const w = /* @__PURE__ */ m(g, [["render", x], ["__scopeId", "data-v-5f27e2b0"]]);
-function z() {
+const w = /* @__PURE__ */ m(p, [["render", x], ["__scopeId", "data-v-5d7ceba9"]]);
+function B() {
   return { MapViewerComponent: w };
 }
 export {
   w as MapViewerComponent,
-  z as useMapViewer
+  B as useMapViewer
 };

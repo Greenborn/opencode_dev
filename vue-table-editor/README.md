@@ -260,6 +260,15 @@ La librería incluye estilos para modo oscuro activados por el atributo
 ## Preferencias de columnas
 
 Las preferencias (orden, ancho, visibilidad) se guardan automáticamente con debounce.
+El valor guardado bajo la clave `te_cfg_<id>` es un JSON con la forma:
+
+```json
+{ "columnOrder": ["campo1", "campo2"], "columnWidths": { "campo1": "15rem" }, "hiddenFields": ["campo3"] }
+```
+
+`hiddenFields` lista los campos ocultos por el usuario; al cargar se aplican sobre las columnas
+del `config`, siempre que quede al menos una visible.
+
 Por defecto se usan **localStorage** (autónomo, sin servidor). Puedes inyectar tu propio
 adaptador — por ejemplo un store Pinia del host — vía `config.preferencesStore`, siempre
 que exponga:

@@ -145,6 +145,8 @@ async function submit() {
 </script>
 ```
 
+Si el login falla, el `Error` lanzado incluye `status` (HTTP), `code` (campo `code` de la respuesta, ej. `'ACCOUNT_SUSPENDED'` cuando el backend usa la opción `suspension` de `express-greenborn-sso-back`) y `data` (cuerpo completo de la respuesta, con los datos extra que devuelva el backend).
+
 ### Página callback
 
 `SsoCallback` lee automáticamente `token` y `unique_id` de la query, intercambia el token temporal por el bearer token y verifica el perfil local. Emite `success`, `error` y `no-params`.

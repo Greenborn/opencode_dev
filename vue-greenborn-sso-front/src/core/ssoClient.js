@@ -222,7 +222,12 @@ export function createSsoClient(config = {}) {
     const body = await response.json().catch(() => ({}))
 
     if (!response.ok || !body?.success) {
-      throw new Error(body?.message || 'Credenciales inválidas')
+      // El error lleva el código y el cuerpo de la respuesta (ej. code 'ACCOUNT_SUSPENDED' con datos extra)
+      const err = new Error(body?.message || 'Credenciales inválidas')
+      err.status = response.status
+      err.code = body?.code
+      err.data = body
+      throw err
     }
 
     const bearerToken = body?.data?.token

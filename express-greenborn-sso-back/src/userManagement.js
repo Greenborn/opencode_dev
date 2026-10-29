@@ -97,5 +97,35 @@ export function createUserManagement(ctx) {
     return knex(tables.user).where({ [tables.userPkField]: userId }).first();
   }
 
-  return { deleteUser, updateUser };
+  function suspensionField() {
+    if (!ctx.suspension) {
+      throw userError('suspendUser/reactivateUser: falta la opción "suspension" en createSsoAuth()', 'SUSPENSION_NOT_CONFIGURED');
+    }
+    return ctx.suspension.field;
+  }
+
+  async function suspendUser(userId, opts = {}) {
+    const { actorId, allowSelf = false } = opts;
+    const field = suspensionField();
+    await assertActorIsAdmin(ctx, actorId);
+    await findUserOrThrow(userId);
+    if (!allowSelf && String(actorId) === String(userId)) {
+      throw userError('No se puede suspender la propia cuenta', 'SELF_SUSPEND_NOT_ALLOWED');
+    }
+    await knex(tables.user).where({ [tables.userPkField]: userId }).update({ [field]: new Date() });
+    // Cierra las sesiones locales abiertas
+    await knex(tables.userTokens).where({ user_id: userId }).update({ [tables.activeTokensField]: false });
+    return { success: true, id: userId };
+  }
+
+  async function reactivateUser(userId, opts = {}) {
+    const { actorId } = opts;
+    const field = suspensionField();
+    await assertActorIsAdmin(ctx, actorId);
+    await findUserOrThrow(userId);
+    await knex(tables.user).where({ [tables.userPkField]: userId }).update({ [field]: null });
+    return { success: true, id: userId };
+  }
+
+  return { deleteUser, updateUser, suspendUser, reactivateUser };
 }

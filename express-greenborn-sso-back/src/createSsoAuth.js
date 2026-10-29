@@ -87,6 +87,11 @@ export function createSsoAuth(options = {}) {
     localLogin = null;
   }
 
+  // Suspensión de cuentas: { field, onSuspended?(user, ctx) } -> { ...datos extra para el cliente }
+  let suspension = options.suspension || null;
+  if (suspension === true) suspension = {};
+  if (suspension) suspension = { field: 'suspended_at', ...suspension };
+
   const ctx = {
     knex: options.knex,
     ssoBaseUrl,
@@ -98,6 +103,7 @@ export function createSsoAuth(options = {}) {
     tables,
     rbac,
     localLogin,
+    suspension,
     logger,
     cache,
     activityLog,
@@ -141,6 +147,9 @@ export function createSsoAuth(options = {}) {
     localLoginUser: service.localLoginUser,
     deleteUser: userManagement.deleteUser,
     updateUser: userManagement.updateUser,
+    suspendUser: userManagement.suspendUser,
+    reactivateUser: userManagement.reactivateUser,
+    getSuspension: service.getSuspension,
     normalizeUniqueId,
     rbac,
     localLogin,

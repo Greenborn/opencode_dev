@@ -19,6 +19,7 @@
 import { onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useModal } from 'vue-greenborn-modal-manager'
 import ReporteFormModal from './ReporteFormModal.vue'
+import ReporteFormFooter from './ReporteFormFooter.vue'
 import { obtenerInfoElemento } from '../utils/infoElemento.js'
 
 // Montar una sola vez en la raíz de la app, junto a <ModalContainer />.
@@ -26,6 +27,8 @@ const props = defineProps({
   apiBaseUrl: { type: String, required: true },
   // Versión que se precompleta en el reporte (opcional).
   version: { type: String, default: null },
+  // Slug del proyecto que se precompleta en el reporte (opcional).
+  slugProyecto: { type: String, default: null },
 })
 
 const { mostrar_modal } = useModal()
@@ -111,12 +114,14 @@ function abrirReporte(info) {
     return
   }
   mostrar_modal(
-    ReporteFormModal,
+    { body: ReporteFormModal, footer: ReporteFormFooter },
     'Reportar elemento',
     {
       info,
       apiBaseUrl: props.apiBaseUrl,
       version: props.version,
+      slugProyecto: props.slugProyecto,
+      estado: reactive({ enviando: false, error: '' }),
     },
     { size: 'lg' },
   )

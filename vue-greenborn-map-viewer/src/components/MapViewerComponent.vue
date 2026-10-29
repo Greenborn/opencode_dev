@@ -80,6 +80,26 @@ export default {
     mensajeSinPuntos: {
       type: String,
       default: ''
+    },
+    // Zoom con la rueda del mouse (desactivado por defecto para no capturar el scroll de la página)
+    scrollWheelZoom: {
+      type: Boolean,
+      default: false
+    },
+    // Zoom mínimo permitido (límite de alejamiento)
+    minZoom: {
+      type: Number,
+      default: null
+    },
+    // Límites de desplazamiento: [[latSur, lngOeste], [latNorte, lngEste]]
+    maxBounds: {
+      type: Array,
+      default: null
+    },
+    // 0 = el borde cede al arrastrar, 1 = el borde es sólido
+    maxBoundsViscosity: {
+      type: Number,
+      default: 1
     }
   },
   emits: ['punto-click', 'mapa-listo'],
@@ -116,11 +136,20 @@ export default {
     }
   },
   methods: {
+    opcionesMapa() {
+      const opciones = { scrollWheelZoom: this.scrollWheelZoom }
+      if (this.minZoom !== null) opciones.minZoom = this.minZoom
+      if (this.maxBounds) {
+        opciones.maxBounds = this.maxBounds
+        opciones.maxBoundsViscosity = this.maxBoundsViscosity
+      }
+      return opciones
+    },
     iniciarMapa() {
       if (!this.$refs.mapaEl) return
 
       // markRaw: Leaflet maneja su propio estado, no debe pasar por el proxy reactivo de Vue
-      this.mapa = markRaw(L.map(this.$refs.mapaEl, { scrollWheelZoom: false }).setView(this.centro, this.zoom))
+      this.mapa = markRaw(L.map(this.$refs.mapaEl, this.opcionesMapa()).setView(this.centro, this.zoom))
 
       L.tileLayer(this.tileUrl, {
         maxZoom: 19,

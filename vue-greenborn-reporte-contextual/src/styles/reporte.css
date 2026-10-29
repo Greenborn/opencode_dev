@@ -42,8 +42,19 @@
 .rc-form {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   gap: 6px;
   font-size: 0.92rem;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.rc-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
 }
 
 .rc-info {
@@ -91,13 +102,6 @@
   border-radius: 6px;
 }
 
-.rc-acciones {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 10px;
-}
-
 .rc-btn {
   padding: 6px 14px;
   border: 0;
@@ -118,4 +122,24 @@
 
 .rc-btn-secundario {
   background: var(--rc-secundario);
+}
+
+.rc-captura {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rc-captura-preview {
+  max-width: 100%;
+  max-height: 160px;
+  object-fit: contain;
+  border: 1px solid var(--rc-borde);
+  border-radius: 6px;
+  align-self: flex-start;
+}
+
+.rc-captura-acciones {
+  display: flex;
+  gap: 8px;
 }

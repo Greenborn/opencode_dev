@@ -331,11 +331,15 @@ async function loadPersistedConfig() {
 async function savePersistedConfig() {
   const key = getPrefKey()
   if (!key) return
-  const fields = visibleColumns.value.map(c => c.field)
+  const allFields = availableColumns.value.map(c => c.field)
+  const visibles = new Set(selectedColumns.value.map(c => c.field))
   const cw = {}
-  for (const f of fields) cw[f] = columnWidths.value[f] || '15rem'
-  const ord = columnOrder.value.length ? columnOrder.value : fields
-  await prefStore.value.guardarValores({ [key]: JSON.stringify({ columnOrder: ord, columnWidths: cw }) })
+  for (const f of allFields) cw[f] = columnWidths.value[f] || '15rem'
+  const ord = columnOrder.value.length ? columnOrder.value : allFields
+  const hiddenFields = allFields.filter(f => !visibles.has(f))
+  await prefStore.value.guardarValores({
+    [key]: JSON.stringify({ columnOrder: ord, columnWidths: cw, hiddenFields }),
+  })
 }
 
 function debouncedPersist() {
@@ -1166,6 +1170,11 @@ function processData(data) {
         }
       }
       columnOrder.value = saved?.columnOrder || []
+      if (Array.isArray(saved?.hiddenFields) && saved.hiddenFields.length) {
+        const ocultas = new Set(saved.hiddenFields)
+        const restantes = selectedColumns.value.filter(c => !ocultas.has(c.field))
+        if (restantes.length) selectedColumns.value = restantes
+      }
     })
   }
   isLoaded.value = true

@@ -291,6 +291,26 @@ localLogin: {
 
 > Sin `localLogin` no se expone la ruta `/login` y el paquete solo valida tokens (SSO y/o locales).
 
+## Suspensión de cuentas — opcional
+
+Con la opción `suspension` el paquete bloquea cuentas suspendidas:
+
+```js
+const sso = createSsoAuth({
+  knex: db,
+  adminRoles: ['ADMIN'],
+  suspension: {
+    field: 'suspended_at',                       // default: columna con la fecha de suspensión (null = activa)
+    onSuspended: async (user, ctx) => ({ telefono_contacto: '+54...' }), // opcional: datos extra para el cliente
+  },
+});
+```
+
+- `POST /login` con credenciales **válidas** de una cuenta suspendida responde `403 { success:false, code:'ACCOUNT_SUSPENDED', message, ...extra }` (con credenciales inválidas sigue siendo 401, para no revelar el estado a terceros).
+- `authMiddleware` responde el mismo 403 a tokens (locales o SSO) de cuentas suspendidas; `authMiddlewareOptional` los trata como anónimos.
+- `sso.suspendUser(id, { actorId })` setea el campo y cierra las sesiones locales; `sso.reactivateUser(id, { actorId })` lo limpia. Ambos exigen que `actorId` sea admin (`adminRoles`/`isUserAdmin`).
+- `sso.getSuspension(user)` devuelve `null` o el payload de suspensión.
+
 ## Rate limiting (anti fuerza bruta)
 
 Por defecto el paquete limita por IP los intentos **fallidos** de autenticación:

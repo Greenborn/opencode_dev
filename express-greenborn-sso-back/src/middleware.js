@@ -113,13 +113,22 @@ export function createMiddleware(ctx, service) {
     try {
       const localUser = await findLocalUserByToken(token);
       if (localUser) {
+        const suspended = await service.getSuspension(localUser);
+        if (suspended) return res.status(403).json({ success: false, ...suspended });
         req.user = localUser;
         req.authSource = 'local';
         return next();
       }
 
       const result = await handleSsoToken(req, res, token, req.query?.unique_id, false);
-      if (result.ok) return next();
+      if (result.ok) {
+        const suspended = await service.getSuspension(req.user);
+        if (suspended) {
+          req.user = undefined;
+          return res.status(403).json({ success: false, ...suspended });
+        }
+        return next();
+      }
       return res.status(result.status).json(result.body);
     } catch (error) {
       log.error(`[SSO] Error inesperado: ${error.message}`);
@@ -135,13 +144,18 @@ export function createMiddleware(ctx, service) {
     try {
       const localUser = await findLocalUserByToken(token);
       if (localUser) {
+        // Un usuario suspendido se trata como anónimo en rutas opcionales
+        if (await service.getSuspension(localUser)) return next();
         req.user = localUser;
         req.authSource = 'local';
         return next();
       }
 
       const result = await handleSsoToken(req, res, token, req.query?.unique_id, true);
-      if (result.ok) return next();
+      if (result.ok) {
+        if (await service.getSuspension(req.user)) req.user = undefined;
+        return next();
+      }
       if (result.next) return next();
       return next();
     } catch (error) {

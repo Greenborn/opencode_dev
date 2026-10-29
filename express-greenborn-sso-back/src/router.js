@@ -28,6 +28,9 @@ export function createRouter(ctx, service, middleware) {
           },
         });
       } catch (error) {
+        if (error?.code === 'ACCOUNT_SUSPENDED') {
+          return res.status(403).json({ success: false, ...error.payload });
+        }
         (ctx.logger?.error || console.error)('[Login] Error:', error);
         return res.status(500).json({ success: false, message: 'Error interno del servidor' });
       }

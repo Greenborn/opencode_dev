@@ -93,6 +93,10 @@ const manejarClickPunto = (punto) => {
 - **`labelAccesibilidad`** (String) - Etiqueta ARIA para accesibilidad. Por defecto: `'Mapa interactivo con múltiples puntos'`
 - **`mensajeCargando`** (String) - Mensaje mientras carga. Por defecto: `''`
 - **`mensajeSinPuntos`** (String) - Mensaje cuando no hay puntos. Por defecto: `''`
+- **`scrollWheelZoom`** (Boolean) - Acercar/alejar con la rueda del mouse. Por defecto: `false`
+- **`minZoom`** (Number) - Zoom mínimo (límite de alejamiento). Por defecto: sin límite
+- **`maxBounds`** (Array) - Límites de desplazamiento `[[latSur, lngOeste], [latNorte, lngEste]]`. Por defecto: sin límite
+- **`maxBoundsViscosity`** (Number) - 0 a 1; con 1 el borde de `maxBounds` es sólido. Por defecto: `1`
 
 ## Events
 

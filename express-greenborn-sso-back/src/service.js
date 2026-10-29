@@ -8,7 +8,7 @@ import {
 } from './rbac.js';
 
 export function createService(ctx) {
-  const { knex, tables, rbac, createUserFromSso, ssoClient, defaultRoleId, logger, localLogin } = ctx;
+  const { knex, tables, rbac, createUserFromSso, ssoClient, defaultRoleId, logger, localLogin, suspension } = ctx;
 
   const log = logger && typeof logger.error === 'function'
     ? logger
@@ -137,10 +137,34 @@ export function createService(ctx) {
     return ok ? row : null;
   }
 
+  // Devuelve null si la cuenta está activa, o { code, message, ...extra } si está suspendida.
+  async function getSuspension(user) {
+    if (!suspension || !user) return null;
+    const value = user[suspension.field];
+    if (value == null || value === 0 || value === false) return null;
+    const extra = typeof suspension.onSuspended === 'function'
+      ? (await suspension.onSuspended(user, ctx)) || {}
+      : {};
+    return {
+      ...extra,
+      code: 'ACCOUNT_SUSPENDED',
+      message: 'Tu cuenta está suspendida. Contactá al administrador para volver a habilitarla.',
+    };
+  }
+
   async function localLoginUser(username, password) {
     const handler = localLogin.handler || defaultLocalLoginHandler;
     const user = await handler(username, password, ctx);
     if (!user) return null;
+
+    // Solo se revela la suspensión si las credenciales son válidas
+    const suspended = await getSuspension(user);
+    if (suspended) {
+      const err = new Error(suspended.message);
+      err.code = 'ACCOUNT_SUSPENDED';
+      err.payload = suspended;
+      throw err;
+    }
 
     let resultUser = user;
     if (rbac) {
@@ -199,6 +223,7 @@ export function createService(ctx) {
     extendSsoSession,
     deactivateToken,
     localLoginUser,
+    getSuspension,
     resolveUserRoles: (userId) => rbac ? resolveUserRoles(knex, rbac, userId) : Promise.resolve([]),
     resolveUserPermissions: (userId) => rbac ? resolveUserPermissions(knex, rbac, userId) : Promise.resolve([]),
   };

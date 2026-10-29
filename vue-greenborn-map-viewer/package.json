@@ -1,6 +1,6 @@
 {
   "name": "vue-greenborn-map-viewer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Visor de mapa (Leaflet) con múltiples puntos para Vue 3, ideal para mostrar ubicaciones de profesionales, servicios o recursos.",
   "type": "module",
   "files": [
