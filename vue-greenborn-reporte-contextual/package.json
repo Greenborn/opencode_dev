@@ -1,6 +1,6 @@
 {
   "name": "vue-greenborn-reporte-contextual",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Menú contextual (clic derecho) para reportar cualquier elemento de la interfaz Vue 3: abre un modal precompletado con el elemento, la URL de la vista actual y el proyecto, y registra la nota de desarrollo en el SGI.",
   "type": "module",
   "files": [

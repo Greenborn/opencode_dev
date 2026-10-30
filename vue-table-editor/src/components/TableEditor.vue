@@ -352,7 +352,24 @@ async function savePersistedConfig() {
 
 function debouncedPersist() {
   if (saveTimer) clearTimeout(saveTimer)
-  saveTimer = setTimeout(() => savePersistedConfig(), 500)
+  saveTimer = setTimeout(() => {
+    saveTimer = null
+    savePersistedConfig()
+  }, 500)
+}
+
+// Guarda de inmediato los cambios pendientes (evita perder la configuracion
+// cuando la tabla se desmonta o el usuario cierra/navega fuera de la pagina).
+function flushPersist() {
+  if (colsTimer) {
+    clearTimeout(colsTimer)
+    colsTimer = null
+    return savePersistedConfig()
+  }
+  if (!saveTimer) return null
+  clearTimeout(saveTimer)
+  saveTimer = null
+  return savePersistedConfig()
 }
 
 // ── Estado reactivo ──────────────────────────────────
@@ -1284,6 +1301,7 @@ onMounted(async () => {
   applyConfig()
   setupMobileQuery()
   document.addEventListener('click', onGlobalClick)
+  window.addEventListener('beforeunload', flushPersist)
   if (prefStore.value.fetchMisPreferencias) {
     await prefStore.value.fetchMisPreferencias()
   }
@@ -1296,10 +1314,11 @@ onUnmounted(() => {
   if (mobileMql) mobileMql.removeEventListener('change', onMobileMqlChange)
   document.removeEventListener('pointermove', onResizeMove)
   document.removeEventListener('pointerup', onResizeEnd)
+  window.removeEventListener('beforeunload', flushPersist)
+  flushPersist()
   infiniteObserver?.disconnect()
   if (inlineSaveTimer) { clearTimeout(inlineSaveTimer); inlineSaveTimer = null }
   if (pendingInlineSave) { pendingInlineSave.api(pendingInlineSave.data); pendingInlineSave = null }
-  if (saveTimer) clearTimeout(saveTimer)
   if (filterTimer) clearTimeout(filterTimer)
   if (gfTimer) clearTimeout(gfTimer)
   if (colsTimer) clearTimeout(colsTimer)

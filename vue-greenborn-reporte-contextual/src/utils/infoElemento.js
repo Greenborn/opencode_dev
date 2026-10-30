@@ -52,9 +52,22 @@ export function extraerTexto(el) {
 }
 
 /**
+ * Heurística de dispositivo móvil: combina la cadena del navegador con el tipo de puntero.
+ * Se evalúa en el momento del reporte y no depende de dependencias externas.
+ */
+export function esDispositivoMovil() {
+  const ua = navigator.userAgent || '';
+  const uaMovil = /Mobi|Android|iPhone|iPad|iPod|Windows Phone|IEMobile|Opera Mini/i.test(ua);
+  const punteroGrueso = typeof window.matchMedia === 'function'
+    && window.matchMedia('(pointer: coarse)').matches;
+  return uaMovil || punteroGrueso;
+}
+
+/**
  * Información del elemento para precompletar el reporte.
  * Si el elemento (o un ancestro) tiene `data-reporte="..."`, esa etiqueta pasa a ser la
  * localización: permite nombrar componentes de forma estable en lugar de depender de la ruta.
+ * También se adjunta el contexto del navegador en el que se tomó la nota.
  */
 export function obtenerInfoElemento(el) {
   const marcado = el.closest('[data-reporte]');
@@ -67,5 +80,9 @@ export function obtenerInfoElemento(el) {
     tag: el.tagName.toLowerCase(),
     texto: extraerTexto(el),
     url: window.location.href,
+    navegador: navigator.userAgent || '',
+    ancho_viewport: window.innerWidth,
+    alto_viewport: window.innerHeight,
+    es_movil: esDispositivoMovil(),
   };
 }

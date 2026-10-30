@@ -1,31 +1,5 @@
 <template>
   <form id="rc-form" class="rc-form" @submit.prevent="enviar">
-    <div class="rc-info">
-      <div><strong>Elemento:</strong> <code>{{ info.tag }}</code></div>
-      <div v-if="info.texto"><strong>Texto:</strong> {{ info.texto }}</div>
-      <div class="rc-muted"><code>{{ info.selector }}</code></div>
-    </div>
-
-    <label class="rc-label" for="rc-proyecto">Slug del proyecto <span class="rc-req">*</span></label>
-    <input
-      id="rc-proyecto"
-      v-model="form.slug_proyecto"
-      class="rc-input"
-      type="text"
-      maxlength="255"
-      placeholder="slug del proyecto"
-      required
-    />
-
-    <label class="rc-label" for="rc-componente">Localización del componente</label>
-    <input id="rc-componente" v-model="form.localizacion_componente" class="rc-input" type="text" maxlength="255" />
-
-    <label class="rc-label" for="rc-url">URL de la vista</label>
-    <input id="rc-url" v-model="form.url" class="rc-input" type="text" maxlength="500" />
-
-    <label class="rc-label" for="rc-version">Versión <span class="rc-muted">(opcional)</span></label>
-    <input id="rc-version" v-model="form.version" class="rc-input" type="text" maxlength="50" />
-
     <label class="rc-label" for="rc-notas">Notas <span class="rc-req">*</span></label>
     <textarea id="rc-notas" v-model="form.notas" class="rc-input" rows="5" maxlength="5000" required></textarea>
 
@@ -41,6 +15,13 @@
         </button>
       </div>
       <div v-if="errorCaptura" class="rc-error" role="alert">{{ errorCaptura }}</div>
+    </div>
+
+    <div class="rc-info">
+      <div class="rc-info-titulo"><strong>Detalles del elemento</strong></div>
+      <div><strong>Elemento:</strong> <code>{{ info.tag }}</code></div>
+      <div v-if="info.texto"><strong>Texto:</strong> {{ info.texto }}</div>
+      <div class="rc-muted"><code>{{ info.selector }}</code></div>
     </div>
 
     <div v-if="estado.error" class="rc-error" role="alert">{{ estado.error }}</div>
@@ -127,6 +108,10 @@ async function enviar() {
         url: form.url,
         version: form.version,
         notas: form.notas,
+        navegador: info.navegador,
+        ancho_viewport: info.ancho_viewport,
+        alto_viewport: info.alto_viewport,
+        es_movil: info.es_movil,
       },
     })
     if (!respuesta.status) {
