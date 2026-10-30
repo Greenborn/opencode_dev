@@ -201,7 +201,15 @@
             <td v-if="selectionMode !== null" class="te-td"></td>
             <td v-if="rowActionButtons.length && !useToolbarActions" class="te-td"></td>
             <td v-for="col of visibleColumns" :key="'f-'+col.field" class="te-td">
-              <input v-model="columnFilters[col.field]" @input="onColumnFilterDebounced"
+              <select v-if="col.filter?.type === 'select'" v-model="columnFilters[col.field]"
+                @change="onColumnFilterDebounced" class="te-filter-input te-filter-select">
+                <option value="">Todos</option>
+                <option v-for="opt of col.filter.options" :key="opt.value" :value="opt.value">
+                  {{ opt.label }}
+                </option>
+              </select>
+              <input v-else-if="col.filter?.type === 'text' || !hasFilterDefs"
+                v-model="columnFilters[col.field]" @input="onColumnFilterDebounced"
                 type="text" class="te-filter-input" placeholder="" />
               <div class="te-resize-handle" draggable="false"
                 @pointerdown.stop="onResizeStart($event, col.field)"
@@ -439,6 +447,7 @@ const rowActionButtons = computed(() => buttonGroups.value.rowActions || [])
 const useToolbarActions = computed(() => props.config?.rowActionsMode === 'toolbar')
 const toolbarActionButtons = computed(() => (useToolbarActions.value ? rowActionButtons.value : []))
 const legacyLazy = computed(() => props.config?.lazyProtocol === 'legacy')
+const hasFilterDefs = computed(() => !!props.config?.columnFilterDefs)
 const dataPipeline = computed(() => props.config?.dataPipeline || null)
 const stylingCfg = computed(() => props.config?.styling || null)
 const hasPermissionsCheck = computed(() => typeof props.config?.permissionsCheck === 'function')
@@ -1142,6 +1151,12 @@ function processData(data) {
     let cdefs = [...fields_def]
     if (props.config?.extraFields?.list) cdefs.push(...props.config.extraFields.list)
     if (stylingCfg.value) applyFieldDefCss(cdefs, stylingCfg.value)
+    const filterDefs = props.config?.columnFilterDefs
+    if (filterDefs) {
+      for (const c of cdefs) {
+        if (filterDefs[c.field]) c.filter = { type: 'text', ...filterDefs[c.field] }
+      }
+    }
     columnDefs.value = cdefs
     let cols = cdefs
     if (dataPipeline.value?.processColumns) cols = dataPipeline.value.processColumns(cdefs)
