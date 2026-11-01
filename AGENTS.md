@@ -11,5 +11,4 @@
 
 ## Paquetes que NO deben publicarse
 
-- `vue-greenborn-reporte-contextual` (0.1.0): **no publicar en npm** por decisión del humano. No aplica la regla de publicación de arriba mientras esté en esta lista. Los proyectos consumidores solo pueden usarlo por ruta local, según su propia excepción documentada en su `AGENTS.md`.
-- Antes de publicar cualquier paquete del monorepo, verificar que no esté en esta lista.
+- Antes de publicar cualquier paquete del monorepo, verificar que no esté en esta lista. Actualmente no hay paquetes excluidos: `vue-greenborn-reporte-contextual` se publica en npm desde la versión `0.1.8` (2026-11-01), ya que no contiene información sensible.
