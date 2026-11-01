@@ -233,7 +233,11 @@ body.te-resizing { user-select: none !important; }
 [data-bs-theme="dark"] .te-toolbar-divider { color: #4a4a65; }
 
 /* Vista lista en móviles (config.mobileListView) */
-.te-mobile-list { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.5rem; background: #f5f7fa; }
+.te-mobile-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.5rem; padding: 0.5rem; background: #f5f7fa; align-items: start; }
+/* Tarjetas en varias columnas según el ancho de pantalla (mobile: una sola) */
+@media (min-width: 768px) { .te-mobile-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 992px) { .te-mobile-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .te-mobile-list { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .te-mobile-card { background: #fff; border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 0.6rem 0.75rem; cursor: pointer; transition: background 0.12s ease; }
 .te-mobile-card:hover { background: #e8ecf4; }
 .te-mobile-card.te-tr-selected { background: #dce8f5; border-color: #93b4e0; }

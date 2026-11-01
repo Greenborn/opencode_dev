@@ -14,6 +14,7 @@
       class="vgmv-map"
       role="region"
       :aria-label="labelAccesibilidad"
+      :style="{ height: altura }"
     />
     <p v-if="!error && mostrarResumen" class="vgmv-resumen small text-muted mt-2 mb-0">
       {{ cargando ? (mensajeCargando || 'Cargando…') : `${puntos.length} ${puntos.length === 1 ? 'punto' : 'puntos'} en el mapa.` }}
@@ -254,10 +255,17 @@ export default {
 <style scoped>
 .vgmv-viewer {
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .vgmv-map {
   width: 100%;
+  /* flex-basis = altura (prop ligada por style): en un contenedor flex con espacio
+     extra (p. ej. la columna del dashboard) el mapa crece para ocupar lo que quede */
+  flex: 1 1 auto;
+  min-height: 0;
   border-radius: 0.375rem;
   overflow: hidden;
   border: 1px solid #e9ecef;

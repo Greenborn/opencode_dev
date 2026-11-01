@@ -23,7 +23,7 @@
       </div>
       <div v-if="!config?.hideToolbarEnd" class="te-toolbar-end">
         <!-- Dropdown visibilidad de columnas -->
-        <div class="te-dropdown" ref="colsDropdownRef">
+        <div v-if="!config?.hideColumnSelector" class="te-dropdown" ref="colsDropdownRef">
           <button class="te-btn te-btn-outline-secondary" type="button" title="Columnas" @click="colsDropdownOpen = !colsDropdownOpen">
             <span class="te-btn-icon" v-html="iconSvg('columns')"></span>Columnas
           </button>
@@ -82,7 +82,7 @@
               <dd v-html="formatCell(row, col)"></dd>
             </template>
           </dl>
-          <div v-if="rowActionButtons.length && !useToolbarActions" class="te-mobile-card-actions" @click.stop>
+          <div v-if="rowActionButtons.length && (!useToolbarActions || showCardActions)" class="te-mobile-card-actions" @click.stop>
             <template v-for="btn of rowActionButtons" :key="btn.key">
               <button v-if="btn.isVisible()"
                 :class="['te-btn', severityClass(btn.severity), btn.class]"
@@ -462,6 +462,9 @@ const visibleColumns = computed(() => {
 
 const rowActionButtons = computed(() => buttonGroups.value.rowActions || [])
 const useToolbarActions = computed(() => props.config?.rowActionsMode === 'toolbar')
+// Permite mostrar además los botones de acción dentro de la mobile-card aunque rowActionsMode sea 'toolbar'
+// (la tabla de escritorio nunca tiene columna de acciones; esto sólo afecta la vista de cards en mobile).
+const showCardActions = computed(() => useToolbarActions.value && props.config?.cardActions === true)
 const toolbarActionButtons = computed(() => (useToolbarActions.value ? rowActionButtons.value : []))
 const legacyLazy = computed(() => props.config?.lazyProtocol === 'legacy')
 const hasFilterDefs = computed(() => !!props.config?.columnFilterDefs)

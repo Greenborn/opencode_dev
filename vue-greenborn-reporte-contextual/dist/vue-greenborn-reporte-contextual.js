@@ -1,235 +1,245 @@
-import { reactive as L, ref as M, openBlock as f, createElementBlock as v, withModifiers as O, createElementVNode as s, createTextVNode as x, withDirectives as $, vModelText as D, createCommentVNode as b, toDisplayString as g, unref as _, onMounted as R, onBeforeUnmount as S, createBlock as z, Teleport as U, normalizeStyle as B } from "vue";
-import { useModal as k } from "vue-greenborn-modal-manager";
-const j = "/api/public/notas-desarrollo";
-function I(e) {
+import { reactive as C, ref as L, openBlock as f, createElementBlock as v, withModifiers as $, createElementVNode as l, createTextVNode as x, withDirectives as D, vModelText as R, createCommentVNode as b, toDisplayString as w, unref as _, onMounted as S, onBeforeUnmount as U, createBlock as z, Teleport as B, normalizeStyle as j } from "vue";
+import { useModal as M } from "vue-greenborn-modal-manager";
+const I = "/api/public/notas-desarrollo", K = "/api/public/notas-desarrollo/api-key";
+function O(e) {
   if (typeof e != "string" || e.trim() === "")
     throw new Error("apiBaseUrl es requerido");
   return e.trim().replace(/\/+$/, "");
 }
-async function q({ apiBaseUrl: e, payload: o }) {
-  const a = I(e);
-  if (!o || typeof o != "object")
-    throw new Error("payload es requerido");
-  const d = await fetch(`${a}${j}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(o)
-  }), r = await d.json();
-  if (!d.ok && r.status !== !1)
-    throw new Error(`HTTP ${d.status} al registrar el reporte`);
-  return r;
+async function q({ apiBaseUrl: e }) {
+  var t;
+  const r = O(e), n = await fetch(`${r}${K}`, {
+    method: "GET",
+    headers: { Accept: "application/json" }
+  }), u = await n.json();
+  if (!n.ok || u.status !== !0 || !((t = u.data) != null && t.apiKey))
+    throw new Error("No se pudo obtener la apikey del reporte");
+  return u.data.apiKey;
 }
-const H = { class: "rc-captura" }, F = ["src"], X = { class: "rc-captura-acciones" }, V = ["disabled"], W = {
+async function H({ apiBaseUrl: e, payload: r }) {
+  const n = O(e);
+  if (!r || typeof r != "object")
+    throw new Error("payload es requerido");
+  const u = await q({ apiBaseUrl: n }), t = await fetch(`${n}${I}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json", "X-Api-Key": u },
+    body: JSON.stringify(r)
+  }), s = await t.json();
+  if (!t.ok && s.status !== !1)
+    throw new Error(`HTTP ${t.status} al registrar el reporte`);
+  return s;
+}
+const X = { class: "rc-captura" }, F = ["src"], G = { class: "rc-captura-acciones" }, V = ["disabled"], W = {
   key: 1,
   class: "rc-error",
   role: "alert"
-}, G = { class: "rc-info" }, K = { key: 0 }, Y = { class: "rc-muted" }, J = {
+}, Y = { class: "rc-info" }, J = { key: 0 }, Q = { class: "rc-muted" }, Z = {
   key: 0,
   class: "rc-error",
   role: "alert"
-}, Q = {
+}, ee = {
   __name: "ReporteFormModal",
   props: {
     parametros: { type: Object, required: !0 }
   },
   setup(e) {
-    const o = e, { mostrar_alerta: a, ocultar_modal: d } = k(), r = o.parametros.info, l = o.parametros.estado, n = L({
-      slug_proyecto: o.parametros.slugProyecto ?? "",
-      localizacion_componente: r.localizacion,
-      url: r.url,
-      version: o.parametros.version ?? "",
+    const r = e, { mostrar_alerta: n, ocultar_modal: u } = M(), t = r.parametros.info, s = r.parametros.estado, a = C({
+      slug_proyecto: r.parametros.slugProyecto ?? "",
+      localizacion_componente: t.localizacion,
+      url: t.url,
+      version: r.parametros.version ?? "",
       notas: "",
       captura_pantalla: ""
-    }), m = M(!1), y = M("");
+    }), m = L(!1), y = L("");
     async function E() {
       y.value = "", m.value = !0;
-      const u = document.querySelector(".gmm-stack"), i = (u == null ? void 0 : u.style.visibility) ?? "";
-      u && (u.style.visibility = "hidden");
+      const d = document.querySelector(".gmm-stack"), i = (d == null ? void 0 : d.style.visibility) ?? "";
+      d && (d.style.visibility = "hidden");
       let p = null;
       try {
         p = await navigator.mediaDevices.getDisplayMedia({ video: !0 });
         const c = document.createElement("video");
-        c.srcObject = p, await c.play(), await new Promise((t) => {
-          if (c.readyState >= 2) return t();
-          c.onloadeddata = () => t();
+        c.srcObject = p, await c.play(), await new Promise((o) => {
+          if (c.readyState >= 2) return o();
+          c.onloadeddata = () => o();
         });
-        const w = document.createElement("canvas");
-        w.width = c.videoWidth, w.height = c.videoHeight, w.getContext("2d").drawImage(c, 0, 0), n.captura_pantalla = w.toDataURL("image/webp", 0.85);
+        const g = document.createElement("canvas");
+        g.width = c.videoWidth, g.height = c.videoHeight, g.getContext("2d").drawImage(c, 0, 0), a.captura_pantalla = g.toDataURL("image/webp", 0.85);
       } catch (c) {
         (c == null ? void 0 : c.name) !== "NotAllowedError" && (console.log("[reporte-contextual] Error al tomar la captura:", c), y.value = "No se pudo tomar la captura de pantalla.");
       } finally {
-        p == null || p.getTracks().forEach((c) => c.stop()), u && (u.style.visibility = i), m.value = !1;
+        p == null || p.getTracks().forEach((c) => c.stop()), d && (d.style.visibility = i), m.value = !1;
       }
     }
     async function h() {
-      l.error = "", l.enviando = !0;
+      s.error = "", s.enviando = !0;
       try {
-        const u = await q({
-          apiBaseUrl: o.parametros.apiBaseUrl,
+        const d = await H({
+          apiBaseUrl: r.parametros.apiBaseUrl,
           payload: {
             tipo_proyecto: "PROYECTO",
-            slug_proyecto: n.slug_proyecto.trim(),
-            captura_pantalla: n.captura_pantalla || null,
-            localizacion_componente: n.localizacion_componente,
-            url: n.url,
-            version: n.version,
-            notas: n.notas,
-            navegador: r.navegador,
-            ancho_viewport: r.ancho_viewport,
-            alto_viewport: r.alto_viewport,
-            es_movil: r.es_movil
+            slug_proyecto: a.slug_proyecto.trim(),
+            captura_pantalla: a.captura_pantalla || null,
+            localizacion_componente: a.localizacion_componente,
+            url: a.url,
+            version: a.version,
+            notas: a.notas,
+            navegador: t.navegador,
+            ancho_viewport: t.ancho_viewport,
+            alto_viewport: t.alto_viewport,
+            es_movil: t.es_movil
           }
         });
-        if (!u.status) {
-          l.error = u.error;
+        if (!d.status) {
+          s.error = d.error;
           return;
         }
-        d(o.parametros._modal_cod), a("Reporte registrado. ¡Gracias!");
-      } catch (u) {
-        console.log("[reporte-contextual] Error al enviar el reporte:", u), l.error = "No se pudo enviar el reporte. Intente nuevamente.";
+        u(r.parametros._modal_cod), n("Reporte registrado. ¡Gracias!");
+      } catch (d) {
+        console.log("[reporte-contextual] Error al enviar el reporte:", d), s.error = "No se pudo enviar el reporte. Intente nuevamente.";
       } finally {
-        l.enviando = !1;
+        s.enviando = !1;
       }
     }
-    return (u, i) => (f(), v("form", {
+    return (d, i) => (f(), v("form", {
       id: "rc-form",
       class: "rc-form",
-      onSubmit: O(h, ["prevent"])
+      onSubmit: $(h, ["prevent"])
     }, [
-      i[6] || (i[6] = s("label", {
+      i[6] || (i[6] = l("label", {
         class: "rc-label",
         for: "rc-notas"
       }, [
         x("Notas "),
-        s("span", { class: "rc-req" }, "*")
+        l("span", { class: "rc-req" }, "*")
       ], -1)),
-      $(s("textarea", {
+      D(l("textarea", {
         id: "rc-notas",
-        "onUpdate:modelValue": i[0] || (i[0] = (p) => n.notas = p),
+        "onUpdate:modelValue": i[0] || (i[0] = (p) => a.notas = p),
         class: "rc-input",
         rows: "5",
         maxlength: "5000",
         required: ""
       }, null, 512), [
-        [D, n.notas]
+        [R, a.notas]
       ]),
-      i[7] || (i[7] = s("label", { class: "rc-label" }, [
+      i[7] || (i[7] = l("label", { class: "rc-label" }, [
         x("Captura de pantalla "),
-        s("span", { class: "rc-muted" }, "(opcional)")
+        l("span", { class: "rc-muted" }, "(opcional)")
       ], -1)),
-      s("div", H, [
-        n.captura_pantalla ? (f(), v("img", {
+      l("div", X, [
+        a.captura_pantalla ? (f(), v("img", {
           key: 0,
-          src: n.captura_pantalla,
+          src: a.captura_pantalla,
           class: "rc-captura-preview",
           alt: "Captura de pantalla"
         }, null, 8, F)) : b("", !0),
-        s("div", X, [
-          s("button", {
+        l("div", G, [
+          l("button", {
             type: "button",
             class: "rc-btn rc-btn-secundario",
             disabled: m.value,
             onClick: E
-          }, g(m.value ? "Capturando…" : n.captura_pantalla ? "Tomar otra captura" : "Tomar captura"), 9, V),
-          n.captura_pantalla ? (f(), v("button", {
+          }, w(m.value ? "Capturando…" : a.captura_pantalla ? "Tomar otra captura" : "Tomar captura"), 9, V),
+          a.captura_pantalla ? (f(), v("button", {
             key: 0,
             type: "button",
             class: "rc-btn rc-btn-secundario",
-            onClick: i[1] || (i[1] = (p) => n.captura_pantalla = "")
+            onClick: i[1] || (i[1] = (p) => a.captura_pantalla = "")
           }, " Quitar ")) : b("", !0)
         ]),
-        y.value ? (f(), v("div", W, g(y.value), 1)) : b("", !0)
+        y.value ? (f(), v("div", W, w(y.value), 1)) : b("", !0)
       ]),
-      s("div", G, [
-        i[5] || (i[5] = s("div", { class: "rc-info-titulo" }, [
-          s("strong", null, "Detalles del elemento")
+      l("div", Y, [
+        i[5] || (i[5] = l("div", { class: "rc-info-titulo" }, [
+          l("strong", null, "Detalles del elemento")
         ], -1)),
-        s("div", null, [
-          i[2] || (i[2] = s("strong", null, "Elemento:", -1)),
+        l("div", null, [
+          i[2] || (i[2] = l("strong", null, "Elemento:", -1)),
           i[3] || (i[3] = x()),
-          s("code", null, g(_(r).tag), 1)
+          l("code", null, w(_(t).tag), 1)
         ]),
-        _(r).texto ? (f(), v("div", K, [
-          i[4] || (i[4] = s("strong", null, "Texto:", -1)),
-          x(" " + g(_(r).texto), 1)
+        _(t).texto ? (f(), v("div", J, [
+          i[4] || (i[4] = l("strong", null, "Texto:", -1)),
+          x(" " + w(_(t).texto), 1)
         ])) : b("", !0),
-        s("div", Y, [
-          s("code", null, g(_(r).selector), 1)
+        l("div", Q, [
+          l("code", null, w(_(t).selector), 1)
         ])
       ]),
-      _(l).error ? (f(), v("div", J, g(_(l).error), 1)) : b("", !0)
+      _(s).error ? (f(), v("div", Z, w(_(s).error), 1)) : b("", !0)
     ], 32));
   }
-}, Z = { class: "rc-footer" }, ee = ["disabled"], te = {
+}, te = { class: "rc-footer" }, oe = ["disabled"], re = {
   __name: "ReporteFormFooter",
   props: {
     parametros: { type: Object, required: !0 }
   },
   setup(e) {
-    const o = e, { ocultar_modal: a } = k();
-    function d() {
-      a(o.parametros._modal_cod);
+    const r = e, { ocultar_modal: n } = M();
+    function u() {
+      n(r.parametros._modal_cod);
     }
-    return (r, l) => (f(), v("div", Z, [
-      s("button", {
+    return (t, s) => (f(), v("div", te, [
+      l("button", {
         type: "button",
         class: "gmm-btn gmm-btn-secondary",
-        onClick: d
+        onClick: u
       }, "Cancelar"),
-      s("button", {
+      l("button", {
         type: "submit",
         form: "rc-form",
         class: "gmm-btn gmm-btn-success",
         disabled: e.parametros.estado.enviando
-      }, g(e.parametros.estado.enviando ? "Enviando…" : "Enviar reporte"), 9, ee)
+      }, w(e.parametros.estado.enviando ? "Enviando…" : "Enviar reporte"), 9, oe)
     ]));
   }
-}, oe = 6, T = 120, P = 255;
-function re(e) {
-  const o = e.tagName.toLowerCase(), a = e.id ? `#${e.id}` : "", d = typeof e.className == "string" ? e.className.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((n) => `.${n}`).join("") : "";
-  let r = "";
-  const l = e.parentElement;
-  if (l && !e.id) {
-    const n = Array.from(l.children).filter((m) => m.tagName === e.tagName);
-    n.length > 1 && (r = `:nth-of-type(${n.indexOf(e) + 1})`);
+}, ne = 6, T = 120, A = 255;
+function ae(e) {
+  const r = e.tagName.toLowerCase(), n = e.id ? `#${e.id}` : "", u = typeof e.className == "string" ? e.className.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((a) => `.${a}`).join("") : "";
+  let t = "";
+  const s = e.parentElement;
+  if (s && !e.id) {
+    const a = Array.from(s.children).filter((m) => m.tagName === e.tagName);
+    a.length > 1 && (t = `:nth-of-type(${a.indexOf(e) + 1})`);
   }
-  return `${o}${a}${d}${r}`;
+  return `${r}${n}${u}${t}`;
 }
-function ne(e) {
-  const o = [];
-  let a = e;
-  for (; a && a.nodeType === Node.ELEMENT_NODE && o.length < oe; ) {
-    if (a === document.body) {
-      o.unshift("body");
+function ie(e) {
+  const r = [];
+  let n = e;
+  for (; n && n.nodeType === Node.ELEMENT_NODE && r.length < ne; ) {
+    if (n === document.body) {
+      r.unshift("body");
       break;
     }
-    o.unshift(re(a)), a = a.parentElement;
+    r.unshift(ae(n)), n = n.parentElement;
   }
-  return o.join(" > ");
+  return r.join(" > ");
 }
-function ae(e) {
-  const a = (e.innerText ?? e.textContent ?? "").replace(/\s+/g, " ").trim();
-  return a.length > T ? `${a.slice(0, T)}…` : a;
+function se(e) {
+  const n = (e.innerText ?? e.textContent ?? "").replace(/\s+/g, " ").trim();
+  return n.length > T ? `${n.slice(0, T)}…` : n;
 }
-function ie() {
-  const e = navigator.userAgent || "", o = /Mobi|Android|iPhone|iPad|iPod|Windows Phone|IEMobile|Opera Mini/i.test(e), a = typeof window.matchMedia == "function" && window.matchMedia("(pointer: coarse)").matches;
-  return o || a;
+function le() {
+  const e = navigator.userAgent || "", r = /Mobi|Android|iPhone|iPad|iPod|Windows Phone|IEMobile|Opera Mini/i.test(e), n = typeof window.matchMedia == "function" && window.matchMedia("(pointer: coarse)").matches;
+  return r || n;
 }
-function A(e) {
-  const o = e.closest("[data-reporte]"), a = ne(e);
+function P(e) {
+  const r = e.closest("[data-reporte]"), n = ie(e);
   return {
-    localizacion: (o ? o.getAttribute("data-reporte") : a).slice(0, P),
-    selector: a.slice(0, P),
+    localizacion: (r ? r.getAttribute("data-reporte") : n).slice(0, A),
+    selector: n.slice(0, A),
     tag: e.tagName.toLowerCase(),
-    texto: ae(e),
+    texto: se(e),
     url: window.location.href,
     navegador: navigator.userAgent || "",
     ancho_viewport: window.innerWidth,
     alto_viewport: window.innerHeight,
-    es_movil: ie()
+    es_movil: le()
   };
 }
-const se = 200, le = 40, C = 8, de = {
+const ce = 200, ue = 40, k = 8, me = {
   __name: "ReporteContextual",
   props: {
     apiBaseUrl: { type: String, required: !0 },
@@ -239,86 +249,86 @@ const se = 200, le = 40, C = 8, de = {
     slugProyecto: { type: String, default: null }
   },
   setup(e) {
-    const o = e, { mostrar_modal: a } = k(), d = M(null), r = L({ visible: !1, x: 0, y: 0, info: null });
-    let l = !1;
-    function n() {
-      r.visible = !1, r.info = null;
+    const r = e, { mostrar_modal: n } = M(), u = L(null), t = C({ visible: !1, x: 0, y: 0, info: null });
+    let s = !1;
+    function a() {
+      t.visible = !1, t.info = null;
     }
-    function m(t) {
-      return d.value !== null && d.value.contains(t);
+    function m(o) {
+      return u.value !== null && u.value.contains(o);
     }
-    function y(t) {
-      t.altKey && (m(t.target) || t.target instanceof Element && (t.preventDefault(), r.info = A(t.target), r.x = Math.max(C, Math.min(t.clientX, window.innerWidth - se - C)), r.y = Math.max(C, Math.min(t.clientY, window.innerHeight - le - C)), r.visible = !0));
+    function y(o) {
+      o.altKey && (m(o.target) || o.target instanceof Element && (o.preventDefault(), t.info = P(o.target), t.x = Math.max(k, Math.min(o.clientX, window.innerWidth - ce - k)), t.y = Math.max(k, Math.min(o.clientY, window.innerHeight - ue - k)), t.visible = !0));
     }
-    function E(t) {
-      r.visible && (m(t.target) || n());
+    function E(o) {
+      t.visible && (m(o.target) || a());
     }
-    function h(t) {
-      l && t.target instanceof Element && (m(t.target) || (t.preventDefault(), t.stopPropagation(), t.stopImmediatePropagation(), l = !1, c(A(t.target))));
+    function h(o) {
+      s && o.target instanceof Element && (m(o.target) || (o.preventDefault(), o.stopPropagation(), o.stopImmediatePropagation(), s = !1, c(P(o.target))));
     }
-    function u(t) {
-      t.key === "Escape" && n(), t.key.toLowerCase() === "d" && (l = !0);
+    function d(o) {
+      o.key === "Escape" && a(), o.key.toLowerCase() === "d" && (s = !0);
     }
-    function i(t) {
-      t.key.toLowerCase() === "d" && (l = !1);
+    function i(o) {
+      o.key.toLowerCase() === "d" && (s = !1);
     }
     function p() {
-      l = !1;
+      s = !1;
     }
-    function c(t) {
-      if (t === null) {
+    function c(o) {
+      if (o === null) {
         console.log("[reporte-contextual] Se intentó reportar sin información del elemento");
         return;
       }
-      a(
-        { body: Q, footer: te },
+      n(
+        { body: ee, footer: re },
         "Reportar elemento",
         {
-          info: t,
-          apiBaseUrl: o.apiBaseUrl,
-          version: o.version,
-          slugProyecto: o.slugProyecto,
-          estado: L({ enviando: !1, error: "" })
+          info: o,
+          apiBaseUrl: r.apiBaseUrl,
+          version: r.version,
+          slugProyecto: r.slugProyecto,
+          estado: C({ enviando: !1, error: "" })
         },
         { size: "lg" }
       );
     }
-    function w() {
-      const t = r.info;
-      n(), c(t);
+    function g() {
+      const o = t.info;
+      a(), c(o);
     }
-    return R(() => {
-      document.addEventListener("contextmenu", y, !0), document.addEventListener("mousedown", E, !0), document.addEventListener("click", h, !0), document.addEventListener("keydown", u), document.addEventListener("keyup", i), window.addEventListener("blur", p), window.addEventListener("scroll", n, !0), window.addEventListener("resize", n);
-    }), S(() => {
-      document.removeEventListener("contextmenu", y, !0), document.removeEventListener("mousedown", E, !0), document.removeEventListener("click", h, !0), document.removeEventListener("keydown", u), document.removeEventListener("keyup", i), window.removeEventListener("blur", p), window.removeEventListener("scroll", n, !0), window.removeEventListener("resize", n);
-    }), (t, N) => (f(), z(U, { to: "body" }, [
-      r.visible ? (f(), v("div", {
+    return S(() => {
+      document.addEventListener("contextmenu", y, !0), document.addEventListener("mousedown", E, !0), document.addEventListener("click", h, !0), document.addEventListener("keydown", d), document.addEventListener("keyup", i), window.addEventListener("blur", p), window.addEventListener("scroll", a, !0), window.addEventListener("resize", a);
+    }), U(() => {
+      document.removeEventListener("contextmenu", y, !0), document.removeEventListener("mousedown", E, !0), document.removeEventListener("click", h, !0), document.removeEventListener("keydown", d), document.removeEventListener("keyup", i), window.removeEventListener("blur", p), window.removeEventListener("scroll", a, !0), window.removeEventListener("resize", a);
+    }), (o, N) => (f(), z(B, { to: "body" }, [
+      t.visible ? (f(), v("div", {
         key: 0,
         ref_key: "menuRef",
-        ref: d,
+        ref: u,
         class: "rc-menu",
         role: "menu",
-        style: B({ top: `${r.y}px`, left: `${r.x}px` }),
-        onContextmenu: N[0] || (N[0] = O(() => {
+        style: j({ top: `${t.y}px`, left: `${t.x}px` }),
+        onContextmenu: N[0] || (N[0] = $(() => {
         }, ["prevent"]))
       }, [
-        s("button", {
+        l("button", {
           type: "button",
           class: "rc-menu-item",
           role: "menuitem",
-          onClick: w
+          onClick: g
         }, " Reportar este elemento ")
       ], 36)) : b("", !0)
     ]));
   }
 };
 export {
-  de as ReporteContextual,
-  Q as ReporteFormModal,
-  ne as construirSelector,
-  de as default,
-  q as enviarReporte,
-  ae as extraerTexto,
-  A as obtenerInfoElemento
+  me as ReporteContextual,
+  ee as ReporteFormModal,
+  ie as construirSelector,
+  me as default,
+  H as enviarReporte,
+  se as extraerTexto,
+  P as obtenerInfoElemento
 };
 //# sourceMappingURL=vue-greenborn-reporte-contextual.js.map

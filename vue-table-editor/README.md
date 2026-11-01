@@ -177,6 +177,7 @@ También se aceptan valores legacy con prefijo `btn-` (p. ej. `btn-primary`) y s
 | `pageSize` | Number | `25` | Filas por página |
 | `pageSizeOptions` | Array | `[25,50,100,200]` | Opciones del selector |
 | `hideToolbar` / `hideRefresh` / `hideCsvExport` | Boolean | `false` | Oculta elementos |
+| `hideColumnSelector` | Boolean | `false` | Oculta el desplegable de visibilidad de columnas (la búsqueda global sigue visible) |
 | `showPaginator` | Boolean | `true` | Muestra paginador |
 | `defaultColumnProps` | Object | — | Props por defecto a todas las columnas |
 | `columnOrder` | Array | — | Orden inicial de columnas |
@@ -190,6 +191,7 @@ Todas son **opcionales y aditivas**; sin ellas el comportamiento es idéntico al
 | Campo | Tipo | Default | Descripción |
 |-------|------|---------|-------------|
 | `rowActionsMode` | String | `'column'` | `'column'` (columna "Acciones" por fila) o `'toolbar'` (botones de fila en la toolbar, habilitados al seleccionar) |
+| `cardActions` | Boolean | `false` | Sólo aplica con `rowActionsMode: 'toolbar'`: si es `true`, además de la toolbar, los botones de acción de fila se muestran dentro de cada mobile-card (vista `mobileListView`). La tabla de escritorio nunca muestra columna de acciones en modo `'toolbar'`. |
 | `lazyProtocol` | String | `'standard'` | `'standard'` envía `{page,pageSize,search}` con filtros planos; `'legacy'` envía `{page,rows,globalSearch}` y filtros `{value,matchMode:'contains'}`. La respuesta se normaliza aceptando tanto `status` como `stat`. |
 | `dataPipeline` | Object | — | `{ processRows(rows,fields_def), processFields(fields_def,firstRow), processColumns(cols) }`. Usa `greenbornDataPipeline(styling)` para replicar el pipeline JSON/formatters/estilos del frontend. |
 | `styling` | Object | — | `{ rowClass, rowClassFn, rowStyleFn, fieldClasses, fieldStyleFns }` para estilos dinámicos por fila/celda. |
