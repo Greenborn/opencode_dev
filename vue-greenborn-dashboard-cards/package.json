@@ -1,0 +1,59 @@
+{
+  "name": "vue-greenborn-dashboard-cards",
+  "version": "1.0.0",
+  "description": "Infraestructura genérica de dashboard por cards para Vue 3: grid sin librerías, agrupación por categoría, registry de cards, preferencias de usuario inyectables, contexto desacoplado (socket/permisos/preferencias/modal) y un gráfico Sparkline SVG propio. Sin componentes de contenido: el proyecto consumidor define y registra sus propias cards.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-greenborn-dashboard-cards.umd.cjs",
+  "module": "./dist/vue-greenborn-dashboard-cards.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-dashboard-cards.js",
+      "require": "./dist/vue-greenborn-dashboard-cards.umd.cjs"
+    },
+    "./style.css": "./dist/vue-greenborn-dashboard-cards.css",
+    "./dist/style.css": "./dist/vue-greenborn-dashboard-cards.css"
+  },
+  "style": "./dist/vue-greenborn-dashboard-cards.css",
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prepublishOnly": "npm run build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "dashboard",
+    "cards",
+    "grid",
+    "sparkline",
+    "composable"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-dashboard-cards",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0"
+  }
+}
