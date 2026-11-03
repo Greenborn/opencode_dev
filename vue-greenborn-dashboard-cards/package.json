@@ -1,7 +1,7 @@
 {
   "name": "vue-greenborn-dashboard-cards",
-  "version": "1.0.0",
-  "description": "Infraestructura genérica de dashboard por cards para Vue 3: grid sin librerías, agrupación por categoría, registry de cards, preferencias de usuario inyectables, contexto desacoplado (socket/permisos/preferencias/modal) y un gráfico Sparkline SVG propio. Sin componentes de contenido: el proyecto consumidor define y registra sus propias cards.",
+  "version": "1.1.0",
+  "description": "Infraestructura genérica de dashboard por cards para Vue 3: grid sin librerías, pestañas personalizables por usuario, menús contextuales, ocultas, filtro, drag & drop, preferencias inyectables, contexto desacoplado (socket/permisos/preferencias/modal) y un gráfico Sparkline SVG propio. Sin componentes de contenido: el proyecto consumidor define y registra sus propias cards.",
   "type": "module",
   "files": [
     "dist"

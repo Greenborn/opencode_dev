@@ -1,6 +1,10 @@
 <template>
-  <div style="max-width: 900px; margin: 2rem auto; font-family: sans-serif">
+  <div style="max-width: 1200px; margin: 2rem auto; font-family: sans-serif">
     <h1>Demo: vue-greenborn-dashboard-cards</h1>
+    <p>
+      Las pestañas son del usuario: se crean, renombran, mueven y eliminan desde la barra. Cada card
+      tiene su menú en el engranaje y se arrastra desde el encabezado.
+    </p>
     <DashboardCardsGrid :cards="cards" :contexto="contexto" />
   </div>
 </template>
@@ -26,8 +30,24 @@ const CardDemoB = {
 }
 
 const cards = reactive([
-  { clave: 'demo-a', titulo: 'Card A', categorias: ['ejemplo'], anchoDefault: 1, componente: CardDemoA },
-  { clave: 'demo-b', titulo: 'Card B', categorias: ['ejemplo'], anchoDefault: 2, componente: CardDemoB },
+  {
+    clave: 'demo-a',
+    titulo: 'Card A',
+    categorias: ['ejemplo'],
+    tipo: 'GRAFICO',
+    anchoDefault: 2,
+    ordenDefault: 20,
+    componente: CardDemoA,
+  },
+  {
+    clave: 'demo-b',
+    titulo: 'Card B',
+    categorias: ['ejemplo'],
+    tipo: 'NUMERO',
+    anchoDefault: 1,
+    ordenDefault: 10,
+    componente: CardDemoB,
+  },
 ])
 
 const contexto = {

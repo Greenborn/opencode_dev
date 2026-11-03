@@ -1,14 +1,18 @@
 import { reactive } from 'vue'
 
 /**
- * Define de una card (todas las claves salvo `clave`, `titulo` y `componente` son opcionales):
+ * Define una card. Obligatorias: `clave`, `titulo` y `componente`. El resto son opcionales:
  * {
- *   clave: string,            // id único
+ *   clave: string,                 // id único
  *   titulo: string,
- *   categorias: string[],     // agrupación por pestaña/categoría
- *   anchoDefault: number,     // 1-4, span en el grid
+ *   categorias: string[],          // pestañas iniciales (se copian una sola vez por usuario)
+ *   pestanaDefault: string,        // pestaña inicial principal (alternativa a categorias)
+ *   tipo: 'NUMERO' | 'GRAFICO',    // los números se ordenan antes que los gráficos
+ *   anchoDefault: number,          // 1-4, span en el grid
  *   ordenDefault: number,
- *   permiso: string | null,   // resuelto con contexto.tienePermiso
+ *   permiso: string | null,        // resuelto con contexto.tienePermiso
+ *   subtitulo: string,             // texto filtrable (usar TextoResaltado dentro de la card)
+ *   menuItems: Array | Function,   // ítems extra del menú contextual de la card
  *   componente: () => Promise<Component> | Component,
  *   props: object,
  * }
