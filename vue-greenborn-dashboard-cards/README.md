@@ -1,4 +1,4 @@
-# vue-greenborn-dashboard-cards
+# @greenborn/vue-greenborn-dashboard-cards
 
 Infraestructura genérica de dashboard por cards para Vue 3: grid sin librerías externas, pestañas
 personalizables por usuario, menús contextuales, cards ocultas, filtro por título/subtítulo,
@@ -11,12 +11,12 @@ componentes de card (los que conocen sus datos/endpoints/sockets) y los registra
 ## Instalación
 
 ```bash
-npm install vue-greenborn-dashboard-cards
+npm install @greenborn/vue-greenborn-dashboard-cards
 ```
 
 ```js
-import { DashboardCardsGrid } from 'vue-greenborn-dashboard-cards'
-import 'vue-greenborn-dashboard-cards/style.css'
+import { DashboardCardsGrid } from '@greenborn/vue-greenborn-dashboard-cards'
+import '@greenborn/vue-greenborn-dashboard-cards/style.css'
 ```
 
 ## Uso

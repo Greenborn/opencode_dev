@@ -2,6 +2,7 @@ import SsoCallback from './components/SsoCallback.vue'
 import SsoSplash from './components/SsoSplash.vue'
 import { useSsoAuth, installSso } from './composables/useSsoAuth.js'
 import { useSsoSocket } from './composables/useSsoSocket.js'
+import { useAutoUpdatePwa } from './composables/useAutoUpdatePwa.js'
 import { createSsoClient } from './core/ssoClient.js'
 import { createSocketClient } from './core/socketClient.js'
 import {
@@ -19,6 +20,7 @@ export {
   useSsoAuth,
   installSso,
   useSsoSocket,
+  useAutoUpdatePwa,
   createSsoClient,
   createSocketClient,
   resolveStorageKeys,

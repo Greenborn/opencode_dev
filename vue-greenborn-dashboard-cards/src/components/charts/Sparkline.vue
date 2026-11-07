@@ -10,6 +10,15 @@
     <title>{{ etiqueta }}</title>
     <path v-if="relleno && areaPath" :d="areaPath" class="gdc-sparkline__area" :fill="color" />
     <path :d="linePath" class="gdc-sparkline__line" :stroke="color" fill="none" />
+    <circle
+      v-for="(punto, i) in puntosMarcados"
+      :key="i"
+      :cx="punto[0]"
+      :cy="punto[1]"
+      :r="radioMarcador"
+      :fill="colorMarcador"
+      class="gdc-sparkline__marcador"
+    />
   </svg>
 </template>
 
@@ -25,6 +34,11 @@ const props = defineProps({
   ancho: { type: Number, default: 120 },
   relleno: { type: Boolean, default: true },
   etiqueta: { type: String, default: 'Tendencia' },
+  // Array paralelo a `valores`: posiciones (truthy) donde resaltar el punto con un círculo,
+  // por ejemplo donde se disparó una alarma/notificación en esa muestra.
+  marcadores: { type: Array, default: () => [] },
+  colorMarcador: { type: String, default: '#dc3545' },
+  radioMarcador: { type: Number, default: 3 },
 })
 
 const puntos = computed(() => {
@@ -48,6 +62,11 @@ const linePath = computed(() => {
   return puntos.value
     .map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`)
     .join(' ')
+})
+
+const puntosMarcados = computed(() => {
+  if (!props.marcadores.length) return []
+  return puntos.value.filter((_, i) => props.marcadores[i])
 })
 
 const areaPath = computed(() => {

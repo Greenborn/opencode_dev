@@ -1,6 +1,6 @@
 <template>
   <div style="max-width: 1200px; margin: 2rem auto; font-family: sans-serif">
-    <h1>Demo: vue-greenborn-dashboard-cards</h1>
+    <h1>Demo: @greenborn/vue-greenborn-dashboard-cards</h1>
     <p>
       Las pestañas son del usuario: se crean, renombran, mueven y eliminan desde la barra. Cada card
       tiene su menú en el engranaje y se arrastra desde el encabezado.

@@ -15,7 +15,23 @@
       ref="mapEl"
       class="vgms-map"
     />
+    <div
+      v-if="geoError"
+      class="alert alert-warning py-2 mt-2 mb-0"
+    >
+      {{ geoError }}
+    </div>
     <div class="d-flex justify-content-end gap-2 mt-3">
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        :disabled="!geoAvailable || geoLoading"
+        title="Usar la ubicación actual del dispositivo (pide permiso de GPS)"
+        @click="usarUbicacionActual"
+      >
+        <i class="bi bi-crosshair" />
+        {{ geoLoading ? 'Obteniendo ubicación...' : 'Usar mi ubicación' }}
+      </button>
       <button
         type="button"
         class="btn btn-secondary"
@@ -63,6 +79,9 @@ const markerRef = ref(null)
 const selectedLat = ref(null)
 const selectedLng = ref(null)
 const leafletError = ref('')
+const geoError = ref('')
+const geoLoading = ref(false)
+const geoAvailable = typeof navigator !== 'undefined' && !!navigator.geolocation
 
 const hasMarker = computed(() => !!markerRef.value)
 
@@ -158,6 +177,40 @@ const confirmSelection = () => {
     props.parametros.onSelect({ lat: String(selectedLat.value), lng: String(selectedLng.value) })
   }
   closeModal()
+}
+
+const usarUbicacionActual = () => {
+  geoError.value = ''
+  if (!geoAvailable) {
+    geoError.value = 'Este dispositivo/navegador no soporta geolocalización.'
+    return
+  }
+  geoLoading.value = true
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      geoLoading.value = false
+      const { latitude, longitude } = pos.coords
+      if (!map) return
+      if (!markerRef.value) {
+        markerRef.value = L.marker([latitude, longitude], { draggable: true }).addTo(map)
+        attachMarker(latitude, longitude)
+      } else {
+        markerRef.value.setLatLng([latitude, longitude])
+        selectedLat.value = latitude
+        selectedLng.value = longitude
+      }
+      map.setView([latitude, longitude], 16)
+    },
+    (err) => {
+      geoLoading.value = false
+      if (err.code === err.PERMISSION_DENIED) {
+        geoError.value = 'Permiso de ubicación denegado. Habilitalo en la configuración del navegador para usar esta opción.'
+      } else {
+        geoError.value = 'No se pudo obtener la ubicación actual.'
+      }
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  )
 }
 
 const clearMarker = () => {

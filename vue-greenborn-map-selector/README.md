@@ -1,4 +1,4 @@
-# vue-greenborn-map-selector
+# @greenborn/vue-greenborn-map-selector
 
 Selector de ubicación en mapa (Leaflet) para Vue 3, integrado con
 [vue-greenborn-modal-manager](https://www.npmjs.com/package/vue-greenborn-modal-manager).
@@ -17,6 +17,11 @@ modales.
 - Se cierra con `ocultar_modal()` del gestor (botón Cerrar, "Usar ubicación" o overlay).
 - `invalidateSize()` automático tras la transición del modal.
 - CSS de Leaflet incluido en el `style.css` del paquete.
+- Botón opcional "Usar mi ubicación" que pide permiso de geolocalización al
+  navegador (`navigator.geolocation`) y centra el mapa/marcador en la posición
+  actual del dispositivo. Se oculta/deshabilita automáticamente si el
+  navegador no soporta geolocalización, y muestra un aviso si el usuario
+  rechaza el permiso.
 
 ## Requisitos
 
@@ -30,7 +35,7 @@ modales.
 ## Instalación
 
 ```bash
-npm install vue-greenborn-map-selector
+npm install @greenborn/vue-greenborn-map-selector
 ```
 
 `leaflet` se instala como dependencia del paquete. `vue` y
@@ -41,14 +46,14 @@ npm install vue-greenborn-map-selector
 ### 1. Importar el CSS (una vez, en tu entry point)
 
 ```js
-import 'vue-greenborn-map-selector/style.css'
+import '@greenborn/vue-greenborn-map-selector/style.css'
 ```
 
 ### 2. Usar el composable
 
 ```vue
 <script setup>
-import { useMapSelector } from 'vue-greenborn-map-selector'
+import { useMapSelector } from '@greenborn/vue-greenborn-map-selector'
 
 const { abrir } = useMapSelector()
 
@@ -82,7 +87,7 @@ Devuelve `{ code, cerrar }` para cerrarlo programáticamente.
 ### 3. Alternativa: componente directo
 
 ```js
-import { MapSelectorModal } from 'vue-greenborn-map-selector'
+import { MapSelectorModal } from '@greenborn/vue-greenborn-map-selector'
 import { useModal } from 'vue-greenborn-modal-manager'
 
 const { mostrar_modal } = useModal()

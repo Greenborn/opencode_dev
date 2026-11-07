@@ -1,6 +1,9 @@
 {
-  "name": "vue-table-editor",
-  "version": "1.4.6",
+  "name": "@greenborn/vue-table-editor",
+  "version": "1.4.8",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Tabla genérica reutilizable y autocontenida para Vue 3: redimensionable, reordenable, preferencias de columnas, lazy loading server-side, edición inline, CSV export, paginación e infinite scroll. Sin dependencias de UI (CSS propio, iconos SVG embebidos).",
   "type": "module",
   "files": [

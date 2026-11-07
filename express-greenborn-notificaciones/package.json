@@ -1,0 +1,79 @@
+{
+  "name": "@greenborn/express-greenborn-notificaciones",
+  "version": "0.1.0",
+  "description": "Web Push (VAPID) reutilizable para backends Express/Node: router de suscripción/desuscripción, envío a un usuario o a todos, y migración Knex idempotente de push_subscriptions. Agnóstico de autenticación: recibe el authMiddleware por inyección de dependencias (pensado para usarse junto a express-greenborn-sso-back, pero no depende de él).",
+  "type": "module",
+  "files": [
+    "dist",
+    "src",
+    "migrations"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test",
+    "prepublishOnly": "npm run build",
+    "prepack": "npm run build",
+    "demo": "node demo/server.js"
+  },
+  "keywords": [
+    "push",
+    "web-push",
+    "vapid",
+    "notifications",
+    "express",
+    "node",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/express-greenborn-notificaciones",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7"
+  },
+  "peerDependencies": {
+    "express": "^4.21.0 || ^5.0.0",
+    "knex": "^2.0.0 || ^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    },
+    "knex": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.0",
+    "express": "^4.21.2",
+    "knex": "^3.3.0",
+    "sqlite3": "^5.1.7"
+  }
+}

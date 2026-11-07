@@ -316,6 +316,57 @@ sso.socket.on('ping', (data) => console.log('ping', data));
 - API del composable: `emit`, `on`, `off`, `once`, `connect`, `disconnect`, `client`.
 - Contraparte de backend: `express-greenborn-sso-back` → `sso.attachSocket(server)`.
 
+## Autoactualización PWA
+
+`useAutoUpdatePwa` encapsula la lógica de detectar y aplicar una build nueva cuando la app corre como PWA con `vite-plugin-pwa` (modo `injectManifest`). El paquete **no registra el service worker** (cada proyecto mantiene su propio `sw.js` con las rutas de caché que necesite); solo coordina el aviso de actualización disponible y el reload sin quedarse en una versión vieja cacheada.
+
+Requisitos en el proyecto consumidor:
+
+- `vite-plugin-pwa` en modo `injectManifest`, con un `sw.js` propio que escuche `SKIP_WAITING`:
+  ```js
+  self.addEventListener('message', (event) => {
+    if (event.data?.type === 'SKIP_WAITING') self.skipWaiting()
+  })
+  ```
+- (Opcional) un endpoint/archivo estático `version.json` con `{ "version": "x.y.z" }`, regenerado en cada build, para detectar actualizaciones incluso sin que el SW dispare `onNeedRefresh` (por ejemplo, con la pestaña ya abierta hace rato).
+
+Uso:
+
+```js
+// main.js
+import { useRegisterSW } from 'virtual:pwa-register/vue'
+import { useAutoUpdatePwa } from 'vue-greenborn-sso-front'
+import { version as buildVersion } from '../package.json'
+
+const autoUpdate = useAutoUpdatePwa({
+  versionUrl: '/version.json',   // null para desactivar el polling por versión
+  currentVersion: buildVersion,
+  checkIntervalMs: 5 * 60 * 1000, // default: 5 minutos
+  autoApplyOnHidden: false,       // true: aplica sola al pasar la pestaña a 2do plano
+})
+
+const { updateServiceWorker } = useRegisterSW({
+  onNeedRefresh() {
+    autoUpdate.marcarActualizacionDisponible()
+  },
+})
+autoUpdate.registrarActualizacionSw(updateServiceWorker)
+autoUpdate.iniciarPolling()
+```
+
+En el componente que muestra el aviso:
+
+```js
+if (autoUpdate.updateAvailable.value) {
+  // mostrar botón/banner
+}
+autoUpdate.aplicarActualizacion() // espera el controllerchange real antes de recargar
+```
+
+`aplicarActualizacion()` evita el síntoma clásico de "actualizar recarga pero sigue mostrando la versión anterior hasta Ctrl+F5": espera el `controllerchange` del service worker (o, si no hay `swUpdateFn` registrado, fuerza un `registration.update()`) antes de hacer `window.location.reload()`.
+
+Con `autoApplyOnHidden: true` (comportamiento de `profesionales.top`), la actualización se aplica sola apenas la pestaña queda en segundo plano, sin esperar a que el usuario confirme; con el default `false` (comportamiento de `sistema-gestion-interno`), queda a cargo de la UI ofrecer un botón "Actualizar ahora".
+
 ## Exports
 
 | Export              | Descripción                                     |
@@ -323,6 +374,7 @@ sso.socket.on('ping', (data) => console.log('ping', data));
 | `useSsoAuth`        | Composable con estado reactivo + acciones       |
 | `installSso(app, c)`| Provee la config y el store a toda la app        |
 | `useSsoSocket`      | Composable de la conexión WebSocket complementaria |
+| `useAutoUpdatePwa`  | Composable de autoactualización PWA (ver sección arriba) |
 | `createSsoClient(c)`| Cliente SSO puro (framework-agnostic)           |
 | `createSocketClient(c)`| Cliente socket.io puro (framework-agnostic)  |
 | `SsoCallback`       | Componente callback para `vue-router`            |

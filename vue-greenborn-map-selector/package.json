@@ -1,7 +1,7 @@
 {
-  "name": "vue-greenborn-map-selector",
-  "version": "1.0.0",
-  "description": "Selector de ubicación en mapa (Leaflet) para Vue 3, integrado con vue-greenborn-modal-manager: abre un modal apilable sobre el resto de modales, devuelve lat/lng vía callback y se cierra con el gestor genérico.",
+  "name": "@greenborn/vue-greenborn-map-selector",
+  "version": "1.1.0",
+  "description": "Selector de ubicación en mapa (Leaflet) para Vue 3, integrado con vue-greenborn-modal-manager: abre un modal apilable sobre el resto de modales, devuelve lat/lng vía callback, permite usar la ubicación GPS actual del dispositivo, y se cierra con el gestor genérico.",
   "type": "module",
   "files": [
     "dist"

@@ -1,4 +1,4 @@
-import { ref as D, onMounted as Ae, onBeforeUnmount as ee, openBlock as h, createBlock as Q, Teleport as Be, createElementBlock as y, withModifiers as F, normalizeStyle as le, Fragment as T, renderList as H, createElementVNode as b, normalizeClass as X, toDisplayString as R, createCommentVNode as L, nextTick as ba, inject as W, computed as O, watchEffect as Me, createTextVNode as Ve, reactive as Z, provide as J, withDirectives as oe, createVNode as ue, renderSlot as ha, vShow as qe, watch as $e, withKeys as ye, unref as P, vModelText as _a, vModelRadio as ya, vModelCheckbox as Ca, resolveDynamicComponent as Fe, withCtx as $a, mergeProps as xa, markRaw as Oe, defineAsyncComponent as ka } from "vue";
+import { ref as P, onMounted as Ae, onBeforeUnmount as ee, openBlock as h, createBlock as Q, Teleport as Be, createElementBlock as y, withModifiers as F, normalizeStyle as le, Fragment as T, renderList as U, createElementVNode as b, normalizeClass as H, toDisplayString as R, createCommentVNode as L, nextTick as ba, inject as W, computed as D, watchEffect as Me, createTextVNode as Ve, reactive as Z, provide as J, withDirectives as oe, createVNode as ue, renderSlot as ha, vShow as qe, watch as $e, withKeys as ye, unref as O, vModelText as _a, vModelRadio as ya, vModelCheckbox as Ca, resolveDynamicComponent as Fe, withCtx as $a, mergeProps as xa, markRaw as Oe, defineAsyncComponent as ka } from "vue";
 const wa = {
   key: 0,
   class: "gdc-menu__sep",
@@ -29,58 +29,58 @@ const wa = {
   },
   emits: ["select"],
   setup(e, { expose: t, emit: a }) {
-    const n = a, r = D(!1), o = D(null), u = D({ left: 0, top: 0 }), c = D(null);
-    function v(i) {
+    const n = a, r = P(!1), o = P(null), c = P({ left: 0, top: 0 }), l = P(null);
+    function v(u) {
       var w;
-      const p = (i == null ? void 0 : i.currentTarget) ?? (i == null ? void 0 : i.target) ?? i, k = ((w = p == null ? void 0 : p.getBoundingClientRect) == null ? void 0 : w.call(p)) ?? { left: 0, bottom: 0 };
-      u.value = { left: k.left, top: k.bottom + 4 }, c.value = null, r.value = !0, ba(() => m());
+      const p = (u == null ? void 0 : u.currentTarget) ?? (u == null ? void 0 : u.target) ?? u, k = ((w = p == null ? void 0 : p.getBoundingClientRect) == null ? void 0 : w.call(p)) ?? { left: 0, bottom: 0 };
+      c.value = { left: k.left, top: k.bottom + 4 }, l.value = null, r.value = !0, ba(() => m());
     }
     function m() {
-      const i = o.value;
-      if (!i) return;
-      const p = i.getBoundingClientRect(), k = 8;
-      let { left: w, top: M } = u.value;
-      p.right > window.innerWidth - k && (w = Math.max(k, window.innerWidth - p.width - k)), p.bottom > window.innerHeight - k && (M = Math.max(k, u.value.top - p.height - 8)), u.value = { left: w, top: M };
+      const u = o.value;
+      if (!u) return;
+      const p = u.getBoundingClientRect(), k = 8;
+      let { left: w, top: M } = c.value;
+      p.right > window.innerWidth - k && (w = Math.max(k, window.innerWidth - p.width - k)), p.bottom > window.innerHeight - k && (M = Math.max(k, c.value.top - p.height - 8)), c.value = { left: w, top: M };
     }
     function f() {
-      r.value = !1, c.value = null;
+      r.value = !1, l.value = null;
     }
-    function C(i) {
-      r.value ? f() : v(i);
+    function $(u) {
+      r.value ? f() : v(u);
     }
-    function A(i) {
-      c.value = i;
+    function A(u) {
+      l.value = u;
     }
-    function g(i, p) {
-      if (!(!i || i.disabled)) {
-        if (i.items) {
-          c.value = c.value === p ? null : p;
+    function g(u, p) {
+      if (!(!u || u.disabled)) {
+        if (u.items) {
+          l.value = l.value === p ? null : p;
           return;
         }
-        i.command && i.command(), n("select", i), f();
+        u.command && u.command(), n("select", u), f();
       }
     }
-    function x(i) {
-      r.value && o.value && !o.value.contains(i.target) && f();
+    function C(u) {
+      r.value && o.value && !o.value.contains(u.target) && f();
     }
-    function I(i) {
-      i.key === "Escape" && f();
+    function I(u) {
+      u.key === "Escape" && f();
     }
-    function _(i) {
+    function _(u) {
       var p;
-      r.value && ((p = o.value) != null && p.contains(i == null ? void 0 : i.target) || f());
+      r.value && ((p = o.value) != null && p.contains(u == null ? void 0 : u.target) || f());
     }
     return Ae(() => {
-      document.addEventListener("pointerdown", x, !0), document.addEventListener("keydown", I), window.addEventListener("resize", _), window.addEventListener("scroll", _, !0);
+      document.addEventListener("pointerdown", C, !0), document.addEventListener("keydown", I), window.addEventListener("resize", _), window.addEventListener("scroll", _, !0);
     }), ee(() => {
-      document.removeEventListener("pointerdown", x, !0), document.removeEventListener("keydown", I), window.removeEventListener("resize", _), window.removeEventListener("scroll", _, !0);
-    }), t({ open: v, close: f, toggle: C }), (i, p) => (h(), Q(Be, { to: "body" }, [
+      document.removeEventListener("pointerdown", C, !0), document.removeEventListener("keydown", I), window.removeEventListener("resize", _), window.removeEventListener("scroll", _, !0);
+    }), t({ open: v, close: f, toggle: $ }), (u, p) => (h(), Q(Be, { to: "body" }, [
       r.value ? (h(), y("div", {
         key: 0,
         ref_key: "raiz",
         ref: o,
         class: "gdc-menu",
-        style: le({ left: u.value.left + "px", top: u.value.top + "px" }),
+        style: le({ left: c.value.left + "px", top: c.value.top + "px" }),
         role: "menu",
         onPointerdown: p[0] || (p[0] = F(() => {
         }, ["stop"])),
@@ -89,43 +89,43 @@ const wa = {
         onContextmenu: p[2] || (p[2] = F(() => {
         }, ["prevent"]))
       }, [
-        (h(!0), y(T, null, H(e.items, (k, w) => (h(), y(T, { key: w }, [
+        (h(!0), y(T, null, U(e.items, (k, w) => (h(), y(T, { key: w }, [
           k != null && k.separator ? (h(), y("div", wa)) : k ? (h(), y("div", Aa, [
             b("button", {
               type: "button",
               role: "menuitem",
-              class: X(["gdc-menu__item", { "is-disabled": k.disabled, "is-active": c.value === w }]),
+              class: H(["gdc-menu__item", { "is-disabled": k.disabled, "is-active": l.value === w }]),
               disabled: k.disabled || !k.command && !k.items,
               onClick: (M) => g(k, w),
               onMouseenter: (M) => k.items && A(w)
             }, [
               k.colorHex || k.colorVar ? (h(), y("span", {
                 key: 0,
-                class: X(["gdc-menu__swatch", { "is-elegido": k.elegido }]),
+                class: H(["gdc-menu__swatch", { "is-elegido": k.elegido }]),
                 style: le({ background: k.colorHex || `var(${k.colorVar})` }),
                 "aria-hidden": "true"
               }, null, 6)) : k.icon ? (h(), y("span", Ea, R(k.icon), 1)) : L("", !0),
               b("span", Sa, R(k.label), 1),
               k.items ? (h(), y("span", Ia, "›")) : L("", !0)
             ], 42, Ma),
-            k.items && c.value === w ? (h(), y("div", {
+            k.items && l.value === w ? (h(), y("div", {
               key: 0,
               class: "gdc-menu gdc-menu--sub",
               role: "menu",
-              onMouseenter: (M) => c.value = w
+              onMouseenter: (M) => l.value = w
             }, [
-              (h(!0), y(T, null, H(k.items, (M, q) => (h(), y(T, { key: q }, [
+              (h(!0), y(T, null, U(k.items, (M, q) => (h(), y(T, { key: q }, [
                 M != null && M.separator ? (h(), y("div", za)) : M ? (h(), y("button", {
                   key: 1,
                   type: "button",
                   role: "menuitem",
-                  class: X(["gdc-menu__item", { "is-disabled": M.disabled }]),
+                  class: H(["gdc-menu__item", { "is-disabled": M.disabled }]),
                   disabled: M.disabled,
                   onClick: (K) => g(M, w)
                 }, [
                   M.colorHex || M.colorVar ? (h(), y("span", {
                     key: 0,
-                    class: X(["gdc-menu__swatch", { "is-elegido": M.elegido }]),
+                    class: H(["gdc-menu__swatch", { "is-elegido": M.elegido }]),
                     style: le({ background: M.colorHex || `var(${M.colorVar})` }),
                     "aria-hidden": "true"
                   }, null, 6)) : M.icon ? (h(), y("span", Pa, R(M.icon), 1)) : L("", !0),
@@ -153,10 +153,10 @@ function La(e, t) {
   const a = String(e ?? ""), n = de(t).trim();
   if (!n) return [{ texto: a, marca: !1 }];
   const r = de(a), o = [];
-  let u = 0;
-  for (let c = r.indexOf(n); c !== -1; c = r.indexOf(n, c + n.length))
-    c > u && o.push({ texto: a.slice(u, c), marca: !1 }), o.push({ texto: a.slice(c, c + n.length), marca: !0 }), u = c + n.length;
-  return u < a.length && o.push({ texto: a.slice(u), marca: !1 }), o;
+  let c = 0;
+  for (let l = r.indexOf(n); l !== -1; l = r.indexOf(n, l + n.length))
+    l > c && o.push({ texto: a.slice(c, l), marca: !1 }), o.push({ texto: a.slice(l, l + n.length), marca: !0 }), c = l + n.length;
+  return c < a.length && o.push({ texto: a.slice(c), marca: !1 }), o;
 }
 const Ta = { class: "gdc-texto-resaltado" }, ja = {
   key: 0,
@@ -165,9 +165,9 @@ const Ta = { class: "gdc-texto-resaltado" }, ja = {
   __name: "TextoResaltado",
   props: { texto: { type: String, default: "" } },
   setup(e) {
-    const t = e, a = W(Ee, D("")), n = W(Ue, null), r = Symbol("texto"), o = O(() => La(t.texto, a.value));
-    return n && (Me(() => n.set(r, t.texto)), ee(() => n.delete(r))), (u, c) => (h(), y("span", Ta, [
-      (h(!0), y(T, null, H(o.value, (v, m) => (h(), y(T, { key: m }, [
+    const t = e, a = W(Ee, P("")), n = W(Ue, null), r = Symbol("texto"), o = D(() => La(t.texto, a.value));
+    return n && (Me(() => n.set(r, t.texto)), ee(() => n.delete(r))), (c, l) => (h(), y("span", Ta, [
+      (h(!0), y(T, null, U(o.value, (v, m) => (h(), y(T, { key: m }, [
         v.marca ? (h(), y("mark", ja, R(v.texto), 1)) : (h(), y(T, { key: 1 }, [
           Ve(R(v.texto), 1)
         ], 64))
@@ -192,7 +192,7 @@ function qa(e) {
   const t = W(He, null);
   t && (t(e), ee(() => t(null)));
 }
-const pn = qa, Ye = Symbol("gdc_elemento_card"), ce = [];
+const gn = qa, Ye = Symbol("gdc_elemento_card"), ce = [];
 let Ce = !1;
 function Fa(e, t) {
   var r, o;
@@ -227,7 +227,7 @@ function Ua() {
     t = !1;
   }), (a) => Se(a, { vigente: () => t, elemento: e });
 }
-const gn = Se, bn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["data-help"], Ka = { class: "gdc-card__titulo" }, Qa = {
+const bn = Se, hn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["data-help"], Ka = { class: "gdc-card__titulo" }, Qa = {
   key: 0,
   class: "gdc-card__spinner",
   role: "status",
@@ -251,32 +251,32 @@ const gn = Se, bn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["d
   },
   emits: ["cambiarAncho", "cambiarColor", "mover", "ocultar", "moverA", "copiarA", "quitar"],
   setup(e, { expose: t, emit: a }) {
-    const n = e, r = a, o = W(Ee, D("")), u = Z(/* @__PURE__ */ new Map());
-    J(Ue, u);
-    const c = O(() => [...u.values()].some((i) => Ra(i, o.value))), v = W(Xe, null);
-    v && (Me(() => v.set(n.clave, c.value)), ee(() => v.delete(n.clave)));
-    const m = O(() => Va(n.color, n.colores)), f = (i) => n.destinos.length ? n.destinos.map((p) => ({ label: p.nombre, command: () => r(i, p.id) })) : void 0;
-    let C = null;
-    J(He, (i) => {
-      C = i;
+    const n = e, r = a, o = W(Ee, P("")), c = Z(/* @__PURE__ */ new Map());
+    J(Ue, c);
+    const l = D(() => [...c.values()].some((u) => Ra(u, o.value))), v = W(Xe, null);
+    v && (Me(() => v.set(n.clave, l.value)), ee(() => v.delete(n.clave)));
+    const m = D(() => Va(n.color, n.colores)), f = (u) => n.destinos.length ? n.destinos.map((p) => ({ label: p.nombre, command: () => r(u, p.id) })) : void 0;
+    let $ = null;
+    J(He, (u) => {
+      $ = u;
     }), t({
-      refrescar: () => C ? Promise.resolve(C()) : null
+      refrescar: () => $ ? Promise.resolve($()) : null
     });
-    const A = D(null);
+    const A = P(null);
     J(Ye, () => A.value);
-    const g = D(), x = O(() => {
-      const i = typeof n.menuItems == "function" ? n.menuItems({ clave: n.clave, titulo: n.titulo }) : n.menuItems;
-      return Array.isArray(i) ? i.filter(Boolean) : [];
-    }), I = O(() => [
-      ...x.value.length ? [...x.value, { separator: !0 }] : [],
+    const g = P(), C = D(() => {
+      const u = typeof n.menuItems == "function" ? n.menuItems({ clave: n.clave, titulo: n.titulo }) : n.menuItems;
+      return Array.isArray(u) ? u.filter(Boolean) : [];
+    }), I = D(() => [
+      ...C.value.length ? [...C.value, { separator: !0 }] : [],
       {
         label: "Ancho",
         icon: "↔",
         items: [
-          ...[1, 2, 3, 4].map((i) => ({
-            label: i === 1 ? "1 columna" : `${i} columnas`,
-            icon: i === n.ancho ? "✓" : " ",
-            command: () => r("cambiarAncho", i)
+          ...[1, 2, 3, 4].map((u) => ({
+            label: u === 1 ? "1 columna" : `${u} columnas`,
+            icon: u === n.ancho ? "✓" : " ",
+            command: () => r("cambiarAncho", u)
           })),
           { separator: !0 },
           {
@@ -291,14 +291,14 @@ const gn = Se, bn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["d
         label: "Color de resaltado",
         icon: "◐",
         items: [
-          ...n.colores.map((i) => {
+          ...n.colores.map((u) => {
             var p;
             return {
-              label: i.nombre,
-              colorVar: i.var,
-              colorHex: i.hex,
-              elegido: i.clave === ((p = m.value) == null ? void 0 : p.clave),
-              command: () => r("cambiarColor", i.clave)
+              label: u.nombre,
+              colorVar: u.var,
+              colorHex: u.hex,
+              elegido: u.clave === ((p = m.value) == null ? void 0 : p.clave),
+              command: () => r("cambiarColor", u.clave)
             };
           }),
           { separator: !0 },
@@ -320,13 +320,13 @@ const gn = Se, bn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["d
       { separator: !0 },
       { label: "Ocultar card", icon: "◌", command: () => r("ocultar") }
     ]);
-    function _(i) {
-      g.value.open(i);
+    function _(u) {
+      g.value.open(u);
     }
-    return (i, p) => oe((h(), y("div", {
+    return (u, p) => oe((h(), y("div", {
       ref_key: "raiz",
       ref: A,
-      class: X(["gdc-card-celda", [`gdc-card-celda--ancho-${e.ancho}`, { "gdc-card-celda--con-color": m.value, "gdc-card-celda--actualizando": e.actualizando }]]),
+      class: H(["gdc-card-celda", [`gdc-card-celda--ancho-${e.ancho}`, { "gdc-card-celda--con-color": m.value, "gdc-card-celda--actualizando": e.actualizando }]]),
       style: le(m.value ? { "--gdc-dash-color": m.value.var ? `var(${m.value.var}, ${m.value.hex})` : m.value.hex } : null),
       "data-card": e.clave
     }, [
@@ -354,7 +354,7 @@ const gn = Se, bn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["d
           }, "⚙", 32)
         ], 8, Ya),
         b("div", Wa, [
-          ha(i.$slots, "default")
+          ha(u.$slots, "default")
         ])
       ]),
       ue(Ge, {
@@ -363,7 +363,7 @@ const gn = Se, bn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["d
         items: I.value
       }, null, 8, ["items"])
     ], 14, Xa)), [
-      [qe, c.value]
+      [qe, l.value]
     ]);
   }
 }, Ja = {
@@ -413,71 +413,71 @@ const gn = Se, bn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["d
     "eliminar"
   ],
   setup(e, { expose: t, emit: a }) {
-    const n = e, r = a, o = D([]);
+    const n = e, r = a, o = P([]);
     $e(() => n.pestanas, (_) => {
       o.value = [..._];
     }, { immediate: !0 });
-    const u = D(), c = D([]);
-    function v(_, i, p) {
+    const c = P(), l = P([]);
+    function v(_, u, p) {
       const k = p === o.value.length - 1;
-      c.value = [
+      l.value = [
         {
           label: "Actualizar todas las cards",
           icon: "⟳",
-          disabled: i.id !== n.activa || n.actualizando,
+          disabled: u.id !== n.activa || n.actualizando,
           command: () => r("actualizar")
         },
         { separator: !0 },
-        ...i.general ? [] : [{ label: "Renombrar", icon: "✎", command: () => r("renombrar", i.id) }],
-        { label: "Mover a la izquierda", icon: "←", disabled: p === 0, command: () => r("mover", i.id, -1) },
-        { label: "Mover a la derecha", icon: "→", disabled: k, command: () => r("mover", i.id, 1) },
-        ...i.general ? [] : [
+        ...u.general ? [] : [{ label: "Renombrar", icon: "✎", command: () => r("renombrar", u.id) }],
+        { label: "Mover a la izquierda", icon: "←", disabled: p === 0, command: () => r("mover", u.id, -1) },
+        { label: "Mover a la derecha", icon: "→", disabled: k, command: () => r("mover", u.id, 1) },
+        ...u.general ? [] : [
           { separator: !0 },
-          { label: "Eliminar pestaña", icon: "🗑", command: () => r("eliminar", i.id) }
+          { label: "Eliminar pestaña", icon: "🗑", command: () => r("eliminar", u.id) }
         ]
-      ], u.value.open(_);
+      ], c.value.open(_);
     }
-    const m = D(null);
-    let f = null, C = null, A = null;
+    const m = P(null);
+    let f = null, $ = null, A = null;
     function g(_) {
       if (_.button > 0 || _.target.closest("button")) return;
-      const i = _.target.closest("[data-tab]");
-      i && (_.pointerType === "touch" && !_.target.closest(".gdc-tab__handle") || (f = i.dataset.tab, C = { x: _.clientX, y: _.clientY }));
+      const u = _.target.closest("[data-tab]");
+      u && (_.pointerType === "touch" && !_.target.closest(".gdc-tab__handle") || (f = u.dataset.tab, $ = { x: _.clientX, y: _.clientY }));
     }
-    function x(_) {
+    function C(_) {
       var M, q, K, re;
       if (!f) return;
       if (!m.value) {
-        if (Math.hypot(_.clientX - C.x, _.clientY - C.y) < dt) return;
+        if (Math.hypot(_.clientX - $.x, _.clientY - $.y) < dt) return;
         m.value = f, A = o.value.map((G) => G.id).join("|"), (q = (M = _.currentTarget).setPointerCapture) == null || q.call(M, _.pointerId);
       }
-      const i = (re = (K = document.elementFromPoint(_.clientX, _.clientY)) == null ? void 0 : K.closest("[data-tab]")) == null ? void 0 : re.dataset.tab;
-      if (!i || i === m.value) return;
-      const p = o.value.findIndex((G) => G.id === m.value), k = o.value.findIndex((G) => G.id === i), [w] = o.value.splice(p, 1);
+      const u = (re = (K = document.elementFromPoint(_.clientX, _.clientY)) == null ? void 0 : K.closest("[data-tab]")) == null ? void 0 : re.dataset.tab;
+      if (!u || u === m.value) return;
+      const p = o.value.findIndex((G) => G.id === m.value), k = o.value.findIndex((G) => G.id === u), [w] = o.value.splice(p, 1);
       o.value.splice(k, 0, w);
     }
     function I(_) {
       var p, k;
       if (f = null, !m.value) return;
       m.value = null, (k = (p = _.currentTarget).hasPointerCapture) != null && k.call(p, _.pointerId) && _.currentTarget.releasePointerCapture(_.pointerId);
-      const i = o.value.map((w) => w.id);
-      i.join("|") !== A && r("reordenar", i);
+      const u = o.value.map((w) => w.id);
+      u.join("|") !== A && r("reordenar", u);
     }
-    return t({ abrirMenu: v }), (_, i) => (h(), y("div", rt, [
+    return t({ abrirMenu: v }), (_, u) => (h(), y("div", rt, [
       b("div", {
         class: "gdc-tabs-scroll",
         role: "tablist",
         "aria-label": "Pestañas del dashboard",
         onPointerdown: g,
-        onPointermove: x,
+        onPointermove: C,
         onPointerup: I,
         onPointercancel: I
       }, [
-        (h(!0), y(T, null, H(o.value, (p, k) => (h(), y("div", {
+        (h(!0), y(T, null, U(o.value, (p, k) => (h(), y("div", {
           key: p.id,
           role: "tab",
           tabindex: "0",
-          class: X(["gdc-tab", { "is-activa": p.id === e.activa, "is-arrastrada": p.id === m.value }]),
+          class: H(["gdc-tab", { "is-activa": p.id === e.activa, "is-arrastrada": p.id === m.value }]),
           "data-tab": p.id,
           "aria-selected": p.id === e.activa,
           onClick: (w) => r("activar", p.id),
@@ -486,7 +486,7 @@ const gn = Se, bn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["d
             ye(F((w) => r("activar", p.id), ["prevent"]), ["space"])
           ]
         }, [
-          i[5] || (i[5] = b("span", {
+          u[5] || (u[5] = b("span", {
             class: "gdc-tab__handle",
             "aria-hidden": "true"
           }, "⠿", -1)),
@@ -496,7 +496,7 @@ const gn = Se, bn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["d
             class: "gdc-tab__menu",
             "aria-label": `Opciones de la pestaña ${p.nombre}`,
             title: "Opciones",
-            onPointerdown: i[0] || (i[0] = F(() => {
+            onPointerdown: u[0] || (u[0] = F(() => {
             }, ["stop"])),
             onClick: F((w) => v(w, p, k), ["stop"])
           }, "⋯", 40, ct)
@@ -507,10 +507,10 @@ const gn = Se, bn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["d
         class: "gdc-tabs__add",
         "aria-label": "Agregar pestaña",
         title: "Agregar pestaña",
-        onClick: i[1] || (i[1] = (p) => r("agregar"))
+        onClick: u[1] || (u[1] = (p) => r("agregar"))
       }, "+"),
       b("div", it, [
-        i[6] || (i[6] = b("span", {
+        u[6] || (u[6] = b("span", {
           class: "gdc-tabs__filter-icon",
           "aria-hidden": "true"
         }, "⌕", -1)),
@@ -520,8 +520,8 @@ const gn = Se, bn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["d
           class: "gdc-tabs__filter-input",
           placeholder: "Filtrar cards",
           "aria-label": "Filtrar cards de todas las pestañas por título y subtítulo",
-          onInput: i[2] || (i[2] = (p) => r("update:filtro", p.target.value)),
-          onKeydown: i[3] || (i[3] = ye((p) => r("update:filtro", ""), ["esc"]))
+          onInput: u[2] || (u[2] = (p) => r("update:filtro", p.target.value)),
+          onKeydown: u[3] || (u[3] = ye((p) => r("update:filtro", ""), ["esc"]))
         }, null, 40, ut),
         e.filtro ? (h(), y("button", {
           key: 0,
@@ -529,13 +529,13 @@ const gn = Se, bn = Ua, Xa = ["data-card"], Ha = { class: "gdc-card" }, Ya = ["d
           class: "gdc-tabs__filter-clear",
           "aria-label": "Limpiar filtro",
           title: "Limpiar filtro",
-          onClick: i[4] || (i[4] = (p) => r("update:filtro", ""))
+          onClick: u[4] || (u[4] = (p) => r("update:filtro", ""))
         }, "×")) : L("", !0)
       ]),
       ue(Ge, {
         ref_key: "menu",
-        ref: u,
-        items: c.value
+        ref: c,
+        items: l.value
       }, null, 8, ["items"])
     ]));
   }
@@ -571,11 +571,11 @@ function ke(e) {
   return t;
 }
 function ft(e, t = null) {
-  var u;
-  const a = [], n = [], r = Object.entries(e ?? {}).filter(([, c]) => c && typeof c == "object").map(([c, v]) => ({ clave: c, ...We(v) })), o = new Map((t ?? []).map((c, v) => [c.clave, v]));
-  r.sort((c, v) => (o.get(c.clave) ?? Number.MAX_SAFE_INTEGER) - (o.get(v.clave) ?? Number.MAX_SAFE_INTEGER));
-  for (const c of r)
-    (u = e[c.clave]) != null && u.oculta ? n.push(c) : a.push(c);
+  var c;
+  const a = [], n = [], r = Object.entries(e ?? {}).filter(([, l]) => l && typeof l == "object").map(([l, v]) => ({ clave: l, ...We(v) })), o = new Map((t ?? []).map((l, v) => [l.clave, v]));
+  r.sort((l, v) => (o.get(l.clave) ?? Number.MAX_SAFE_INTEGER) - (o.get(v.clave) ?? Number.MAX_SAFE_INTEGER));
+  for (const l of r)
+    (c = e[l.clave]) != null && c.oculta ? n.push(l) : a.push(l);
   return {
     version: Ke,
     activa: z,
@@ -586,18 +586,18 @@ function Le(e, t = null) {
   const a = e && typeof e == "object" ? e : {}, n = Array.isArray(a.pestanas) ? a : ft(a, t), r = /* @__PURE__ */ new Set(), o = [];
   for (const f of n.pestanas) {
     if (!f || typeof f != "object" || typeof f.id != "string" || !f.id || r.has(f.id)) continue;
-    const C = f.id === z, A = C ? me : typeof f.nombre == "string" ? f.nombre.trim().slice(0, fe) : "";
+    const $ = f.id === z, A = $ ? me : typeof f.nombre == "string" ? f.nombre.trim().slice(0, fe) : "";
     if (!A) continue;
-    const g = /* @__PURE__ */ new Set(), x = (i) => (Array.isArray(i) ? i : []).map(We).filter((p) => !p || g.has(p.clave) ? !1 : (g.add(p.clave), !0)), I = x(f.cards), _ = x(f.ocultas);
-    r.add(f.id), o.push(C ? xe(I, _) : { id: f.id, nombre: A, cards: I, ocultas: _ });
+    const g = /* @__PURE__ */ new Set(), C = (u) => (Array.isArray(u) ? u : []).map(We).filter((p) => !p || g.has(p.clave) ? !1 : (g.add(p.clave), !0)), I = C(f.cards), _ = C(f.ocultas);
+    r.add(f.id), o.push($ ? xe(I, _) : { id: f.id, nombre: A, cards: I, ocultas: _ });
   }
-  const u = /* @__PURE__ */ new Set(), c = o.filter((f) => {
-    const C = j(f.nombre);
-    return u.has(C) ? !1 : (u.add(C), !0);
+  const c = /* @__PURE__ */ new Set(), l = o.filter((f) => {
+    const $ = j(f.nombre);
+    return c.has($) ? !1 : (c.add($), !0);
   });
-  c.some((f) => f.id === z) || c.unshift(xe());
-  const v = c.some((f) => f.id === n.activa) ? n.activa : z, m = Je(a);
-  return { version: Ke, activa: v, ...m ? { iniciales: m } : {}, pestanas: c };
+  l.some((f) => f.id === z) || l.unshift(xe());
+  const v = l.some((f) => f.id === n.activa) ? n.activa : z, m = Je(a);
+  return { version: Ke, activa: v, ...m ? { iniciales: m } : {}, pestanas: l };
 }
 function V(e, t) {
   return e.pestanas.find((a) => a.id === t) ?? null;
@@ -615,10 +615,10 @@ function pt(e, t) {
   return e.pestanas.filter((a) => !Y(a, t)).map((a) => ({ id: a.id, nombre: a.nombre }));
 }
 function gt(e, t, a) {
-  const n = t.filter((u) => ne(a, u.clave)), r = t.filter((u) => !ne(a, u.clave));
+  const n = t.filter((c) => ne(a, c.clave)), r = t.filter((c) => !ne(a, c.clave));
   let o = 0;
-  return e.cards.forEach((u, c) => {
-    ne(a, u.clave) && (o = c + 1);
+  return e.cards.forEach((c, l) => {
+    ne(a, c.clave) && (o = l + 1);
   }), { ...e, cards: [...n, ...e.cards.slice(0, o), ...r, ...e.cards.slice(o)] };
 }
 function bt(e, t) {
@@ -638,48 +638,48 @@ function ea(e) {
   return (e ?? []).map((t) => typeof t == "string" ? { clave: t, tipo: "NUMERO" } : t);
 }
 function _t(e, t) {
-  const a = ea(t), n = a.filter((c) => !e.pestanas.some((v) => Y(v, c.clave)));
+  const a = ea(t), n = a.filter((l) => !e.pestanas.some((v) => Y(v, l.clave)));
   if (!n.length) return e;
-  const r = /* @__PURE__ */ new Map(), o = (c, v) => r.set(c, [...r.get(c) ?? [], { clave: v }]);
-  for (const c of n) {
-    o(z, c.clave);
-    for (const v of ke(c)) {
+  const r = /* @__PURE__ */ new Map(), o = (l, v) => r.set(l, [...r.get(l) ?? [], { clave: v }]);
+  for (const l of n) {
+    o(z, l.clave);
+    for (const v of ke(l)) {
       const m = ht(e, v);
-      m && m.id !== z && o(m.id, c.clave);
+      m && m.id !== z && o(m.id, l.clave);
     }
   }
-  let u = e;
-  for (const [c, v] of r) u = B(u, c, (m) => gt(m, v, a));
-  return u;
+  let c = e;
+  for (const [l, v] of r) c = B(c, l, (m) => gt(m, v, a));
+  return c;
 }
 function yt(e, t) {
   const a = Je(e);
   if (a >= Re) return e;
   const n = ea(t), r = (m) => [...m.filter((f) => ne(n, f.clave)), ...m.filter((f) => !ne(n, f.clave))], o = (m, f) => {
-    for (const C of [V(m, z), ...m.pestanas]) {
-      if (C.cards.some((A) => A.clave === f)) return { e: C.cards.find((A) => A.clave === f), oculta: !1 };
-      if (C.ocultas.some((A) => A.clave === f)) return { e: C.ocultas.find((A) => A.clave === f), oculta: !0 };
+    for (const $ of [V(m, z), ...m.pestanas]) {
+      if ($.cards.some((A) => A.clave === f)) return { e: $.cards.find((A) => A.clave === f), oculta: !1 };
+      if ($.ocultas.some((A) => A.clave === f)) return { e: $.ocultas.find((A) => A.clave === f), oculta: !0 };
     }
     return { e: null, oculta: !1 };
   };
-  let u = { ...e, iniciales: Re };
+  let c = { ...e, iniciales: Re };
   if (a < 1) {
     const m = [];
     for (const f of n)
-      for (const C of ke(f))
-        m.some((A) => j(A) === j(C)) || m.push(C);
+      for (const $ of ke(f))
+        m.some((A) => j(A) === j($)) || m.push($);
     for (const f of m) {
-      if (we(u, f)) continue;
-      const C = [], A = [];
-      for (const g of n.filter((x) => ke(x).some((I) => j(I) === j(f)))) {
-        const { e: x, oculta: I } = o(u, g.clave);
-        (I ? A : C).push(ge(x, g.clave));
+      if (we(c, f)) continue;
+      const $ = [], A = [];
+      for (const g of n.filter((C) => ke(C).some((I) => j(I) === j(f)))) {
+        const { e: C, oculta: I } = o(c, g.clave);
+        (I ? A : $).push(ge(C, g.clave));
       }
-      !C.length && !A.length || (u = { ...u, pestanas: [...u.pestanas, { id: bt(u, f), nombre: f, cards: r(C), ocultas: A }] });
+      !$.length && !A.length || (c = { ...c, pestanas: [...c.pestanas, { id: bt(c, f), nombre: f, cards: r($), ocultas: A }] });
     }
   }
-  const c = V(u, z), v = n.filter((m) => !Y(c, m.clave)).map((m) => ge(o(u, m.clave).e, m.clave));
-  return B(u, z, (m) => ({ ...m, cards: r([...m.cards, ...v]) }));
+  const l = V(c, z), v = n.filter((m) => !Y(l, m.clave)).map((m) => ge(o(c, m.clave).e, m.clave));
+  return B(c, z, (m) => ({ ...m, cards: r([...m.cards, ...v]) }));
 }
 function we(e, t, a = null) {
   const n = String(t ?? "").trim();
@@ -714,9 +714,9 @@ function $t(e, t) {
 function Te(e, t, a) {
   return B(e, t, (n) => {
     const r = new Set(a), o = new Map(n.cards.map((v) => [v.clave, v]));
-    let u = 0;
-    const c = n.cards.map((v) => r.has(v.clave) ? o.get(a[u++]) ?? v : v);
-    return { ...n, cards: c };
+    let c = 0;
+    const l = n.cards.map((v) => r.has(v.clave) ? o.get(a[c++]) ?? v : v);
+    return { ...n, cards: l };
   });
 }
 function xt(e, t, a, n) {
@@ -724,8 +724,8 @@ function xt(e, t, a, n) {
     ...r,
     cards: r.cards.map((o) => {
       if (o.clave !== a) return o;
-      const u = aa(o, "ancho");
-      return Qe.includes(n) ? { ...u, ancho: n } : u;
+      const c = aa(o, "ancho");
+      return Qe.includes(n) ? { ...c, ancho: n } : c;
     })
   }));
 }
@@ -734,8 +734,8 @@ function kt(e, t, a, n) {
     ...r,
     cards: r.cards.map((o) => {
       if (o.clave !== a) return o;
-      const u = aa(o, "color");
-      return typeof n == "string" && n ? { ...u, color: n } : u;
+      const c = aa(o, "color");
+      return typeof n == "string" && n ? { ...c, color: n } : c;
     })
   }));
 }
@@ -747,24 +747,24 @@ function wt(e, t, a) {
 }
 function At(e, t, a) {
   return B(e, t, (n) => {
-    const r = a.map((o) => n.ocultas.find((u) => u.clave === o)).filter(Boolean);
+    const r = a.map((o) => n.ocultas.find((c) => c.clave === o)).filter(Boolean);
     return { ...n, cards: [...n.cards, ...r], ocultas: n.ocultas.filter((o) => !r.includes(o)) };
   });
 }
 function Mt(e, t, a = [], n = Ct(e)) {
-  const r = ie(e), o = [], u = /* @__PURE__ */ new Set();
+  const r = ie(e), o = [], c = /* @__PURE__ */ new Set();
   for (const { clave: v, accion: m } of a) {
-    if (o.some((C) => C.clave === v)) continue;
+    if (o.some(($) => $.clave === v)) continue;
     const f = pe(r, v);
     if (m === "mover" && f)
-      o.push({ ...f }), u.add(v);
+      o.push({ ...f }), c.add(v);
     else if (m === "mover" || m === "copiar") {
-      const C = f ?? e.pestanas.map((A) => pe(A, v)).find(Boolean);
-      o.push(ge(C, v));
+      const $ = f ?? e.pestanas.map((A) => pe(A, v)).find(Boolean);
+      o.push(ge($, v));
     }
   }
-  let c = r.id === z ? e : B(e, r.id, (v) => [...u].reduce(Ie, v));
-  return c = { ...c, pestanas: [...c.pestanas, { id: n, nombre: String(t).trim(), cards: o, ocultas: [] }] }, $t(c, n);
+  let l = r.id === z ? e : B(e, r.id, (v) => [...c].reduce(Ie, v));
+  return l = { ...l, pestanas: [...l.pestanas, { id: n, nombre: String(t).trim(), cards: o, ocultas: [] }] }, $t(l, n);
 }
 function Et(e, t, a) {
   return t === z ? e : B(e, t, (n) => ({ ...n, nombre: String(a).trim() }));
@@ -774,35 +774,35 @@ function ta(e, t) {
   return { ...e, pestanas: [...n, ...r] };
 }
 function St(e, t, a) {
-  const n = e.pestanas.map((u) => u.id), r = n.indexOf(t), o = r + a;
+  const n = e.pestanas.map((c) => c.id), r = n.indexOf(t), o = r + a;
   return r === -1 || o < 0 || o >= n.length ? e : (n.splice(r, 1), n.splice(o, 0, t), ta(e, n));
 }
 function It(e, t) {
   const a = V(e, t);
   if (!a || t === z) return e;
-  const n = V(e, z), r = a.cards.filter((c) => !Y(n, c.clave)), o = a.ocultas.filter((c) => !Y(n, c.clave)), u = B(e, z, (c) => ({
-    ...c,
-    cards: [...c.cards, ...r],
-    ocultas: [...c.ocultas, ...o]
+  const n = V(e, z), r = a.cards.filter((l) => !Y(n, l.clave)), o = a.ocultas.filter((l) => !Y(n, l.clave)), c = B(e, z, (l) => ({
+    ...l,
+    cards: [...l.cards, ...r],
+    ocultas: [...l.ocultas, ...o]
   }));
   return {
-    ...u,
-    activa: u.activa === t ? z : u.activa,
-    pestanas: u.pestanas.filter((c) => c.id !== t)
+    ...c,
+    activa: c.activa === t ? z : c.activa,
+    pestanas: c.pestanas.filter((l) => l.id !== t)
   };
 }
 function Nt(e, t, a, n) {
   if (t === z) return e;
-  const r = V(e, t), o = V(e, a), u = r && pe(r, n);
-  if (!u || !o || Y(o, n)) return e;
-  const c = B(e, t, (v) => Ie(v, n));
-  return B(c, a, (v) => ({ ...v, cards: [...v.cards, { ...u }] }));
+  const r = V(e, t), o = V(e, a), c = r && pe(r, n);
+  if (!c || !o || Y(o, n)) return e;
+  const l = B(e, t, (v) => Ie(v, n));
+  return B(l, a, (v) => ({ ...v, cards: [...v.cards, { ...c }] }));
 }
 function zt(e, t, a, n) {
   const r = V(e, t), o = V(e, a);
   if (!r || !o || Y(o, n)) return e;
-  const u = pe(r, n);
-  return u ? B(e, a, (c) => ({ ...c, cards: [...c.cards, ge(u, n)] })) : e;
+  const c = pe(r, n);
+  return c ? B(e, a, (l) => ({ ...l, cards: [...l.cards, ge(c, n)] })) : e;
 }
 function Dt(e, t, a) {
   return t === z || Ze(e, a).filter((n) => n.id !== t).length === 0 ? e : B(e, t, (n) => Ie(n, a));
@@ -819,63 +819,63 @@ const Pt = {
     parametros: { type: Object, required: !0 }
   },
   setup(e) {
-    const t = e, a = t.parametros.modelo, n = t.parametros.cards ?? [], r = t.parametros.modo ?? "alta", o = D(!1), u = O(() => t.parametros.validar(a.nombre)), c = { label: "No incluir", value: "no" }, v = { label: "Mover", value: "mover" }, m = { label: "Copiar", value: "copiar" };
+    const t = e, a = t.parametros.modelo, n = t.parametros.cards ?? [], r = t.parametros.modo ?? "alta", o = P(!1), c = D(() => t.parametros.validar(a.nombre)), l = { label: "No incluir", value: "no" }, v = { label: "Mover", value: "mover" }, m = { label: "Copiar", value: "copiar" };
     function f(g) {
-      return g.enActiva ? [c, v, m] : [c, m];
+      return g.enActiva ? [l, v, m] : [l, m];
     }
-    function C() {
-      var g, x;
-      (x = (g = t.parametros).cerrar) == null || x.call(g);
+    function $() {
+      var g, C;
+      (C = (g = t.parametros).cerrar) == null || C.call(g);
     }
     function A() {
-      var x, I;
-      if (o.value = !0, u.value) return;
+      var C, I;
+      if (o.value = !0, c.value) return;
       const g = n.map((_) => ({ clave: _.clave, accion: a.elecciones[_.clave] })).filter((_) => _.accion === "mover" || _.accion === "copiar");
-      (I = (x = t.parametros).onGuardar) == null || I.call(x, { nombre: a.nombre, elecciones: g }), C();
+      (I = (C = t.parametros).onGuardar) == null || I.call(C, { nombre: a.nombre, elecciones: g }), $();
     }
     return Me(() => {
       a.nombre && (o.value = !0);
-    }), (g, x) => (h(), y("form", {
+    }), (g, C) => (h(), y("form", {
       class: "gdc-form",
       onSubmit: F(A, ["prevent"])
     }, [
       b("label", Pt, [
-        x[2] || (x[2] = b("b", null, "Nombre", -1)),
+        C[2] || (C[2] = b("b", null, "Nombre", -1)),
         oe(b("input", {
           id: "gdc-tab-nombre",
-          "onUpdate:modelValue": x[0] || (x[0] = (I) => P(a).nombre = I),
-          class: X(["gdc-form__input", { "is-invalid": o.value && !!u.value }]),
-          maxlength: P(fe),
+          "onUpdate:modelValue": C[0] || (C[0] = (I) => O(a).nombre = I),
+          class: H(["gdc-form__input", { "is-invalid": o.value && !!c.value }]),
+          maxlength: O(fe),
           autocomplete: "off",
           autofocus: "",
-          onBlur: x[1] || (x[1] = (I) => o.value = !0)
+          onBlur: C[1] || (C[1] = (I) => o.value = !0)
         }, null, 42, Ot), [
-          [_a, P(a).nombre]
+          [_a, O(a).nombre]
         ]),
-        o.value && u.value ? (h(), y("small", Rt, R(u.value), 1)) : L("", !0)
+        o.value && c.value ? (h(), y("small", Rt, R(c.value), 1)) : L("", !0)
       ]),
-      P(n).length ? (h(), y(T, { key: 0 }, [
-        x[3] || (x[3] = b("div", { class: "gdc-form__hint" }, [
+      O(n).length ? (h(), y(T, { key: 0 }, [
+        C[3] || (C[3] = b("div", { class: "gdc-form__hint" }, [
           b("b", null, "Cards"),
           b("small", null, ' "Mover" la saca de la pestaña en la que estás; "Copiar" la deja donde está. Las cards que no están en esta pestaña sólo se pueden copiar, y desde "Todas" también: esa pestaña tiene todas. ')
         ], -1)),
-        (h(!0), y(T, null, H(P(n), (I) => (h(), y("div", {
+        (h(!0), y(T, null, U(O(n), (I) => (h(), y("div", {
           key: I.clave,
           class: "gdc-form__row"
         }, [
           b("span", Lt, R(I.titulo), 1),
           b("span", Tt, [
-            (h(!0), y(T, null, H(f(I), (_) => (h(), y("label", {
+            (h(!0), y(T, null, U(f(I), (_) => (h(), y("label", {
               key: _.value,
               class: "gdc-form__choice"
             }, [
               oe(b("input", {
-                "onUpdate:modelValue": (i) => P(a).elecciones[I.clave] = i,
+                "onUpdate:modelValue": (u) => O(a).elecciones[I.clave] = u,
                 type: "radio",
                 name: `gdc-eleccion-${I.clave}`,
                 value: _.value
               }, null, 8, jt), [
-                [ya, P(a).elecciones[I.clave]]
+                [ya, O(a).elecciones[I.clave]]
               ]),
               Ve(" " + R(_.label), 1)
             ]))), 128))
@@ -886,13 +886,13 @@ const Pt = {
         b("button", {
           type: "button",
           class: "gdc-btn gdc-btn--secondary",
-          onClick: C
+          onClick: $
         }, "Cancelar"),
         b("button", {
           type: "submit",
           class: "gdc-btn gdc-btn--success",
-          disabled: !!u.value
-        }, R(P(r) === "renombrar" ? "Guardar" : "Crear"), 9, Vt)
+          disabled: !!c.value
+        }, R(O(r) === "renombrar" ? "Guardar" : "Crear"), 9, Vt)
       ])
     ], 32));
   }
@@ -902,17 +902,17 @@ const Pt = {
     parametros: { type: Object, required: !0 }
   },
   setup(e) {
-    const t = e, a = t.parametros.ocultas ?? [], n = D([]), r = O(() => a.length > 0 && n.value.length === a.length);
+    const t = e, a = t.parametros.ocultas ?? [], n = P([]), r = D(() => a.length > 0 && n.value.length === a.length);
     function o(v) {
       n.value = v ? a.map((m) => m.clave) : [];
     }
-    function u() {
+    function c() {
       var v, m;
       (m = (v = t.parametros).cerrar) == null || m.call(v);
     }
-    function c() {
+    function l() {
       var v, m;
-      (m = (v = t.parametros).onMostrar) == null || m.call(v, [...n.value]), u();
+      (m = (v = t.parametros).onMostrar) == null || m.call(v, [...n.value]), c();
     }
     return (v, m) => (h(), y("div", qt, [
       b("label", Ft, [
@@ -923,12 +923,12 @@ const Pt = {
         }, null, 40, Gt),
         m[2] || (m[2] = b("b", null, "Seleccionar todas", -1))
       ]),
-      (h(!0), y(T, null, H(P(a), (f) => (h(), y("div", {
+      (h(!0), y(T, null, U(O(a), (f) => (h(), y("div", {
         key: f.clave,
         class: "gdc-form__check"
       }, [
         oe(b("input", {
-          "onUpdate:modelValue": m[1] || (m[1] = (C) => n.value = C),
+          "onUpdate:modelValue": m[1] || (m[1] = ($) => n.value = $),
           type: "checkbox",
           value: f.clave
         }, null, 8, Ut), [
@@ -940,13 +940,13 @@ const Pt = {
         b("button", {
           type: "button",
           class: "gdc-btn gdc-btn--secondary",
-          onClick: u
+          onClick: c
         }, "Cancelar"),
         b("button", {
           type: "button",
           class: "gdc-btn gdc-btn--info",
           disabled: !n.value.length,
-          onClick: c
+          onClick: l
         }, " Mostrar ", 8, Ht)
       ])
     ]));
@@ -966,7 +966,7 @@ const Pt = {
       b("div", {
         class: "gdc-dialog-overlay",
         role: "presentation",
-        onPointerdown: o[1] || (o[1] = F((u) => a("cerrar"), ["self"]))
+        onPointerdown: o[1] || (o[1] = F((c) => a("cerrar"), ["self"]))
       }, [
         b("div", {
           class: "gdc-dialog",
@@ -980,7 +980,7 @@ const Pt = {
               type: "button",
               class: "gdc-dialog__close",
               "aria-label": "Cerrar",
-              onClick: o[0] || (o[0] = (u) => a("cerrar"))
+              onClick: o[0] || (o[0] = (c) => a("cerrar"))
             }, "×")
           ]),
           b("div", Zt, [
@@ -996,7 +996,7 @@ const Pt = {
 function en(e) {
   J(na, e || {});
 }
-function hn() {
+function _n() {
   const e = W(na, null);
   return e || console.warn(
     '[vue-greenborn-dashboard-cards] No se encontró contexto. Usar provideDashboardCardsContext() o la prop "contexto" de DashboardCardsGrid.'
@@ -1011,7 +1011,7 @@ const an = {
 }, sn = {
   key: 2,
   class: "gdc-pestana-vacia"
-}, _n = {
+}, yn = {
   __name: "DashboardCardsGrid",
   props: {
     cards: { type: Array, default: () => [] },
@@ -1023,32 +1023,32 @@ const an = {
   setup(e, { expose: t, emit: a }) {
     const n = e, r = a;
     en(n.contexto);
-    const o = O(() => n.contexto || {}), u = O(() => n.colores || o.value.colores || ve), c = /* @__PURE__ */ new Map();
+    const o = D(() => n.contexto || {}), c = D(() => n.colores || o.value.colores || ve), l = /* @__PURE__ */ new Map();
     function v(s) {
       const d = s.componente;
-      return d == null ? null : typeof d == "function" ? (c.has(s.clave) || c.set(s.clave, Oe(ka(d))), c.get(s.clave)) : (c.has(s.clave) || c.set(s.clave, Oe(d)), c.get(s.clave));
+      return d == null ? null : typeof d == "function" ? (l.has(s.clave) || l.set(s.clave, Oe(ka(d))), l.get(s.clave)) : (l.has(s.clave) || l.set(s.clave, Oe(d)), l.get(s.clave));
     }
     function m(s) {
       return s.permiso ? typeof o.value.tienePermiso != "function" || o.value.tienePermiso(s.permiso) : !0;
     }
-    const f = O(() => {
+    const f = D(() => {
       const s = [];
       for (const d of n.cards) {
         if (!(d != null && d.clave) || !m(d)) continue;
-        const l = v(d);
-        if (!l) {
+        const i = v(d);
+        if (!i) {
           console.warn("[vue-greenborn-dashboard-cards] card sin componente", d.clave);
           continue;
         }
-        s.push({ ...d, componenteVue: l });
+        s.push({ ...d, componenteVue: i });
       }
       return s;
     });
-    let C, A = !1;
-    const g = D(Le(null)), x = D([]);
+    let $, A = !1;
+    const g = P(Le(null)), C = P([]);
     function I() {
       const s = f.value;
-      g.value = yt(_t(Le(C, s), s), s);
+      g.value = yt(_t(Le($, s), s), s);
     }
     function _(s, d) {
       return {
@@ -1062,18 +1062,18 @@ const an = {
         color: d.color ?? null
       };
     }
-    function i() {
-      const s = new Map(f.value.map((l) => [l.clave, l])), d = ie(g.value);
-      x.value = d.cards.filter((l) => s.has(l.clave)).map((l) => ({ ..._(s.get(l.clave), l), pestana: d.id }));
+    function u() {
+      const s = new Map(f.value.map((i) => [i.clave, i])), d = ie(g.value);
+      C.value = d.cards.filter((i) => s.has(i.clave)).map((i) => ({ ..._(s.get(i.clave), i), pestana: d.id }));
     }
-    $e(f, I, { immediate: !0 }), $e(g, i, { immediate: !0 });
-    const p = O(() => g.value.pestanas.map((s) => ({ id: s.id, nombre: s.nombre, general: !!s.general })));
+    $e(f, I, { immediate: !0 }), $e(g, u, { immediate: !0 });
+    const p = D(() => g.value.pestanas.map((s) => ({ id: s.id, nombre: s.nombre, general: !!s.general })));
     Ae(async () => {
       const s = o.value.preferencias;
       try {
-        C = typeof (s == null ? void 0 : s.cargar) == "function" ? await s.cargar(n.preferenciasClave) : null;
+        $ = typeof (s == null ? void 0 : s.cargar) == "function" ? await s.cargar(n.preferenciasClave) : null;
       } catch (d) {
-        console.warn("[vue-greenborn-dashboard-cards] Error cargando preferencias de cards:", d), C = null;
+        console.warn("[vue-greenborn-dashboard-cards] Error cargando preferencias de cards:", d), $ = null;
       } finally {
         A = !0, I();
       }
@@ -1083,36 +1083,36 @@ const an = {
       const s = g.value;
       r("preferencia-cambiada", s);
       const d = o.value.preferencias;
-      typeof (d == null ? void 0 : d.guardar) == "function" && Promise.resolve(d.guardar(n.preferenciasClave, s)).catch((l) => {
-        console.warn("[vue-greenborn-dashboard-cards] Error guardando preferencias de cards:", l);
+      typeof (d == null ? void 0 : d.guardar) == "function" && Promise.resolve(d.guardar(n.preferenciasClave, s)).catch((i) => {
+        console.warn("[vue-greenborn-dashboard-cards] Error guardando preferencias de cards:", i);
       });
     }
     function w(s) {
       !s || s === g.value || (g.value = s, k());
     }
-    const M = D("");
+    const M = P("");
     J(Ee, M);
-    const q = O(() => M.value.trim() !== ""), K = Z(/* @__PURE__ */ new Map());
+    const q = D(() => M.value.trim() !== ""), K = Z(/* @__PURE__ */ new Map());
     J(Xe, K);
-    const re = O(() => ![...K.values()].some(Boolean)), G = O(() => {
-      if (!q.value) return x.value;
-      const s = new Map(f.value.map(($) => [$.clave, $])), d = /* @__PURE__ */ new Set(), l = [], E = [...g.value.pestanas.filter(($) => !$.general), ...g.value.pestanas.filter(($) => $.general)];
-      for (const $ of E) {
-        const N = $.cards.filter((S) => s.has(S.clave) && !d.has(S.clave));
+    const re = D(() => ![...K.values()].some(Boolean)), G = D(() => {
+      if (!q.value) return C.value;
+      const s = new Map(f.value.map((x) => [x.clave, x])), d = /* @__PURE__ */ new Set(), i = [], E = [...g.value.pestanas.filter((x) => !x.general), ...g.value.pestanas.filter((x) => x.general)];
+      for (const x of E) {
+        const N = x.cards.filter((S) => s.has(S.clave) && !d.has(S.clave));
         if (N.length) {
-          l.push({ grupo: $.id, nombre: $.nombre, claves: N.map((S) => S.clave) });
+          i.push({ grupo: x.id, nombre: x.nombre, claves: N.map((S) => S.clave) });
           for (const S of N)
-            d.add(S.clave), l.push({ ..._(s.get(S.clave), S), pestana: $.id });
+            d.add(S.clave), i.push({ ..._(s.get(S.clave), S), pestana: x.id });
         }
       }
-      return l;
-    }), Ne = O(() => {
-      const s = /* @__PURE__ */ new Map(), d = G.value.filter((l) => !l.grupo);
-      return d.forEach((l, E) => s.set(l.clave, { primera: E === 0, ultima: E === d.length - 1 })), s;
+      return i;
+    }), Ne = D(() => {
+      const s = /* @__PURE__ */ new Map(), d = G.value.filter((i) => !i.grupo);
+      return d.forEach((i, E) => s.set(i.clave, { primera: E === 0, ultima: E === d.length - 1 })), s;
     });
     function oa(s) {
-      const d = G.value.find((l) => l.grupo === s);
-      return !!(d != null && d.claves.some((l) => K.get(l)));
+      const d = G.value.find((i) => i.grupo === s);
+      return !!(d != null && d.claves.some((i) => K.get(i)));
     }
     function ra(s) {
       M.value = "", be(s);
@@ -1126,37 +1126,37 @@ const an = {
     function la(s) {
       w(ta(g.value, s));
     }
-    const ae = D(null);
-    function he(s, d, l, E) {
-      let $ = () => {
+    const ae = P(null);
+    function he(s, d, i, E) {
+      let x = () => {
       };
-      const N = { ...l, cerrar: () => $() };
+      const N = { ...i, cerrar: () => x() };
       if (typeof o.value.abrirModal == "function") {
         const S = o.value.abrirModal(s, d, N, E);
-        $ = () => {
+        x = () => {
           typeof (S == null ? void 0 : S.cerrar) == "function" ? S.cerrar() : typeof o.value.cerrarModal == "function" && (S == null ? void 0 : S.code) != null && o.value.cerrarModal(S.code);
         };
       } else
-        ae.value = { componente: s, titulo: d, props: N, opciones: E }, $ = () => {
+        ae.value = { componente: s, titulo: d, props: N, opciones: E }, x = () => {
           ae.value = null;
         };
     }
     function ca() {
-      const s = ie(g.value), d = ($) => !s.general && (s.cards.some((N) => N.clave === $) || s.ocultas.some((N) => N.clave === $)), l = f.value.map(($) => ({ clave: $.clave, titulo: $.titulo, enActiva: d($.clave) })), E = Z({ nombre: "", elecciones: Object.fromEntries(l.map(($) => [$.clave, "no"])) });
+      const s = ie(g.value), d = (x) => !s.general && (s.cards.some((N) => N.clave === x) || s.ocultas.some((N) => N.clave === x)), i = f.value.map((x) => ({ clave: x.clave, titulo: x.titulo, enActiva: d(x.clave) })), E = Z({ nombre: "", elecciones: Object.fromEntries(i.map((x) => [x.clave, "no"])) });
       he(je, "Nueva pestaña", {
         modelo: E,
-        cards: l,
+        cards: i,
         modo: "alta",
-        validar: ($) => we(g.value, $),
-        onGuardar: ({ nombre: $, elecciones: N }) => w(Mt(g.value, $, N))
+        validar: (x) => we(g.value, x),
+        onGuardar: ({ nombre: x, elecciones: N }) => w(Mt(g.value, x, N))
       }, { size: "md" });
     }
     function ia(s) {
       const d = V(g.value, s);
       if (!d || d.general) return;
-      const l = Z({ nombre: d.nombre });
+      const i = Z({ nombre: d.nombre });
       he(je, "Renombrar pestaña", {
-        modelo: l,
+        modelo: i,
         modo: "renombrar",
         validar: (E) => we(g.value, E, s),
         onGuardar: ({ nombre: E }) => w(Et(g.value, s, E))
@@ -1165,15 +1165,15 @@ const an = {
     function ua(s) {
       const d = V(g.value, s);
       if (!d || d.general) return;
-      const l = () => w(It(g.value, s)), E = `Se eliminará la pestaña "${d.nombre}". Sus cards siguen en "Todas". ¿Desea continuar?`;
+      const i = () => w(It(g.value, s)), E = `Se eliminará la pestaña "${d.nombre}". Sus cards siguen en "Todas". ¿Desea continuar?`;
       typeof o.value.confirmar == "function" ? o.value.confirmar({
         title: "Eliminar pestaña",
         text: E,
         confirmLabel: "Eliminar",
-        onConfirm: l
-      }) : typeof window < "u" && window.confirm(E) && l();
+        onConfirm: i
+      }) : typeof window < "u" && window.confirm(E) && i();
     }
-    const se = O(() => {
+    const se = D(() => {
       const s = new Set(ie(g.value).ocultas.map((d) => d.clave));
       return f.value.filter((d) => s.has(d.clave)).map((d) => ({ clave: d.clave, titulo: d.titulo }));
     });
@@ -1188,57 +1188,57 @@ const an = {
     function va(s, d) {
       d ? _e.set(s, d) : _e.delete(s);
     }
-    const te = D(null);
+    const te = P(null);
     async function ze() {
       if (te.value !== null) return;
       const s = g.value.activa;
       try {
-        for (const d of x.value.map((l) => l.clave)) {
+        for (const d of C.value.map((i) => i.clave)) {
           if (g.value.activa !== s) break;
           await Se(async () => {
-            const l = _e.get(d);
-            l && (te.value = d, await l.refrescar());
+            const i = _e.get(d);
+            i && (te.value = d, await i.refrescar());
           }, { vigente: () => g.value.activa === s });
         }
       } finally {
         te.value = null;
       }
     }
-    const U = D(null);
+    const X = P(null);
     let De = null;
     function ma(s, d) {
-      var l, E;
-      return ((E = (l = document.elementFromPoint(s, d)) == null ? void 0 : l.closest("[data-card]")) == null ? void 0 : E.dataset.card) ?? null;
+      var i, E;
+      return ((E = (i = document.elementFromPoint(s, d)) == null ? void 0 : i.closest("[data-card]")) == null ? void 0 : E.dataset.card) ?? null;
     }
     function fa(s) {
-      var l, E, $;
+      var i, E, x;
       const d = s.target.closest(".gdc-card__handle");
-      q.value || !d || s.target.closest("button") || s.button > 0 || (U.value = ((l = d.closest("[data-card]")) == null ? void 0 : l.dataset.card) ?? null, U.value && (De = x.value.map((N) => N.clave).join("|"), ($ = (E = s.currentTarget).setPointerCapture) == null || $.call(E, s.pointerId), s.preventDefault()));
+      q.value || !d || s.target.closest("button") || s.button > 0 || (X.value = ((i = d.closest("[data-card]")) == null ? void 0 : i.dataset.card) ?? null, X.value && (De = C.value.map((N) => N.clave).join("|"), (x = (E = s.currentTarget).setPointerCapture) == null || x.call(E, s.pointerId), s.preventDefault()));
     }
     function pa(s) {
-      if (!U.value) return;
+      if (!X.value) return;
       const d = ma(s.clientX, s.clientY);
-      if (!d || d === U.value) return;
-      const l = x.value.findIndex((N) => N.clave === U.value), E = x.value.findIndex((N) => N.clave === d);
-      if (l === -1 || E === -1) return;
-      const [$] = x.value.splice(l, 1);
-      x.value.splice(E, 0, $);
+      if (!d || d === X.value) return;
+      const i = C.value.findIndex((N) => N.clave === X.value), E = C.value.findIndex((N) => N.clave === d);
+      if (i === -1 || E === -1) return;
+      const [x] = C.value.splice(i, 1);
+      C.value.splice(E, 0, x);
     }
     function Pe(s) {
-      var l, E;
-      if (!U.value) return;
-      U.value = null, (E = (l = s.currentTarget).hasPointerCapture) != null && E.call(l, s.pointerId) && s.currentTarget.releasePointerCapture(s.pointerId);
-      const d = x.value.map(($) => $.clave);
+      var i, E;
+      if (!X.value) return;
+      X.value = null, (E = (i = s.currentTarget).hasPointerCapture) != null && E.call(i, s.pointerId) && s.currentTarget.releasePointerCapture(s.pointerId);
+      const d = C.value.map((x) => x.clave);
       d.join("|") !== De && w(Te(g.value, g.value.activa, d));
     }
     function ga(s, d) {
-      const l = x.value.map((N) => N.clave), E = l.indexOf(s.clave), $ = E + d;
-      $ < 0 || $ >= l.length || (l.splice(E, 1), l.splice($, 0, s.clave), w(Te(g.value, g.value.activa, l)));
+      const i = C.value.map((N) => N.clave), E = i.indexOf(s.clave), x = E + d;
+      x < 0 || x >= i.length || (i.splice(E, 1), i.splice(x, 0, s.clave), w(Te(g.value, g.value.activa, i)));
     }
     return t({ actualizarTodas: ze, activar: be }), (s, d) => f.value.length ? (h(), y("div", an, [
       ue(vt, {
         filtro: M.value,
-        "onUpdate:filtro": d[0] || (d[0] = (l) => M.value = l),
+        "onUpdate:filtro": d[0] || (d[0] = (i) => M.value = i),
         pestanas: p.value,
         activa: g.value.activa,
         actualizando: te.value !== null,
@@ -1257,56 +1257,56 @@ const an = {
         onPointerup: Pe,
         onPointercancel: Pe
       }, [
-        (h(!0), y(T, null, H(G.value, (l, E) => {
-          var $, N;
+        (h(!0), y(T, null, U(G.value, (i, E) => {
+          var x, N;
           return h(), y(T, {
-            key: l.clave ?? "grupo_" + l.grupo
+            key: i.clave ?? "grupo_" + i.grupo
           }, [
-            l.grupo ? oe((h(), y("div", {
+            i.grupo ? oe((h(), y("div", {
               key: 0,
               class: "gdc-grupo",
-              "data-grupo": l.grupo
+              "data-grupo": i.grupo
             }, [
               d[2] || (d[2] = b("span", {
                 class: "gdc-grupo__icono",
                 "aria-hidden": "true"
               }, "▸", -1)),
-              b("span", nn, R(l.nombre), 1),
+              b("span", nn, R(i.nombre), 1),
               b("button", {
                 type: "button",
                 class: "gdc-btn gdc-btn--secondary gdc-btn--sm",
-                onClick: (S) => ra(l.grupo)
+                onClick: (S) => ra(i.grupo)
               }, " Ir a la pestaña ", 8, on)
             ], 8, tn)), [
-              [qe, oa(l.grupo)]
+              [qe, oa(i.grupo)]
             ]) : (h(), Q(Za, {
               key: 1,
               ref_for: !0,
-              ref: (S) => va(l.clave, S),
-              clave: l.clave,
-              titulo: l.titulo,
-              ancho: l.ancho,
-              "ancho-elegido": l.anchoElegido,
-              color: l.color,
-              primera: q.value || (($ = Ne.value.get(l.clave)) == null ? void 0 : $.primera),
-              ultima: q.value || ((N = Ne.value.get(l.clave)) == null ? void 0 : N.ultima),
-              destinos: P(pt)(g.value, l.clave),
-              "en-otras": l.pestana !== P(z) && P(Ze)(g.value, l.clave).length > 1,
-              "puede-mover": l.pestana !== P(z),
-              actualizando: l.clave === te.value,
-              colores: u.value,
-              "menu-items": l.menuItems,
-              class: X({ "gdc-card-celda--arrastrada": l.clave === U.value }),
-              onCambiarAncho: (S) => w(P(xt)(g.value, l.pestana, l.clave, S)),
-              onCambiarColor: (S) => w(P(kt)(g.value, l.pestana, l.clave, S)),
-              onMover: (S) => ga(l, S),
-              onMoverA: (S) => w(P(Nt)(g.value, l.pestana, S, l.clave)),
-              onCopiarA: (S) => w(P(zt)(g.value, l.pestana, S, l.clave)),
-              onQuitar: (S) => w(P(Dt)(g.value, l.pestana, l.clave)),
-              onOcultar: (S) => w(P(wt)(g.value, l.pestana, l.clave))
+              ref: (S) => va(i.clave, S),
+              clave: i.clave,
+              titulo: i.titulo,
+              ancho: i.ancho,
+              "ancho-elegido": i.anchoElegido,
+              color: i.color,
+              primera: q.value || ((x = Ne.value.get(i.clave)) == null ? void 0 : x.primera),
+              ultima: q.value || ((N = Ne.value.get(i.clave)) == null ? void 0 : N.ultima),
+              destinos: O(pt)(g.value, i.clave),
+              "en-otras": i.pestana !== O(z) && O(Ze)(g.value, i.clave).length > 1,
+              "puede-mover": i.pestana !== O(z),
+              actualizando: i.clave === te.value,
+              colores: c.value,
+              "menu-items": i.menuItems,
+              class: H({ "gdc-card-celda--arrastrada": i.clave === X.value }),
+              onCambiarAncho: (S) => w(O(xt)(g.value, i.pestana, i.clave, S)),
+              onCambiarColor: (S) => w(O(kt)(g.value, i.pestana, i.clave, S)),
+              onMover: (S) => ga(i, S),
+              onMoverA: (S) => w(O(Nt)(g.value, i.pestana, S, i.clave)),
+              onCopiarA: (S) => w(O(zt)(g.value, i.pestana, S, i.clave)),
+              onQuitar: (S) => w(O(Dt)(g.value, i.pestana, i.clave)),
+              onOcultar: (S) => w(O(wt)(g.value, i.pestana, i.clave))
             }, {
               default: $a(() => [
-                (h(), Q(Fe(l.componenteVue), xa({ ref_for: !0 }, l.props || {}), null, 16))
+                (h(), Q(Fe(i.componenteVue), xa({ ref_for: !0 }, i.props || {}), null, 16))
               ]),
               _: 2
             }, 1032, ["clave", "titulo", "ancho", "ancho-elegido", "color", "primera", "ultima", "destinos", "en-otras", "puede-mover", "actualizando", "colores", "menu-items", "class", "onCambiarAncho", "onCambiarColor", "onMover", "onMoverA", "onCopiarA", "onQuitar", "onOcultar"]))
@@ -1318,12 +1318,12 @@ const an = {
           onAbrir: da
         }, null, 8, ["ocultas"])) : L("", !0),
         q.value && re.value ? (h(), y("div", rn, " Ninguna card de ninguna pestaña tiene «" + R(M.value.trim()) + "» en el título o el subtítulo. ", 1)) : L("", !0),
-        !q.value && !x.value.length && !se.value.length ? (h(), y("div", sn, ' Esta pestaña no tiene cards. Se suman desde el engranaje de una card, con "Copiar a pestaña…" o "Mover a pestaña…". ')) : L("", !0)
+        !q.value && !C.value.length && !se.value.length ? (h(), y("div", sn, ' Esta pestaña no tiene cards. Se suman desde el engranaje de una card, con "Copiar a pestaña…" o "Mover a pestaña…". ')) : L("", !0)
       ], 32),
       ae.value ? (h(), Q(Jt, {
         key: 0,
         dialogo: ae.value,
-        onCerrar: d[1] || (d[1] = (l) => ae.value = null)
+        onCerrar: d[1] || (d[1] = (i) => ae.value = null)
       }, null, 8, ["dialogo"])) : L("", !0)
     ])) : L("", !0);
   }
@@ -1332,7 +1332,7 @@ const an = {
   for (const [n, r] of t)
     a[n] = r;
   return a;
-}, cn = ["width", "height", "viewBox", "aria-label"], un = ["d", "fill"], dn = ["d", "stroke"], vn = {
+}, cn = ["width", "height", "viewBox", "aria-label"], un = ["d", "fill"], dn = ["d", "stroke"], vn = ["cx", "cy", "r", "fill"], mn = {
   __name: "Sparkline",
   props: {
     valores: { type: Array, default: () => [] },
@@ -1342,23 +1342,28 @@ const an = {
     alto: { type: Number, default: 40 },
     ancho: { type: Number, default: 120 },
     relleno: { type: Boolean, default: !0 },
-    etiqueta: { type: String, default: "Tendencia" }
+    etiqueta: { type: String, default: "Tendencia" },
+    // Array paralelo a `valores`: posiciones (truthy) donde resaltar el punto con un círculo,
+    // por ejemplo donde se disparó una alarma/notificación en esa muestra.
+    marcadores: { type: Array, default: () => [] },
+    colorMarcador: { type: String, default: "#dc3545" },
+    radioMarcador: { type: Number, default: 3 }
   },
   setup(e) {
-    const t = e, a = O(() => {
-      const o = t.valores;
-      if (!o.length) return [];
-      const u = t.max !== null ? t.max : Math.max(...o, t.min), c = Math.max(u - t.min, 1e-6), v = o.length > 1 ? t.ancho / (o.length - 1) : t.ancho;
-      return o.map((m, f) => {
-        const C = o.length > 1 ? f * v : 0, A = Math.min(Math.max((m - t.min) / c, 0), 1), g = t.alto - A * t.alto;
-        return [C, g];
+    const t = e, a = D(() => {
+      const c = t.valores;
+      if (!c.length) return [];
+      const l = t.max !== null ? t.max : Math.max(...c, t.min), v = Math.max(l - t.min, 1e-6), m = c.length > 1 ? t.ancho / (c.length - 1) : t.ancho;
+      return c.map((f, $) => {
+        const A = c.length > 1 ? $ * m : 0, g = Math.min(Math.max((f - t.min) / v, 0), 1), C = t.alto - g * t.alto;
+        return [A, C];
       });
-    }), n = O(() => a.value.length ? a.value.map(([o, u], c) => `${c === 0 ? "M" : "L"}${o.toFixed(2)},${u.toFixed(2)}`).join(" ") : ""), r = O(() => {
+    }), n = D(() => a.value.length ? a.value.map(([c, l], v) => `${v === 0 ? "M" : "L"}${c.toFixed(2)},${l.toFixed(2)}`).join(" ") : ""), r = D(() => t.marcadores.length ? a.value.filter((c, l) => t.marcadores[l]) : []), o = D(() => {
       if (!a.value.length) return "";
-      const o = a.value[a.value.length - 1], u = a.value[0];
-      return `${n.value} L${o[0].toFixed(2)},${t.alto} L${u[0].toFixed(2)},${t.alto} Z`;
+      const c = a.value[a.value.length - 1], l = a.value[0];
+      return `${n.value} L${c[0].toFixed(2)},${t.alto} L${l[0].toFixed(2)},${t.alto} Z`;
     });
-    return (o, u) => (h(), y("svg", {
+    return (c, l) => (h(), y("svg", {
       width: e.ancho,
       height: e.alto,
       viewBox: `0 0 ${e.ancho} ${e.alto}`,
@@ -1367,9 +1372,9 @@ const an = {
       class: "gdc-sparkline"
     }, [
       b("title", null, R(e.etiqueta), 1),
-      e.relleno && r.value ? (h(), y("path", {
+      e.relleno && o.value ? (h(), y("path", {
         key: 0,
-        d: r.value,
+        d: o.value,
         class: "gdc-sparkline__area",
         fill: e.color
       }, null, 8, un)) : L("", !0),
@@ -1378,11 +1383,19 @@ const an = {
         class: "gdc-sparkline__line",
         stroke: e.color,
         fill: "none"
-      }, null, 8, dn)
+      }, null, 8, dn),
+      (h(!0), y(T, null, U(r.value, (v, m) => (h(), y("circle", {
+        key: m,
+        cx: v[0],
+        cy: v[1],
+        r: e.radioMarcador,
+        fill: e.colorMarcador,
+        class: "gdc-sparkline__marcador"
+      }, null, 8, vn))), 128))
     ], 8, cn));
   }
-}, yn = /* @__PURE__ */ ln(vn, [["__scopeId", "data-v-11026cc1"]]);
-function Cn(e = []) {
+}, Cn = /* @__PURE__ */ ln(mn, [["__scopeId", "data-v-9a60a4be"]]);
+function $n(e = []) {
   const t = Z([...e]);
   function a(r) {
     t.push(r);
@@ -1392,8 +1405,8 @@ function Cn(e = []) {
   }
   return { cards: t, registrar: a, listar: n };
 }
-const mn = "dashboard_cards";
-function $n(e, t = mn) {
+const fn = "dashboard_cards";
+function xn(e, t = fn) {
   const a = Z({});
   let n = !1;
   async function r() {
@@ -1415,13 +1428,13 @@ function $n(e, t = mn) {
       console.warn("[vue-greenborn-dashboard-cards] Error guardando preferencias de cards:", v);
     });
   }
-  function u(v, m) {
+  function c(v, m) {
     a[v] = { ...a[v] || {}, ...m }, o();
   }
-  function c(v) {
+  function l(v) {
     return a[v] || {};
   }
-  return { overrides: a, cargar: r, setOverride: u, getOverride: c, estaCargado: () => n };
+  return { overrides: a, cargar: r, setOverride: c, getOverride: l, estaCargado: () => n };
 }
 export {
   Xe as CLAVE_COINCIDENCIAS,
@@ -1434,14 +1447,14 @@ export {
   Ge as ContextMenu,
   na as DASHBOARD_CARDS_CONTEXT_KEY,
   Za as DashboardCard,
-  _n as DashboardCardsGrid,
+  yn as DashboardCardsGrid,
   z as ID_GENERAL,
   Re as INICIALES,
   Jt as InternalDialog,
   fe as MAX_NOMBRE,
   me as NOMBRE_GENERAL,
   Yt as SelectorCardsOcultas,
-  yn as Sparkline,
+  Cn as Sparkline,
   je as TabFormModal,
   vt as TabsBar,
   Ba as TextoResaltado,
@@ -1457,12 +1470,12 @@ export {
   yt as conIniciales,
   _t as conNuevas,
   zt as copiarCard,
-  Cn as createCardRegistry,
-  _n as default,
+  $n as createCardRegistry,
+  yn as default,
   pt as destinos,
   It as eliminarPestana,
   Se as encolar,
-  gn as enqueue,
+  bn as enqueue,
   yt as ensureInitialTabs,
   we as errorDeNombre,
   Le as leer,
@@ -1479,15 +1492,15 @@ export {
   ke as pestanasInicialesDe,
   en as provideDashboardCardsContext,
   Dt as quitarCard,
-  pn as registerRefresh,
+  gn as registerRefresh,
   Et as renombrar,
   Te as reordenarCards,
   ta as reordenarPestanas,
   Ze as tabsWithCard,
   Ua as usarCola,
   qa as usarRefresco,
-  $n as useCardPreferences,
-  hn as useDashboardCardsContext,
-  bn as useQueryQueue
+  xn as useCardPreferences,
+  _n as useDashboardCardsContext,
+  hn as useQueryQueue
 };
 //# sourceMappingURL=vue-greenborn-dashboard-cards.js.map

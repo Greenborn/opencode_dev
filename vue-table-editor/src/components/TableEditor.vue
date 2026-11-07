@@ -14,8 +14,8 @@
           <span v-if="toolbarButtons.length" class="te-toolbar-divider">|</span>
           <button v-for="btn in toolbarActionButtons" :key="'ra-' + btn.key"
             :class="['te-btn', severityClass(btn.severity), btn.class]"
-            :disabled="btn.isDisabled() || !selectedRow"
-            @click="btn.onClick(selectedRow)"
+            :disabled="btn.isDisabled() || !toolbarActionSelection.length"
+            @click="btn.onClick(toolbarActionSelection.length === 1 ? toolbarActionSelection[0] : toolbarActionSelection)"
             :title="btn.getLabel()">
             <span v-if="btn.icon" class="te-btn-icon" v-html="iconSvg(btn.icon)"></span>{{ btn.getLabel() }}
           </button>
@@ -466,6 +466,12 @@ const useToolbarActions = computed(() => props.config?.rowActionsMode === 'toolb
 // (la tabla de escritorio nunca tiene columna de acciones; esto sólo afecta la vista de cards en mobile).
 const showCardActions = computed(() => useToolbarActions.value && props.config?.cardActions === true)
 const toolbarActionButtons = computed(() => (useToolbarActions.value ? rowActionButtons.value : []))
+// Filas efectivamente seleccionadas para las row actions del toolbar, válido tanto en
+// selectionMode 'single' (usa selectedRow) como 'multiple' (usa el Map selectedRows).
+const toolbarActionSelection = computed(() => {
+  if (selectionMode.value === 'multiple') return [...selectedRows.value.keys()]
+  return selectedRow.value ? [selectedRow.value] : []
+})
 const legacyLazy = computed(() => props.config?.lazyProtocol === 'legacy')
 const hasFilterDefs = computed(() => !!props.config?.columnFilterDefs)
 const dataPipeline = computed(() => props.config?.dataPipeline || null)
@@ -1098,9 +1104,9 @@ function refresh() {
 }
 
 function listParams(opts = {}) {
-  const page = opts.page ?? (infiniteScroll.value ? infinitePage.value : page.value)
+  const currentPage = opts.page ?? (infiniteScroll.value ? infinitePage.value : page.value)
   const p = {
-    page,
+    page: currentPage,
     [legacyLazy.value ? 'rows' : 'pageSize']: pageSize.value,
     sortField: sortField.value || '',
     sortOrder: sortOrder.value,
