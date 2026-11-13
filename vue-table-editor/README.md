@@ -133,6 +133,8 @@ mapea automáticamente a los SVG incluidos.
 
 ## Severity de botones
 
+`helpKey` (en `BtnConfig` y en `columns[]`) se renderiza como `data-help="<clave>"` en botones de toolbar/fila y encabezados de columna; sin `helpKey` no se emite el atributo.
+
 `severity` usa variantes propias (`te-btn-*`):
 
 | Severity | Estilo |
@@ -177,6 +179,7 @@ También se aceptan valores legacy con prefijo `btn-` (p. ej. `btn-primary`) y s
 | `pageSize` | Number | `25` | Filas por página |
 | `pageSizeOptions` | Array | `[25,50,100,200]` | Opciones del selector |
 | `hideToolbar` / `hideRefresh` / `hideCsvExport` | Boolean | `false` | Oculta elementos |
+| `searchHelpKey` / `columnSelectorHelpKey` / `paginatorHelpKey` | String | — | Renderiza `data-help="<clave>"` en el buscador, el selector de columnas y el paginador (ayuda contextual) |
 | `hideColumnSelector` | Boolean | `false` | Oculta el desplegable de visibilidad de columnas (la búsqueda global sigue visible) |
 | `showPaginator` | Boolean | `true` | Muestra paginador |
 | `defaultColumnProps` | Object | — | Props por defecto a todas las columnas |

@@ -7,7 +7,8 @@
           :class="['te-btn', severityClass(btn.severity), btn.class]"
           :disabled="btn.isDisabled()"
           @click="btn.onClick"
-          :title="btn.getLabel()">
+          :title="btn.getLabel()"
+          :data-help="btn.helpKey || undefined">
           <span v-if="btn.icon" class="te-btn-icon" v-html="iconSvg(btn.icon)"></span>{{ btn.getLabel() }}
         </button>
         <template v-if="toolbarActionButtons.length">
@@ -16,14 +17,16 @@
             :class="['te-btn', severityClass(btn.severity), btn.class]"
             :disabled="btn.isDisabled() || !toolbarActionSelection.length"
             @click="btn.onClick(toolbarActionSelection.length === 1 ? toolbarActionSelection[0] : toolbarActionSelection)"
-            :title="btn.getLabel()">
+            :title="btn.getLabel()"
+          :data-help="btn.helpKey || undefined">
             <span v-if="btn.icon" class="te-btn-icon" v-html="iconSvg(btn.icon)"></span>{{ btn.getLabel() }}
           </button>
         </template>
       </div>
       <div v-if="!config?.hideToolbarEnd" class="te-toolbar-end">
         <!-- Dropdown visibilidad de columnas -->
-        <div v-if="!config?.hideColumnSelector" class="te-dropdown" ref="colsDropdownRef">
+        <div v-if="!config?.hideColumnSelector" class="te-dropdown" ref="colsDropdownRef"
+          :data-help="config?.columnSelectorHelpKey || undefined">
           <button class="te-btn te-btn-outline-secondary" type="button" title="Columnas" @click="colsDropdownOpen = !colsDropdownOpen">
             <span class="te-btn-icon" v-html="iconSvg('columns')"></span>Columnas
           </button>
@@ -38,7 +41,7 @@
           </div>
         </div>
         <!-- Búsqueda global -->
-        <div class="te-search">
+        <div class="te-search" :data-help="config?.searchHelpKey || undefined">
           <span class="te-search-icon" v-html="iconSvg('search')"></span>
           <input type="text" class="te-search-input" v-model="globalFilterValue"
             @input="onGlobalFilterDebounced" placeholder="Buscar..." />
@@ -88,7 +91,8 @@
                 :class="['te-btn', severityClass(btn.severity), btn.class]"
                 :disabled="btn.isDisabled()"
                 @click.stop="btn.onClick(row)"
-                :title="btn.getLabel()">
+                :title="btn.getLabel()"
+          :data-help="btn.helpKey || undefined">
                 <span v-if="btn.icon" class="te-btn-icon" v-html="iconSvg(btn.icon)"></span> {{ btn.getLabel() }}
               </button>
             </template>
@@ -120,7 +124,7 @@
                   <span class="te-th-group-label">{{ hcol.headerName }}</span>
                 </div>
               </th>
-              <th v-else :rowspan="2" :data-field="hcol._col.field"
+              <th v-else :rowspan="2" :data-field="hcol._col.field" :data-help="hcol._col.helpKey || undefined"
                 :class="['te-th', hcol._col.css, { 'te-th-sorted': sortField === hcol._col.field }]">
                 <div class="te-th-content">
                   <span class="te-th-label" @click="onSortClick(hcol._col.field)">
@@ -139,7 +143,7 @@
           <tr v-if="hasColumnGroups" class="te-header-row te-has-groups">
             <template v-for="hcol of columnGroupHeaders" :key="'r2-'+hcol._key">
               <template v-if="hcol._type === 'group'">
-                <th v-for="col of hcol._cols" :key="col.field" :data-field="col.field"
+                <th v-for="col of hcol._cols" :key="col.field" :data-field="col.field" :data-help="col.helpKey || undefined"
                   :class="['te-th', col.css, { 'te-th-sorted': sortField === col.field }]">
                   <div class="te-th-content">
                     <span class="te-th-label" @click="onSortClick(col.field)">
@@ -165,6 +169,7 @@
             <th v-if="rowActionButtons.length && !useToolbarActions" class="te-th te-th-acts">Acciones</th>
             <th v-for="col of visibleColumns" :key="col.field"
               :data-field="col.field"
+              :data-help="col.helpKey || undefined"
               :class="['te-th', col.css, {
                 'te-th-dragover-left': dragOverField === col.field && dropSide === 'left',
                 'te-th-dragover-right': dragOverField === col.field && dropSide === 'right',
@@ -241,7 +246,8 @@
                     :class="['te-btn', severityClass(btn.severity), btn.class]"
                     :disabled="btn.isDisabled()"
                     @click.stop="btn.onClick(row)"
-                    :title="btn.getLabel()">
+                    :title="btn.getLabel()"
+          :data-help="btn.helpKey || undefined">
                     <span v-if="btn.icon" class="te-btn-icon" v-html="iconSvg(btn.icon)"></span> {{ btn.getLabel() }}
                   </button>
                 </template>
@@ -285,7 +291,8 @@
     </div>
 
     <!-- Paginador -->
-    <div v-show="!infiniteScroll && showPaginator" class="te-paginator">
+    <div v-show="!infiniteScroll && showPaginator" class="te-paginator"
+      :data-help="config?.paginatorHelpKey || undefined">
       <span class="te-page-info">Mostrando {{ pageStart }} a {{ pageEnd }} de {{ totalRows }}</span>
       <div class="te-page-controls">
         <button class="te-page-btn" :disabled="page <= 1" @click="goToPage(1)">««</button>

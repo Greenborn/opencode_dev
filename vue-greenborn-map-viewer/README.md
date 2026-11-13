@@ -73,6 +73,7 @@ const manejarClickPunto = (punto) => {
   - `subtitulo` (String, opcional) - Subtítulo o categoría
   - `descripcion` (String, opcional) - Descripción adicional
   - `popup` (Boolean, opcional) - Si mostrar popup al hacer clic
+  - `color` (String, opcional) - Color CSS del punto (`#hex`, `rgb()`, `hsl()` o nombre). Si falta o no es válido se usa `colorPunto`. Desde 1.3.0.
 
 ### Configuración del Mapa
 - **`centro`** (Array) - Coordenadas [lat, lng] del centro inicial. Por defecto: `[-37.3186, -59.1341]` (Tandil)
@@ -81,7 +82,7 @@ const manejarClickPunto = (punto) => {
 - **`tileUrl`** (String) - URL del proveedor de tiles de OpenStreetMap. Por defecto: `'https://tile.openstreetmap.org/{z}/{x}/{y}.png'`
 
 ### Personalización Visual
-- **`colorPunto`** (String) - Color de los marcadores. Por defecto: `'#0d6efd'` (azul)
+- **`colorPunto`** (String) - Color de los marcadores. Es el color por defecto; cada punto puede sobrescribirlo con `punto.color`. Por defecto: `'#0d6efd'` (azul)
 - **`radioPunto`** (Number) - Radio del marcador en píxeles. Por defecto: `8`
 - **`mostrarResumen`** (Boolean) - Mostrar texto con cantidad de puntos. Por defecto: `true`
 

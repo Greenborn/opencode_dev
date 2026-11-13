@@ -1,11 +1,16 @@
 import r from "leaflet";
-import { openBlock as s, createElementBlock as i, toDisplayString as n, createCommentVNode as c, createElementVNode as u, normalizeStyle as m, markRaw as d } from "vue";
-const p = (e, a) => {
+import { openBlock as s, createElementBlock as n, toDisplayString as i, createCommentVNode as c, createElementVNode as u, normalizeStyle as m, markRaw as d } from "vue";
+const g = /^(#[0-9a-fA-F]{3,8}|[a-zA-Z]{3,30}|(rgb|rgba|hsl|hsla)\([0-9a-zA-Z\s.,%/-]{1,60}\))$/;
+function p(e, a) {
+  const t = e && typeof e.color == "string" ? e.color.trim() : "";
+  return t && g.test(t) ? t : a;
+}
+const h = (e, a) => {
   const t = e.__vccOpts || e;
   for (const [o, l] of a)
     t[o] = l;
   return t;
-}, g = {
+}, f = {
   name: "MapViewerComponent",
   props: {
     puntos: {
@@ -137,7 +142,7 @@ const p = (e, a) => {
           radius: this.radioPunto,
           color: "#fff",
           weight: 2,
-          fillColor: this.colorPunto,
+          fillColor: p(a, this.colorPunto),
           fillOpacity: 0.9
         });
         a.popup && o.bindPopup(this.crearPopup(a)), o.on("click", () => {
@@ -171,39 +176,39 @@ const p = (e, a) => {
       a && a.closePopup();
     }
   }
-}, h = { class: "vgmv-viewer" }, f = {
+}, A = { class: "vgmv-viewer" }, b = {
   key: 0,
   class: "alert alert-danger mb-2"
-}, A = {
+}, k = {
   key: 1,
   class: "alert alert-secondary mb-2"
-}, b = {
+}, x = {
   key: 2,
   class: "alert alert-info mb-2"
-}, k = ["aria-label"], x = {
+}, w = ["aria-label"], y = {
   key: 3,
   class: "vgmv-resumen small text-muted mt-2 mb-0"
 };
-function w(e, a, t, o, l, M) {
-  return s(), i("div", h, [
-    t.error ? (s(), i("div", f, n(t.error), 1)) : c("", !0),
-    !t.error && t.puntos.length === 0 && !t.cargando ? (s(), i("div", A, n(t.mensajeSinPuntos || "No hay puntos para mostrar en el mapa."), 1)) : c("", !0),
-    t.cargando ? (s(), i("div", b, n(t.mensajeCargando || "Cargando mapa…"), 1)) : c("", !0),
+function M(e, a, t, o, l, z) {
+  return s(), n("div", A, [
+    t.error ? (s(), n("div", b, i(t.error), 1)) : c("", !0),
+    !t.error && t.puntos.length === 0 && !t.cargando ? (s(), n("div", k, i(t.mensajeSinPuntos || "No hay puntos para mostrar en el mapa."), 1)) : c("", !0),
+    t.cargando ? (s(), n("div", x, i(t.mensajeCargando || "Cargando mapa…"), 1)) : c("", !0),
     u("div", {
       ref: "mapaEl",
       class: "vgmv-map",
       role: "region",
       "aria-label": t.labelAccesibilidad,
       style: m({ height: t.altura })
-    }, null, 12, k),
-    !t.error && t.mostrarResumen ? (s(), i("p", x, n(t.cargando ? t.mensajeCargando || "Cargando…" : `${t.puntos.length} ${t.puntos.length === 1 ? "punto" : "puntos"} en el mapa.`), 1)) : c("", !0)
+    }, null, 12, w),
+    !t.error && t.mostrarResumen ? (s(), n("p", y, i(t.cargando ? t.mensajeCargando || "Cargando…" : `${t.puntos.length} ${t.puntos.length === 1 ? "punto" : "puntos"} en el mapa.`), 1)) : c("", !0)
   ]);
 }
-const y = /* @__PURE__ */ p(g, [["render", w], ["__scopeId", "data-v-2f7d69bd"]]);
-function z() {
-  return { MapViewerComponent: y };
+const N = /* @__PURE__ */ h(f, [["render", M], ["__scopeId", "data-v-84ebf982"]]);
+function E() {
+  return { MapViewerComponent: N };
 }
 export {
-  y as MapViewerComponent,
-  z as useMapViewer
+  N as MapViewerComponent,
+  E as useMapViewer
 };

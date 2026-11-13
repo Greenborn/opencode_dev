@@ -26,6 +26,7 @@
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { markRaw } from 'vue'
+import { resolverColorPunto } from '../colorPunto.js'
 
 export default {
   name: 'MapViewerComponent',
@@ -188,7 +189,7 @@ export default {
           radius: this.radioPunto,
           color: '#fff',
           weight: 2,
-          fillColor: this.colorPunto,
+          fillColor: resolverColorPunto(punto, this.colorPunto),
           fillOpacity: 0.9
         })
 
