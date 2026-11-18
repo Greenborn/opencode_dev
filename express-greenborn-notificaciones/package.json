@@ -1,12 +1,11 @@
 {
   "name": "@greenborn/express-greenborn-notificaciones",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Web Push (VAPID) reutilizable para backends Express/Node: router de suscripción/desuscripción, envío a un usuario o a todos, y migración Knex idempotente de push_subscriptions. Agnóstico de autenticación: recibe el authMiddleware por inyección de dependencias (pensado para usarse junto a express-greenborn-sso-back, pero no depende de él).",
   "type": "module",
   "files": [
     "dist",
-    "src",
-    "migrations"
+    "src"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

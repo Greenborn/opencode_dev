@@ -1,11 +1,11 @@
-# angular-greenborn-image-detail
+# @greenborn/angular-greenborn-image-detail
 
 Visor de detalle de imagen (zoom, pan, pantalla completa, descarga) y modal de detalle con navegación prev/next, para aplicaciones **Angular 21**. Componentes standalone extraídos del frontend de **GFC-Front** (Grupo Fotográfico Centro).
 
 ## Instalación
 
 ```bash
-npm install angular-greenborn-image-detail
+npm install @greenborn/angular-greenborn-image-detail
 ```
 
 ### Estilos requeridos
@@ -28,7 +28,7 @@ Modal de detalle autocontenido con navegación prev/next, teclado (←/→/Esc) 
 
 ```ts
 import { Component, signal } from '@angular/core';
-import { ImageDetailModalComponent, ImageDetailItem } from 'angular-greenborn-image-detail';
+import { ImageDetailModalComponent, ImageDetailItem } from '@greenborn/angular-greenborn-image-detail';
 
 @Component({
   standalone: true,

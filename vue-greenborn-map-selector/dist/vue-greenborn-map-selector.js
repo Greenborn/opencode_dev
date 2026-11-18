@@ -1,5 +1,5 @@
 import { ref as p, computed as S, onMounted as D, nextTick as I, onUnmounted as F, openBlock as N, createElementBlock as E, createElementVNode as s, createTextVNode as C, toDisplayString as M, createCommentVNode as j, unref as X } from "vue";
-import { useModal as y } from "vue-greenborn-modal-manager";
+import { useModal as y } from "@greenborn/vue-greenborn-modal-manager";
 import i from "leaflet";
 const q = (m, r) => {
   const k = m.__vccOpts || m;
@@ -127,7 +127,7 @@ const q = (m, r) => {
       ])
     ]));
   }
-}, ee = /* @__PURE__ */ q($, [["__scopeId", "data-v-503ece2d"]]);
+}, ee = /* @__PURE__ */ q($, [["__scopeId", "data-v-58eea806"]]);
 function oe() {
   const { mostrar_modal: m, ocultar_modal: r } = y();
   return { abrir: ({

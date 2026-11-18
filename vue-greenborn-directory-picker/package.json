@@ -1,6 +1,6 @@
 {
-  "name": "vue-greenborn-directory-picker",
-  "version": "1.0.0",
+  "name": "@greenborn/vue-greenborn-directory-picker",
+  "version": "1.0.1",
   "description": "Selector de directorios para Vue 3 sobre vue-greenborn-tree-view: navega el árbol de carpetas que devuelve una función `cargarDirectorios(nodoPadre)` provista por el consumidor (vía API, IPC, etc.) y permite elegir una ruta. No asume ningún backend concreto ni accede al filesystem por sí mismo. Sin dependencias de UI (CSS propio) más allá de vue-greenborn-tree-view.",
   "type": "module",
   "files": [
@@ -51,12 +51,12 @@
   },
   "peerDependencies": {
     "vue": "^3.3.0",
-    "vue-greenborn-tree-view": "^1.0.0"
+    "@greenborn/vue-greenborn-tree-view": "^1.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
     "vite": "^5.2.0",
     "vue": "^3.4.0",
-    "vue-greenborn-tree-view": "^1.0.0"
+    "@greenborn/vue-greenborn-tree-view": "^1.0.0"
   }
 }

@@ -80,7 +80,7 @@ La preferencia se guarda con la clave `preferenciasClave` y tiene este formato v
 
 ## Contexto (contrato de inyección)
 
-El paquete nunca importa `vue-greenborn-sso-front`, `vue-greenborn-modal-manager`, Pinia ni una
+El paquete nunca importa `vue-greenborn-sso-front`, `@greenborn/vue-greenborn-modal-manager`, Pinia ni una
 librería de UI. El proyecto consumidor provee un objeto `contexto` con:
 
 - `socket`: cualquier objeto con `{emit, on, off, once}`.

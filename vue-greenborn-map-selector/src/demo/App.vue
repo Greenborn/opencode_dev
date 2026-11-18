@@ -22,7 +22,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { ModalContainer } from 'vue-greenborn-modal-manager'
+import { ModalContainer } from '@greenborn/vue-greenborn-modal-manager'
 import { useMapSelector } from '../index.js'
 
 const { abrir } = useMapSelector()

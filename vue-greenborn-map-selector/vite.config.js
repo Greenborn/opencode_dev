@@ -20,12 +20,12 @@ export default defineConfig({
       cssFileName: 'vue-greenborn-map-selector',
     },
     rollupOptions: {
-      external: ['vue', 'vue-greenborn-modal-manager', 'leaflet'],
+      external: ['vue', '@greenborn/vue-greenborn-modal-manager', 'leaflet'],
       output: {
         exports: 'named',
         globals: {
           vue: 'Vue',
-          'vue-greenborn-modal-manager': 'VueGreenbornModalManager',
+          '@greenborn/vue-greenborn-modal-manager': 'VueGreenbornModalManager',
           leaflet: 'L',
         },
         assetFileNames: (assetInfo) =>

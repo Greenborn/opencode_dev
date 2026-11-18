@@ -14,8 +14,8 @@
 </template>
 
 <script setup>
-import { ModalContainer } from 'vue-greenborn-modal-manager'
-import 'vue-greenborn-modal-manager/style.css'
+import { ModalContainer } from '@greenborn/vue-greenborn-modal-manager'
+import '@greenborn/vue-greenborn-modal-manager/style.css'
 import { ReporteContextual } from '../src/index.js'
 
 // Variables tomadas de .env (ver .env.example). El paquete no maneja credenciales.

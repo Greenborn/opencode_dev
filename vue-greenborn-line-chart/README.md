@@ -1,4 +1,4 @@
-# vue-greenborn-line-chart
+# @greenborn/vue-greenborn-line-chart
 
 Gráfico de líneas en SVG para Vue 3, sin librerías de gráficos de terceros. Dibuja una o varias
 series sobre un eje Y configurable (máximo y sufijo), con grilla, leyenda, tooltips nativos por
@@ -8,12 +8,12 @@ simples (porcentajes, conteos, etc).
 ## Instalación
 
 ```bash
-npm install vue-greenborn-line-chart
+npm install @greenborn/vue-greenborn-line-chart
 ```
 
 ```js
-import { GbLineChart } from 'vue-greenborn-line-chart'
-import 'vue-greenborn-line-chart/style.css'
+import { GbLineChart } from '@greenborn/vue-greenborn-line-chart'
+import '@greenborn/vue-greenborn-line-chart/style.css'
 ```
 
 ## Uso básico
@@ -24,7 +24,7 @@ import 'vue-greenborn-line-chart/style.css'
 </template>
 
 <script setup>
-import { GbLineChart } from 'vue-greenborn-line-chart'
+import { GbLineChart } from '@greenborn/vue-greenborn-line-chart'
 
 const labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie']
 const series = [
@@ -67,7 +67,7 @@ paleta:
 }
 ```
 
-El `import 'vue-greenborn-line-chart/style.css'` sigue siendo necesario por convención (mismo
+El `import '@greenborn/vue-greenborn-line-chart/style.css'` sigue siendo necesario por convención (mismo
 patrón que el resto de los paquetes Greenborn), aunque hoy ese archivo no agregue reglas propias.
 
 ## Demo local

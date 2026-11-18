@@ -1,13 +1,13 @@
-# express-greenborn-galeria-image
+# @greenborn/express-greenborn-galeria-image
 
 Galería de imágenes para backends Express/Node.js: CRUD de imágenes con subida (`multer`), generación automática de thumbnails y extracción de dimensiones (`sharp`), storage en disco local y listado paginado. Con inyección de dependencias (`knex`, `logger`, middlewares) y agnóstico del esquema de base de datos.
 
-**Compatible con el RBAC de `express-greenborn-sso-back`** mediante middlewares inyectables, pero **utilizable sin él** (modo standalone con rutas abiertas).
+**Compatible con el RBAC de `@greenborn/express-greenborn-sso-back`** mediante middlewares inyectables, pero **utilizable sin él** (modo standalone con rutas abiertas).
 
 ## Install
 
 ```bash
-npm install express-greenborn-galeria-image
+npm install @greenborn/express-greenborn-galeria-image
 # peer opcional (ya lo tenés si usás Express):
 npm install express
 ```
@@ -19,7 +19,7 @@ Requisitos: Node >= 18, Express ^4.21 || ^5, una instancia de `knex` (mysql2, pg
 ```js
 import express from 'express';
 import knex from 'knex';
-import { createGaleriaImage } from 'express-greenborn-galeria-image';
+import { createGaleriaImage } from '@greenborn/express-greenborn-galeria-image';
 
 const app = express();
 const db = knex({ client: 'mysql2', connection: { /* ... */ } });
@@ -37,12 +37,12 @@ app.use(galeria.rootPath, galeria.galeriaRouter); // monta /api/galeria-imagenes
 app.listen(3000);
 ```
 
-## Uso con RBAC (express-greenborn-sso-back)
+## Uso con RBAC (@greenborn/express-greenborn-sso-back)
 
 El paquete **no depende** de sso-back: el host inyecta los middlewares que quiera por operación. Con el RBAC de greenborn:
 
 ```js
-import { createSsoAuth } from 'express-greenborn-sso-back';
+import { createSsoAuth } from '@greenborn/express-greenborn-sso-back';
 
 const sso = createSsoAuth({ knex: db, rbac: true });
 

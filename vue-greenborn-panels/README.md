@@ -1,4 +1,4 @@
-# vue-greenborn-panels
+# @greenborn/vue-greenborn-panels
 
 Sistema genérico de **paneles y tabs reordenables** para **Vue 3**, extraído y genericizado del sistema de paneles de la aplicación Greenborn/SGI. Incluye:
 
@@ -15,13 +15,13 @@ Sistema genérico de **paneles y tabs reordenables** para **Vue 3**, extraído y
 ## Instalación
 
 ```bash
-npm install vue-greenborn-panels
+npm install @greenborn/vue-greenborn-panels
 ```
 
 Importa el CSS una sola vez (puedes sobreescribir las clases `gp-*`):
 
 ```js
-import 'vue-greenborn-panels/style.css'
+import '@greenborn/vue-greenborn-panels/style.css'
 ```
 
 ## Uso rápido
@@ -29,7 +29,7 @@ import 'vue-greenborn-panels/style.css'
 ### 1. Registra tabs por slot (una vez)
 
 ```js
-import { usePanelRegistry } from 'vue-greenborn-panels'
+import { usePanelRegistry } from '@greenborn/vue-greenborn-panels'
 
 const registry = usePanelRegistry()
 registry.registerTab('sidebarRight', {
@@ -51,7 +51,7 @@ Cada tab requiere `id`, `label` y `priority` numérico; `component` se usa con `
 ### 2. Arma el controlador de tabs en tu panel
 
 ```js
-import { usePanelRegistry, useTabController, useLayoutState } from 'vue-greenborn-panels'
+import { usePanelRegistry, useTabController, useLayoutState } from '@greenborn/vue-greenborn-panels'
 
 const { getTabs } = usePanelRegistry()
 const slotTabs = ref(getTabs('sidebarRight'))

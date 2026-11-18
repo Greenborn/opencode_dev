@@ -1,4 +1,4 @@
-# vue-greenborn-map-viewer
+# @greenborn/vue-greenborn-map-viewer
 
 Visor de mapa interactivo para Vue 3 basado en Leaflet que permite mostrar múltiples puntos (marcadores) en un mapa. Ideal para visualizar ubicaciones de profesionales, servicios, recursos o cualquier otro tipo de datos geoespaciales.
 
@@ -16,7 +16,7 @@ Visor de mapa interactivo para Vue 3 basado en Leaflet que permite mostrar múlt
 ## Instalación
 
 ```bash
-npm install vue-greenborn-map-viewer
+npm install @greenborn/vue-greenborn-map-viewer
 ```
 
 ## Uso Básico
@@ -32,8 +32,8 @@ npm install vue-greenborn-map-viewer
 </template>
 
 <script setup>
-import { MapViewerComponent } from 'vue-greenborn-map-viewer'
-import 'vue-greenborn-map-viewer/style.css'
+import { MapViewerComponent } from '@greenborn/vue-greenborn-map-viewer'
+import '@greenborn/vue-greenborn-map-viewer/style.css'
 
 const profesionales = [
   {
@@ -159,8 +159,8 @@ this.$refs.mapRef.quitarResaltePunto(1)
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { MapViewerComponent } from 'vue-greenborn-map-viewer'
-import 'vue-greenborn-map-viewer/style.css'
+import { MapViewerComponent } from '@greenborn/vue-greenborn-map-viewer'
+import '@greenborn/vue-greenborn-map-viewer/style.css'
 
 const mapa = ref(null)
 const profesionales = ref([])

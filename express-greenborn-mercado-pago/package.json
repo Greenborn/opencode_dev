@@ -1,6 +1,6 @@
 {
-  "name": "express-greenborn-mercado-pago",
-  "version": "1.0.0",
+  "name": "@greenborn/express-greenborn-mercado-pago",
+  "version": "1.0.1",
   "description": "Integración centralizada con Mercado Pago para backends Express/Node.js: API client (axios) sobre api.mercadopago.com y webhook receptor con deduplicación, con inyección de dependencias (knex, logger) y agnóstico del esquema de base de datos. Diseñado para absorber a futuro todo el ecosistema MP (procesador de eventos, preferencias a demanda, sucursales, POS/QR).",
   "type": "module",
   "files": [

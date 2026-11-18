@@ -1,4 +1,4 @@
-# vue-greenborn-money-input
+# @greenborn/vue-greenborn-money-input
 
 Campo de entrada de moneda para Vue 3. Autoformatea el valor con el formato de moneda
 argentino (punto para separador de miles, coma para los centavos), bloquea cualquier
@@ -9,12 +9,12 @@ dispositivos móviles (`inputmode="decimal"`, tamaño de fuente y padding ajusta
 ## Instalación
 
 ```bash
-npm install vue-greenborn-money-input
+npm install @greenborn/vue-greenborn-money-input
 ```
 
 ```js
-import { GbMoneyInput } from 'vue-greenborn-money-input'
-import 'vue-greenborn-money-input/style.css'
+import { GbMoneyInput } from '@greenborn/vue-greenborn-money-input'
+import '@greenborn/vue-greenborn-money-input/style.css'
 ```
 
 ## Uso básico
@@ -26,7 +26,7 @@ import 'vue-greenborn-money-input/style.css'
 
 <script setup>
 import { ref } from 'vue'
-import { GbMoneyInput } from 'vue-greenborn-money-input'
+import { GbMoneyInput } from '@greenborn/vue-greenborn-money-input'
 
 const monto = ref(1234.5) // se muestra como "1.234,50"
 </script>

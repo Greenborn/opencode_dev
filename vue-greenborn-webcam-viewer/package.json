@@ -1,6 +1,6 @@
 {
-  "name": "vue-greenborn-webcam-viewer",
-  "version": "1.0.2",
+  "name": "@greenborn/vue-greenborn-webcam-viewer",
+  "version": "1.0.3",
   "description": "Visor de webcam para Vue 3: obtención de permisos, selección de cámara, captura de frames/fotos y visualización del stream con una capa de bounding boxes y slots para overlays extra. No asume ningún backend ni API de detección: el consumidor decide qué hacer con los frames capturados. Sin dependencias runtime más allá de Vue.",
   "type": "module",
   "files": [

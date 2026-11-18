@@ -30,7 +30,7 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { useModal } from 'vue-greenborn-modal-manager'
+import { useModal } from '@greenborn/vue-greenborn-modal-manager'
 import { enviarReporte } from '../utils/reporteApi.js'
 
 const props = defineProps({

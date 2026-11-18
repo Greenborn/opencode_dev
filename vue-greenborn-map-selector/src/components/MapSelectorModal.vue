@@ -60,7 +60,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
-import { useModal } from 'vue-greenborn-modal-manager'
+import { useModal } from '@greenborn/vue-greenborn-modal-manager'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 

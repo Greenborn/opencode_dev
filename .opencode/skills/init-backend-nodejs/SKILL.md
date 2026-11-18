@@ -1,20 +1,20 @@
 ---
 name: init-backend-nodejs
-description: Inicializar un backend Node.js con Express, MariaDB vía Knex, CORS, migraciones automáticas, sesiones SSO (express-greenborn-sso-back) con RBAC por defecto, usuario admin con todos los permisos y CRUD de usuarios, roles y permisos
+description: Inicializar un backend Node.js con Express, MariaDB vía Knex, CORS, migraciones automáticas, sesiones SSO (@greenborn/express-greenborn-sso-back) con RBAC por defecto, usuario admin con todos los permisos y CRUD de usuarios, roles y permisos
 requires: []
 ---
 
 # Skill: Inicializar backend Node.js con Express + SSO + RBAC
 
-Usar cuando el usuario pida **crear un backend Node.js desde cero** con Express, conexión a MariaDB vía Knex, CORS, migraciones automáticas al inicio, **sistema de sesiones SSO** (integrado con `express-greenborn-sso-back`) y **RBAC por defecto**.
+Usar cuando el usuario pida **crear un backend Node.js desde cero** con Express, conexión a MariaDB vía Knex, CORS, migraciones automáticas al inicio, **sistema de sesiones SSO** (integrado con `@greenborn/express-greenborn-sso-back`) y **RBAC por defecto**.
 
 Este skill inicializa un backend que incluye:
-- **Sesiones SSO + login local** (`express-greenborn-sso-back@1.6.0`).
+- **Sesiones SSO + login local** (`@greenborn/express-greenborn-sso-back@1.6.0`).
 - **RBAC** (roles y permisos M2M) habilitado por defecto (`rbac: true`).
 - **Usuario admin** con todos los permisos, creado por seed.
 - **CRUD de usuarios, roles y permisos** con autorización por permiso (`requirePermission`).
 
-> **Sesiones**: cuando el proyecto requiere autenticación/sesiones, se usa el paquete `express-greenborn-sso-back@1.6.0`. Este paquete incluye el sistema de usuarios local (`user`, `profile`, `user_tokens`), el esquema RBAC M2M (`roles`, `permisos`, `usuarios_roles`, `roles_permisos`), validación de tokens SSO/locales, sincronización del usuario, login local con bcrypt (`localLogin`) y middlewares `authMiddleware`/`requirePermission`/`requireRole`. **No** se escribe un sistema JWT propio ni un módulo RBAC manual.
+> **Sesiones**: cuando el proyecto requiere autenticación/sesiones, se usa el paquete `@greenborn/express-greenborn-sso-back@1.6.0`. Este paquete incluye el sistema de usuarios local (`user`, `profile`, `user_tokens`), el esquema RBAC M2M (`roles`, `permisos`, `usuarios_roles`, `roles_permisos`), validación de tokens SSO/locales, sincronización del usuario, login local con bcrypt (`localLogin`) y middlewares `authMiddleware`/`requirePermission`/`requireRole`. **No** se escribe un sistema JWT propio ni un módulo RBAC manual.
 
 ---
 
@@ -67,7 +67,7 @@ Fijar la versión inicial del proyecto editando `package.json` para que quede:
 ## 2. Instalar dependencias
 
 ```bash
-npm install express cors knex mysql2 dotenv express-greenborn-sso-back@1.6.0 bcryptjs
+npm install express cors knex mysql2 dotenv @greenborn/express-greenborn-sso-back@1.6.0 bcryptjs
 npm install -D nodemon eslint
 ```
 
@@ -90,7 +90,7 @@ DB_USER=mi_usuario
 DB_PASSWORD=mi_password
 DB_NAME=mi_app
 
-# SSO (express-greenborn-sso-back)
+# SSO (@greenborn/express-greenborn-sso-back)
 URL_AUTH_SERVICE=https://auth.greenborn.com.ar
 # Mapeo de roles: {"email": role_id, "*@dominio": role_id} (role_id referencia la tabla "roles")
 SSO_ROLE_MAP={"admin@greenborn.com.ar":1}
@@ -319,7 +319,7 @@ Se configura `createSsoAuth` con la instancia de Knex, el mapeo de roles, **RBAC
 ```javascript
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import { createSsoAuth } from 'express-greenborn-sso-back';
+import { createSsoAuth } from '@greenborn/express-greenborn-sso-back';
 import config from './config/env.js';
 import corsMiddleware from './config/cors.js';
 import db from './config/db.js';
@@ -1295,7 +1295,7 @@ cd <nombre-proyecto>
 | 6 | Leer `documentacion/DOCUMENTACION.md` | Existe con todas las secciones completas |
 | 7 | Verificar `src/config/env.js` | Lee solo de `.env` vía `dotenv.parse()` + `fs.readFileSync()`. No usa `process.env` |
 | 8 | Verificar `src/index.js` | `db.migrate.latest()` se ejecuta dentro de `async function start()` antes de `app.listen()` |
-| 9 | Verificar `createSsoAuth` | Usa `express-greenborn-sso-back@1.6.0`, `rbac: true`, `localLogin` con bcrypt y monta `sso.router` en `/api/user` |
+| 9 | Verificar `createSsoAuth` | Usa `@greenborn/express-greenborn-sso-back@1.6.0`, `rbac: true`, `localLogin` con bcrypt y monta `sso.router` en `/api/user` |
 | 10 | Verificar seed RBAC | `src/seeds/rbac.js` crea roles, permisos, enlaza todos los permisos a ADMIN y crea el usuario admin |
 | 11 | Verificar CRUD | Existen `usuariosController.js`, `rolesController.js`, `permisosController.js` y rutas con `sso.requirePermission` |
 
@@ -1346,7 +1346,7 @@ kill $SERVER_PID 2>/dev/null
 ```markdown
 # <nombre-proyecto>
 
-Backend Express + SSO (express-greenborn-sso-back) con MariaDB/Knex.
+Backend Express + SSO (@greenborn/express-greenborn-sso-back) con MariaDB/Knex.
 
 ## REQUISITOS
 
@@ -1385,7 +1385,7 @@ Backend Express + SSO (express-greenborn-sso-back) con MariaDB/Knex.
 
 ## ENDPOINTS
 
-### SSO (`/api/user`, del paquete express-greenborn-sso-back)
+### SSO (`/api/user`, del paquete @greenborn/express-greenborn-sso-back)
 
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
@@ -1444,14 +1444,14 @@ Backend Express + SSO (express-greenborn-sso-back) con MariaDB/Knex.
 ## DEPENDENCIAS
 
 - `express`, `cors`, `knex`, `mysql2`, `dotenv`
-- `express-greenborn-sso-back@1.6.0`
+- `@greenborn/express-greenborn-sso-back@1.6.0`
 - `bcryptjs` (hash de contraseñas del login local)
 - `socket.io` (si `ws-habilitado`)
 ```
 
 ## Reglas obligatorias
 
-- **Sesiones**: siempre usar `express-greenborn-sso-back@1.6.0`. No implementar JWT propio ni módulo RBAC manual.
+- **Sesiones**: siempre usar `@greenborn/express-greenborn-sso-back@1.6.0`. No implementar JWT propio ni módulo RBAC manual.
 - **RBAC por defecto**: habilitar `rbac: true` en `createSsoAuth`; el esquema M2M (`roles`, `permisos`, `usuarios_roles`, `roles_permisos`) lo gestiona el paquete SSO.
 - **Login local**: habilitar `localLogin` con bcrypt para que el admin (y demás usuarios) se autentiquen por contraseña.
 - **Admin con todos los permisos**: el seed `rbac.js` debe crear el rol ADMIN y asignarle todos los permisos, y crear el usuario admin enlazado a ese rol.

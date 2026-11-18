@@ -1,7 +1,7 @@
 # @greenborn/vue-greenborn-map-selector
 
 Selector de ubicación en mapa (Leaflet) para Vue 3, integrado con
-[vue-greenborn-modal-manager](https://www.npmjs.com/package/vue-greenborn-modal-manager).
+[@greenborn/vue-greenborn-modal-manager](https://www.npmjs.com/package/vue-greenborn-modal-manager).
 
 Abre un modal con un mapa interactivo que se **apila correctamente sobre cualquier
 otro modal abierto** por el gestor genérico (mismo sistema de capas / z-index), lo
@@ -26,7 +26,7 @@ modales.
 ## Requisitos
 
 - Vue `^3.3.0`
-- `vue-greenborn-modal-manager` `^1.5.0` instalado y con `<ModalContainer />`
+- `@greenborn/vue-greenborn-modal-manager` `^1.5.0` instalado y con `<ModalContainer />`
   montado en la app (peer dependency: **debe** ser la misma instancia de módulo
   que usa tu app para compartir la pila de modales).
 - Bootstrap classes (btn, alert) usadas en los botones; funciona sin Bootstrap
@@ -39,7 +39,7 @@ npm install @greenborn/vue-greenborn-map-selector
 ```
 
 `leaflet` se instala como dependencia del paquete. `vue` y
-`vue-greenborn-modal-manager` deben estar presentes en tu proyecto (peers).
+`@greenborn/vue-greenborn-modal-manager` deben estar presentes en tu proyecto (peers).
 
 ## Uso
 
@@ -88,7 +88,7 @@ Devuelve `{ code, cerrar }` para cerrarlo programáticamente.
 
 ```js
 import { MapSelectorModal } from '@greenborn/vue-greenborn-map-selector'
-import { useModal } from 'vue-greenborn-modal-manager'
+import { useModal } from '@greenborn/vue-greenborn-modal-manager'
 
 const { mostrar_modal } = useModal()
 mostrar_modal(MapSelectorModal, 'Seleccionar ubicación', {

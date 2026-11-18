@@ -1,6 +1,6 @@
 {
-  "name": "vue-greenborn-image-viewer",
-  "version": "1.0.2",
+  "name": "@greenborn/vue-greenborn-image-viewer",
+  "version": "1.0.3",
   "description": "Visor de imagen para Vue 3: núcleo de viewport reutilizable con zoom (rueda y botones, centrado en el cursor), pan (Ctrl+arrastre) y rotación libre con preview recortado. Expone un slot para overlays (ej. canvas de anotaciones/detecciones) sincronizados con la escala y el ángulo. No persiste rotaciones ni recorta píxeles reales: el consumidor decide cuándo aplicar los cambios. Sin dependencias de UI (CSS propio) y sin dependencias runtime.",
   "type": "module",
   "files": [

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { SsoCallbackComponent } from 'angular-greenborn-sso-front';
+import { SsoCallbackComponent } from '@greenborn/angular-greenborn-sso-front';
 
 @Component({
   standalone: true,

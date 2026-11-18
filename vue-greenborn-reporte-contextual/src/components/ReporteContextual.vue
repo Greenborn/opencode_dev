@@ -17,7 +17,7 @@
 
 <script setup>
 import { onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { useModal } from 'vue-greenborn-modal-manager'
+import { useModal } from '@greenborn/vue-greenborn-modal-manager'
 import ReporteFormModal from './ReporteFormModal.vue'
 import ReporteFormFooter from './ReporteFormFooter.vue'
 import { obtenerInfoElemento } from '../utils/infoElemento.js'

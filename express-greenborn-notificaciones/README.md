@@ -2,7 +2,7 @@
 
 Web Push (VAPID) reutilizable para backends Express/Node: router de suscripción/desuscripción, envío a un usuario o a todos, y migración Knex idempotente de `push_subscriptions`.
 
-**No reimplementa autenticación.** Recibe el `authMiddleware` por inyección de dependencias — pensado para usarse junto a [`express-greenborn-sso-back`](../express-greenborn-sso-back), pero no depende de él ni lo importa.
+**No reimplementa autenticación.** Recibe el `authMiddleware` por inyección de dependencias — pensado para usarse junto a [`@greenborn/express-greenborn-sso-back`](../express-greenborn-sso-back), pero no depende de él ni lo importa.
 
 ## Instalación
 
@@ -44,14 +44,14 @@ Es **idempotente** (`hasTable` guard): ejecutarla más de una vez no rompe el es
 import express from 'express';
 import knex from 'knex';
 import { createNotificaciones } from '@greenborn/express-greenborn-notificaciones';
-import { createSsoAuth } from 'express-greenborn-sso-back';
+import { createSsoAuth } from '@greenborn/express-greenborn-sso-back';
 
 const app = express();
 app.use(express.json());
 
 const db = knex({ /* config de tu proyecto */ });
 
-// Auth real del proyecto (ejemplo con express-greenborn-sso-back)
+// Auth real del proyecto (ejemplo con @greenborn/express-greenborn-sso-back)
 const sso = createSsoAuth({ knex: db, /* ... */ });
 
 const notificaciones = createNotificaciones({
@@ -88,7 +88,7 @@ Todas las rutas pasan por el `authMiddleware` inyectado.
 
 Las rutas de suscripción/desuscripción necesitan `req.<userField>.id` para saber a qué usuario pertenece la suscripción. El nombre exacto del campo que tu `authMiddleware` deja en `req` **varía según el sistema de auth**:
 
-- `express-greenborn-sso-back` (tal cual, sin adaptar) deja al usuario en **`req.user`** → pasar `userField: 'user'`.
+- `@greenborn/express-greenborn-sso-back` (tal cual, sin adaptar) deja al usuario en **`req.user`** → pasar `userField: 'user'`.
 - Si tu backend tiene un `authMiddleware` propio que adapta/renombra el usuario a `req.usuario` (como hace `sgi-backend`), dejá el default: `userField: 'usuario'`.
 
 **No adivines**: revisá qué campo setea tu middleware (`console.log(req)` en una ruta de prueba) y configurá `userField` en consecuencia. Si está mal configurado, las rutas de suscripción devuelven `{ status: false, error: 'req.<userField>.id no está presente...' }` en vez de fallar silenciosamente.

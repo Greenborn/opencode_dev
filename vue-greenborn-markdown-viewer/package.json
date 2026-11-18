@@ -1,6 +1,6 @@
 {
-  "name": "vue-greenborn-markdown-viewer",
-  "version": "1.0.0",
+  "name": "@greenborn/vue-greenborn-markdown-viewer",
+  "version": "1.0.1",
   "description": "Visor de Markdown para Vue 3: convierte texto Markdown (GFM) en HTML formateado, sanitizado con DOMPurify, con estilos tipográficos propios y sin dependencias de UI.",
   "type": "module",
   "files": [

@@ -1,4 +1,4 @@
-# express-greenborn-sso-back
+# @greenborn/express-greenborn-sso-back
 
 Autenticación **SSO (Single Sign-On)** para backends **Express/Node.js** que se integra con el servidor de autenticación de Greenborn (`https://auth.greenborn.com.ar`).
 
@@ -18,7 +18,7 @@ Incluye:
 ## Instalación
 
 ```bash
-npm install express-greenborn-sso-back
+npm install @greenborn/express-greenborn-sso-back
 ```
 
 Requisitos: Node.js ≥ 18, Express `^4`, y una instancia de **Knex** configurada.
@@ -26,7 +26,7 @@ Requisitos: Node.js ≥ 18, Express `^4`, y una instancia de **Knex** configurad
 ## Uso básico
 
 ```js
-import { createSsoAuth } from 'express-greenborn-sso-back';
+import { createSsoAuth } from '@greenborn/express-greenborn-sso-back';
 import express from 'express';
 import knex from 'knex';
 
@@ -480,7 +480,7 @@ socket.broadcast('ping', { ts: Date.now() });
 El paquete expone **`securityMiddleware`**, un middleware Helmet pre-configurado que añade headers HTTP de seguridad a todas las respuestas:
 
 ```js
-import { createSsoAuth } from 'express-greenborn-sso-back';
+import { createSsoAuth } from '@greenborn/express-greenborn-sso-back';
 
 const sso = createSsoAuth({ knex, ... });
 
@@ -541,7 +541,7 @@ npm run demo           # levanta el servidor de demostración en el puerto 5175
 - Salidas: código `0` si la versión aparece en `versions` y en `dist-tags.latest`; `1` si tras los reintentos no aparece.
 - Overrides por entorno: `REGISTRY_URL`, `VERIFY_ATTEMPTS` (default `30`), `VERIFY_DELAY_MS` (default `5000`).
 
-> En los proyectos consumidores, si `npm install` no ve la versión nueva por caché local, forzá el refresco con `npm install express-greenborn-sso-back@<version> --prefer-online` (o `npm cache clean --force` antes de instalar).
+> En los proyectos consumidores, si `npm install` no ve la versión nueva por caché local, forzá el refresco con `npm install @greenborn/express-greenborn-sso-back@<version> --prefer-online` (o `npm cache clean --force` antes de instalar).
 
 ## Demo
 

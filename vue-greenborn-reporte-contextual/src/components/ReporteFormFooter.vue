@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import { useModal } from 'vue-greenborn-modal-manager'
+import { useModal } from '@greenborn/vue-greenborn-modal-manager'
 
 const props = defineProps({
   parametros: { type: Object, required: true },

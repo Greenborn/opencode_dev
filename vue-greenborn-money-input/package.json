@@ -1,6 +1,6 @@
 {
-  "name": "vue-greenborn-money-input",
-  "version": "1.0.0",
+  "name": "@greenborn/vue-greenborn-money-input",
+  "version": "1.0.1",
   "type": "module",
   "files": ["dist"],
   "main": "./dist/vue-greenborn-money-input.umd.cjs",

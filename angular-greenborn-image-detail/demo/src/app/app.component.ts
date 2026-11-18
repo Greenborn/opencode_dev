@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ImageDetailModalComponent, ImageDetailItem } from 'angular-greenborn-image-detail';
+import { ImageDetailModalComponent, ImageDetailItem } from '@greenborn/angular-greenborn-image-detail';
 
 const SAMPLE: ImageDetailItem[] = [
   {

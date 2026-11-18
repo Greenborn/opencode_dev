@@ -1,8 +1,8 @@
-# express-greenborn-mercado-pago
+# @greenborn/express-greenborn-mercado-pago
 
 Integración **centralizada con Mercado Pago** para backends **Express/Node.js**: un **API client** (axios) sobre `api.mercadopago.com` y un **webhook receptor** con deduplicación, con **inyección de dependencias** (knex, logger) y **agnóstico del esquema de base de datos**.
 
-El paquete extrae y generaliza el código de pago del backend de referencia (`mercado_pago_iot`) y lo expone de forma reutilizable. Igual que [`express-greenborn-sso-back`](https://github.com/Greenborn/opencode_dev/tree/main/express-greenborn-sso-back), se inyecta vía factory (`createMercadoPago`) para no depender de `global.knex` ni del esquema del host.
+El paquete extrae y generaliza el código de pago del backend de referencia (`mercado_pago_iot`) y lo expone de forma reutilizable. Igual que [`@greenborn/express-greenborn-sso-back`](https://github.com/Greenborn/opencode_dev/tree/main/express-greenborn-sso-back), se inyecta vía factory (`createMercadoPago`) para no depender de `global.knex` ni del esquema del host.
 
 > **Alcance actual:** API client + webhook receptor + migraciones. El objetivo del paquete es, a futuro, **centralizar todo lo referente a Mercado Pago** (procesador de eventos, preferencias de pago a demanda, sucursales/stores, POS/QR, renovación de QR) como módulos del mismo factory.
 
@@ -11,7 +11,7 @@ El paquete extrae y generaliza el código de pago del backend de referencia (`me
 ## Instalación
 
 ```bash
-npm install express-greenborn-mercado-pago
+npm install @greenborn/express-greenborn-mercado-pago
 ```
 
 Requisitos: Node.js ≥ 18, Express `^4`, y una instancia de **Knex** configurada.
@@ -19,7 +19,7 @@ Requisitos: Node.js ≥ 18, Express `^4`, y una instancia de **Knex** configurad
 ## Uso rápido
 
 ```js
-import { createMercadoPago } from 'express-greenborn-mercado-pago';
+import { createMercadoPago } from '@greenborn/express-greenborn-mercado-pago';
 import express from 'express';
 import knex from 'knex';
 

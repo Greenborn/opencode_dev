@@ -1,6 +1,6 @@
 {
-  "name": "vue-greenborn-line-chart",
-  "version": "1.0.0",
+  "name": "@greenborn/vue-greenborn-line-chart",
+  "version": "1.0.1",
   "description": "Gráfico de líneas en SVG para Vue 3, sin librerías de gráficos de terceros: dibuja una o varias series con leyenda, grilla, tooltips por punto y marcas en el eje X. Pensado para paneles de métricas/estadísticas simples (porcentajes, conteos, etc).",
   "type": "module",
   "files": [

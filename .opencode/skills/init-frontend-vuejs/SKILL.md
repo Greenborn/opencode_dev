@@ -71,7 +71,7 @@ Fijar la versión inicial en `package.json` a `1.0.0`:
 ```bash
 npm install bootstrap @popperjs/core bootstrap-icons pinia axios vue-router vue-greenborn-sso-front@1.1.0
 npm install vue-table-editor
-npm install vue-greenborn-modal-manager
+npm install @greenborn/vue-greenborn-modal-manager
 ```
 
 Si `<ws-habilitado>` es `true`, instalar además el cliente socket.io (peer del paquete SSO):
@@ -275,8 +275,8 @@ export default router
 <script>
 import Topbar from './components/layout/Topbar.vue'
 import Sidebar from './components/layout/Sidebar.vue'
-import { ModalContainer } from 'vue-greenborn-modal-manager'
-import 'vue-greenborn-modal-manager/style.css'
+import { ModalContainer } from '@greenborn/vue-greenborn-modal-manager'
+import '@greenborn/vue-greenborn-modal-manager/style.css'
 import { useSsoAuth } from 'vue-greenborn-sso-front'
 
 export default {
@@ -849,14 +849,14 @@ Las acciones siguen el patrón de colores: editar = `btn-dark`, eliminar = `btn-
 
 El `config` puede persistir columnas visibles/ancho/orden por usuario.
 
-## 13H. Sistema de modales — `vue-greenborn-modal-manager`
+## 13H. Sistema de modales — `@greenborn/vue-greenborn-modal-manager`
 
-Los modales (formularios, confirmaciones, notificaciones) se gestionan con el paquete **`vue-greenborn-modal-manager`**. No escribir stores de modal propios ni usar `new Modal()` de Bootstrap directamente.
+Los modales (formularios, confirmaciones, notificaciones) se gestionan con el paquete **`@greenborn/vue-greenborn-modal-manager`**. No escribir stores de modal propios ni usar `new Modal()` de Bootstrap directamente.
 
 El contenedor `<ModalContainer />` ya está montado en la raíz (`App.vue`, sección 5) con su hoja de estilos importada. Desde cualquier componente se abre un modal con el composable `useModal()`:
 
 ```javascript
-import { useModal } from 'vue-greenborn-modal-manager'
+import { useModal } from '@greenborn/vue-greenborn-modal-manager'
 
 const { mostrar_modal, ocultar_modal, mostrar_alerta, mostrar_confirm } = useModal()
 
@@ -896,7 +896,7 @@ Al cuerpo se le pasa `parametros` con el objeto que definiste **más** las clave
 </template>
 
 <script>
-import { useModal } from 'vue-greenborn-modal-manager'
+import { useModal } from '@greenborn/vue-greenborn-modal-manager'
 
 export default {
   props: {
@@ -1057,7 +1057,7 @@ Frontend Vue 3 + Vite + Bootstrap + Pinia + SSO (vue-greenborn-sso-front).
 ## REQUISITOS
 
 - Node.js ≥ 18
-- Backend con sesiones SSO (express-greenborn-sso-back)
+- Backend con sesiones SSO (@greenborn/express-greenborn-sso-back)
 - Cuenta SSO Greenborn
 
 ## CONFIGURACION
@@ -1096,7 +1096,7 @@ Frontend Vue 3 + Vite + Bootstrap + Pinia + SSO (vue-greenborn-sso-front).
 - `src/router/` — rutas con guard de sesión SSO
 - `src/api/axios.js` — instancia Axios con token SSO
 - `src/views/` — vistas
-- `src/stores/` — Pinia (preferencias, pwa). Los modales se gestionan con `vue-greenborn-modal-manager` (sin store de modales propio)
+- `src/stores/` — Pinia (preferencias, pwa). Los modales se gestionan con `@greenborn/vue-greenborn-modal-manager` (sin store de modales propio)
 - `src/components/layout/` — Topbar, Sidebar
 
 ## DEPENDENCIAS

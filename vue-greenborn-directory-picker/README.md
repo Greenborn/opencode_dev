@@ -1,21 +1,21 @@
-# vue-greenborn-directory-picker
+# @greenborn/vue-greenborn-directory-picker
 
 Selector de directorios para Vue 3, construido sobre
-[`vue-greenborn-tree-view`](https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-tree-view).
+[`@greenborn/vue-greenborn-tree-view`](https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-tree-view).
 No asume ningún backend ni forma de acceder al filesystem: el consumidor resuelve una función
-`cargarDirectorios(nodoPadre)` (igual que `cargarNodos` en `vue-greenborn-tree-view`) que puede
+`cargarDirectorios(nodoPadre)` (igual que `cargarNodos` en `@greenborn/vue-greenborn-tree-view`) que puede
 llamar a una API, IPC de Electron, etc. El componente solo muestra el árbol de carpetas y emite
 la ruta elegida cuando el usuario hace click sobre un nodo.
 
 ## Instalación
 
 ```bash
-npm install vue-greenborn-directory-picker vue-greenborn-tree-view
+npm install @greenborn/vue-greenborn-directory-picker @greenborn/vue-greenborn-tree-view
 ```
 
 ```js
-import { GbDirectoryPicker } from 'vue-greenborn-directory-picker'
-import 'vue-greenborn-directory-picker/style.css'
+import { GbDirectoryPicker } from '@greenborn/vue-greenborn-directory-picker'
+import '@greenborn/vue-greenborn-directory-picker/style.css'
 ```
 
 ## Uso básico
@@ -26,7 +26,7 @@ import 'vue-greenborn-directory-picker/style.css'
 </template>
 
 <script setup>
-import { GbDirectoryPicker } from 'vue-greenborn-directory-picker'
+import { GbDirectoryPicker } from '@greenborn/vue-greenborn-directory-picker'
 
 // nodoPadre es null cuando se pide el nivel raiz.
 async function cargarDirectorios(nodoPadre) {
@@ -70,7 +70,7 @@ ejemplo, dentro de un modal) escuchar `seleccionar` y decidir cuándo confirmar 
 
 ## Estilos
 
-Sin dependencias de UI de terceros (además de `vue-greenborn-tree-view`, cuyo CSS hay que
+Sin dependencias de UI de terceros (además de `@greenborn/vue-greenborn-tree-view`, cuyo CSS hay que
 importar también). Variables CSS propias para integrarse con cualquier paleta:
 
 ```css

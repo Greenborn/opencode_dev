@@ -1,6 +1,6 @@
 {
-  "name": "vue-greenborn-tree-view",
-  "version": "1.0.0",
+  "name": "@greenborn/vue-greenborn-tree-view",
+  "version": "1.0.1",
   "description": "Vista de árbol genérica para Vue 3 con carga diferida (lazy-load): trae primero los nodos raíz y, al expandir cada nodo, pide sus hijos mediante una función `cargarNodos(nodoPadre)` que provee el consumidor. No asume ningún backend ni forma de dato en particular. Slots `nodo` y `toggle` para personalizar contenido e ícono de expansión. Sin dependencias de UI (CSS propio) y sin dependencias runtime.",
   "type": "module",
   "files": [

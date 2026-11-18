@@ -20,10 +20,10 @@ export default defineConfig({
       cssFileName: 'vue-greenborn-directory-picker',
     },
     rollupOptions: {
-      external: ['vue', 'vue-greenborn-tree-view'],
+      external: ['vue', '@greenborn/vue-greenborn-tree-view'],
       output: {
         exports: 'named',
-        globals: { vue: 'Vue', 'vue-greenborn-tree-view': 'VueGreenbornTreeView' },
+        globals: { vue: 'Vue', '@greenborn/vue-greenborn-tree-view': 'VueGreenbornTreeView' },
         assetFileNames: (assetInfo) =>
           assetInfo.name && assetInfo.name.endsWith('.css')
             ? 'vue-greenborn-directory-picker.css'

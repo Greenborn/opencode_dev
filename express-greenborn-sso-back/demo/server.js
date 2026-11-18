@@ -35,7 +35,7 @@ const sso = createSsoAuth({
 app.use(express.json());
 
 // Health check
-app.get('/health', (req, res) => res.json({ status: 'healthy', sso: 'express-greenborn-sso-back' }));
+app.get('/health', (req, res) => res.json({ status: 'healthy', sso: '@greenborn/express-greenborn-sso-back' }));
 
 // Router SSO completo: /me, /sso-profile, /register
 app.use('/api/user', sso.router);

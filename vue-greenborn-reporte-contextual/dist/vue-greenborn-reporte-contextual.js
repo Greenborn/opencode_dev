@@ -1,5 +1,5 @@
 import { reactive as C, ref as L, openBlock as f, createElementBlock as v, withModifiers as $, createElementVNode as l, createTextVNode as x, withDirectives as D, vModelText as R, createCommentVNode as b, toDisplayString as w, unref as _, onMounted as S, onBeforeUnmount as U, createBlock as z, Teleport as B, normalizeStyle as j } from "vue";
-import { useModal as M } from "vue-greenborn-modal-manager";
+import { useModal as M } from "@greenborn/vue-greenborn-modal-manager";
 const I = "/api/public/notas-desarrollo", K = "/api/public/notas-desarrollo/api-key";
 function O(e) {
   if (typeof e != "string" || e.trim() === "")

@@ -1,4 +1,4 @@
-# vue-greenborn-remote-terminal
+# @greenborn/vue-greenborn-remote-terminal
 
 Terminal remota **xterm.js** transport-agnostic para **Vue 3**, extraída de la vista de desarrollo del SGI. Render completo de terminal (colores ANSI, cursor parpadeante, scrollback, redimensionado con `FitAddon`, pantalla completa, menú contextual copiar, toolbar) sin atarse a ningún transporte.
 
@@ -7,7 +7,7 @@ El **transporte lo implementa el consumidor**: el componente solo emite eventos 
 ## Instalación
 
 ```bash
-npm install vue-greenborn-remote-terminal @xterm/xterm @xterm/addon-fit
+npm install @greenborn/vue-greenborn-remote-terminal @xterm/xterm @xterm/addon-fit
 ```
 
 ## Uso básico
@@ -25,8 +25,8 @@ npm install vue-greenborn-remote-terminal @xterm/xterm @xterm/addon-fit
 </template>
 
 <script>
-import { RemoteTerminal } from 'vue-greenborn-remote-terminal'
-import 'vue-greenborn-remote-terminal/style.css'
+import { RemoteTerminal } from '@greenborn/vue-greenborn-remote-terminal'
+import '@greenborn/vue-greenborn-remote-terminal/style.css'
 
 export default {
   components: { RemoteTerminal },

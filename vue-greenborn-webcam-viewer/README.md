@@ -1,4 +1,4 @@
-# vue-greenborn-webcam-viewer
+# @greenborn/vue-greenborn-webcam-viewer
 
 Visor de webcam para Vue 3: encapsula la **obtención de permisos**, la **selección de cámara**,
 la **captura de frames y fotos** y la **visualización del stream** con una capa de
@@ -11,12 +11,12 @@ los umbrales quedan en la aplicación.
 ## Instalación
 
 ```bash
-npm install vue-greenborn-webcam-viewer
+npm install @greenborn/vue-greenborn-webcam-viewer
 ```
 
 ```js
-import { GbWebcamViewer } from 'vue-greenborn-webcam-viewer'
-import 'vue-greenborn-webcam-viewer/style.css'
+import { GbWebcamViewer } from '@greenborn/vue-greenborn-webcam-viewer'
+import '@greenborn/vue-greenborn-webcam-viewer/style.css'
 ```
 
 ## Uso básico
@@ -28,8 +28,8 @@ import 'vue-greenborn-webcam-viewer/style.css'
 
 <script setup>
 import { ref } from 'vue'
-import { GbWebcamViewer } from 'vue-greenborn-webcam-viewer'
-import 'vue-greenborn-webcam-viewer/style.css'
+import { GbWebcamViewer } from '@greenborn/vue-greenborn-webcam-viewer'
+import '@greenborn/vue-greenborn-webcam-viewer/style.css'
 
 const visor = ref(null)
 const camara = ref('')
@@ -127,7 +127,7 @@ Reemplaza el texto de ayuda que se muestra cuando la cámara está detenida.
 Para construir una UI propia sin el componente:
 
 ```js
-import { useWebcam } from 'vue-greenborn-webcam-viewer'
+import { useWebcam } from '@greenborn/vue-greenborn-webcam-viewer'
 
 const videoRef = ref(null)
 const {

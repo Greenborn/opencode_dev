@@ -1,6 +1,6 @@
 {
-  "name": "vue-greenborn-galeria-image",
-  "version": "1.1.0",
+  "name": "@greenborn/vue-greenborn-galeria-image",
+  "version": "1.1.1",
   "description": "Galería de imágenes para Vue 3: grilla con lazy load y lightbox tipo image-detail (zoom, pan, fullscreen, navegación prev/next, atajos de teclado, descarga y panel lateral de metadatos). Permisos opcionales vía permissionsCheck (compatible con el RBAC de greenborn pero usable sin él). Sin dependencias de UI (CSS propio) y sin dependencias runtime.",
   "type": "module",
   "files": [

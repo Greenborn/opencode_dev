@@ -1,11 +1,11 @@
-# greenborn-memory-cache
+# @greenborn/greenborn-memory-cache
 
 Caché en memoria para el lado del servidor en Node.js. TTL por entrada, eventos y limpieza periódica automática. Sin dependencias de runtime (usa `node:events`).
 
 ## Instalación
 
 ```bash
-npm install greenborn-memory-cache
+npm install @greenborn/greenborn-memory-cache
 ```
 
 ## Uso
@@ -13,7 +13,7 @@ npm install greenborn-memory-cache
 ### ESModules
 
 ```js
-import MemoryCache from 'greenborn-memory-cache';
+import MemoryCache from '@greenborn/greenborn-memory-cache';
 
 const cache = new MemoryCache({ ttlMs: 60_000 });
 cache.set('usuario', { id: 1, nombre: 'Lucho' });
@@ -23,7 +23,7 @@ const usuario = cache.get('usuario'); // { id: 1, nombre: 'Lucho' }
 ### CommonJS
 
 ```js
-const MemoryCache = require('greenborn-memory-cache');
+const MemoryCache = require('@greenborn/greenborn-memory-cache');
 
 const cache = new MemoryCache();
 cache.set('clave', 'valor');

@@ -28,8 +28,8 @@
   // sabe nada de filesystem real ni de backend concreto, solo muestra el
   // arbol y emite la ruta elegida al hacer click sobre un nodo.
   import { ref } from 'vue'
-  import { GbTreeView } from 'vue-greenborn-tree-view'
-  import 'vue-greenborn-tree-view/style.css'
+  import { GbTreeView } from '@greenborn/vue-greenborn-tree-view'
+  import '@greenborn/vue-greenborn-tree-view/style.css'
 
   const props = defineProps({
     // async (nodoPadre: object|null) => array de nodos { [campoRuta], [campoNombre], [campoTieneHijos] }.

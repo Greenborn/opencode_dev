@@ -1,4 +1,4 @@
-# vue-greenborn-image-viewer
+# @greenborn/vue-greenborn-image-viewer
 
 Visor de imagen para Vue 3: núcleo de viewport reutilizable con **zoom** (rueda del mouse
 centrado en el cursor, o botones externos), **pan** (Ctrl + arrastre) y **rotación libre con
@@ -13,12 +13,12 @@ etc.) queda a cargo de la aplicación que lo usa.
 ## Instalación
 
 ```bash
-npm install vue-greenborn-image-viewer
+npm install @greenborn/vue-greenborn-image-viewer
 ```
 
 ```js
-import { GbImageViewer } from 'vue-greenborn-image-viewer'
-import 'vue-greenborn-image-viewer/style.css'
+import { GbImageViewer } from '@greenborn/vue-greenborn-image-viewer'
+import '@greenborn/vue-greenborn-image-viewer/style.css'
 ```
 
 ## Uso básico

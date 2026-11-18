@@ -1,6 +1,6 @@
 {
-  "name": "angular-greenborn-image-detail",
-  "version": "1.0.0",
+  "name": "@greenborn/angular-greenborn-image-detail",
+  "version": "1.0.1",
   "description": "Visor de detalle de imagen (zoom, pan, pantalla completa, descarga) y modal de detalle con navegación prev/next para aplicaciones Angular 21. Componente standalone extraído de GFC-Front.",
   "keywords": [
     "angular",
@@ -24,14 +24,14 @@
     "type": "git",
     "url": "git+https://github.com/Greenborn/opencode_dev.git"
   },
-  "main": "dist/fesm2022/angular-greenborn-image-detail.mjs",
-  "module": "dist/fesm2022/angular-greenborn-image-detail.mjs",
-  "types": "dist/types/angular-greenborn-image-detail.d.ts",
+  "main": "dist/fesm2022/greenborn-angular-greenborn-image-detail.mjs",
+  "module": "dist/fesm2022/greenborn-angular-greenborn-image-detail.mjs",
+  "types": "dist/types/greenborn-angular-greenborn-image-detail.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/angular-greenborn-image-detail.d.ts",
-      "import": "./dist/fesm2022/angular-greenborn-image-detail.mjs",
-      "default": "./dist/fesm2022/angular-greenborn-image-detail.mjs"
+      "types": "./dist/types/greenborn-angular-greenborn-image-detail.d.ts",
+      "import": "./dist/fesm2022/greenborn-angular-greenborn-image-detail.mjs",
+      "default": "./dist/fesm2022/greenborn-angular-greenborn-image-detail.mjs"
     }
   },
   "files": [

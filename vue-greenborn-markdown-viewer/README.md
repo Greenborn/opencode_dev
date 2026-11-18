@@ -1,4 +1,4 @@
-# vue-greenborn-markdown-viewer
+# @greenborn/vue-greenborn-markdown-viewer
 
 Visor de Markdown para Vue 3. Convierte texto Markdown (GFM: tablas, listas de tareas,
 enlaces, etc.) en HTML formateado, **sanitizado con DOMPurify** antes de renderizarse, y
@@ -7,12 +7,12 @@ aplica una tipografía propia (`.gb-markdown`) sin dependencias de UI.
 ## Instalación
 
 ```bash
-npm install vue-greenborn-markdown-viewer
+npm install @greenborn/vue-greenborn-markdown-viewer
 ```
 
 ```js
-import { GbMarkdownViewer } from 'vue-greenborn-markdown-viewer'
-import 'vue-greenborn-markdown-viewer/style.css'
+import { GbMarkdownViewer } from '@greenborn/vue-greenborn-markdown-viewer'
+import '@greenborn/vue-greenborn-markdown-viewer/style.css'
 ```
 
 ## Uso
@@ -26,7 +26,7 @@ import 'vue-greenborn-markdown-viewer/style.css'
 Para obtener solo el HTML (por ejemplo para otro motor de render):
 
 ```js
-import { renderMarkdown } from 'vue-greenborn-markdown-viewer'
+import { renderMarkdown } from '@greenborn/vue-greenborn-markdown-viewer'
 
 const html = renderMarkdown('# Hola **mundo**')
 ```

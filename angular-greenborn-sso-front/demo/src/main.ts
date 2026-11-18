@@ -1,7 +1,7 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withHashLocation, Routes } from '@angular/router';
-import { provideSso, installSsoAxiosInterceptors } from 'angular-greenborn-sso-front';
+import { provideSso, installSsoAxiosInterceptors } from '@greenborn/angular-greenborn-sso-front';
 import { AppComponent } from './app/app.component';
 import { HomeComponent } from './app/home.component';
 import { CallbackComponent } from './app/callback.component';

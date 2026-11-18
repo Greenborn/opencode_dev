@@ -2,7 +2,7 @@
  * Migración factory (no es un archivo de migración Knex por sí sola): el
  * consumidor debe envolverla en su propia migración con timestamp, ej.
  *
- *   import { createPushSubscriptionsMigration } from 'express-greenborn-notificaciones/migrations';
+ *   import { createPushSubscriptionsMigration } from '@greenborn/express-greenborn-notificaciones/migrations';
  *   export const { up, down } = createPushSubscriptionsMigration();
  *
  * o copiar este archivo a su carpeta de migraciones con el nombre/timestamp

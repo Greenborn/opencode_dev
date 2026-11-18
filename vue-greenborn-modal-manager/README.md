@@ -1,11 +1,11 @@
-# vue-greenborn-modal-manager
+# @greenborn/vue-greenborn-modal-manager
 
 Gestor de modales genérico y autocontenido para **Vue 3**, extraído y genericizado del `ModalsManager` de la aplicación SGI. Soporta **modales anidados**, **pasaje de parámetros**, **componentes compuestos** (`body`/`header`/`footer`), alertas y confirmaciones. **Sin Pinia** (estado vía composable/singleton de módulo) y **sin dependencias de UI** (CSS propio que reemplaza Bootstrap + PrimeVue).
 
 ## Instalación
 
 ```bash
-npm install vue-greenborn-modal-manager
+npm install @greenborn/vue-greenborn-modal-manager
 ```
 
 ## Uso básico
@@ -21,8 +21,8 @@ npm install vue-greenborn-modal-manager
 </template>
 
 <script>
-import { ModalContainer } from 'vue-greenborn-modal-manager'
-import 'vue-greenborn-modal-manager/style.css'
+import { ModalContainer } from '@greenborn/vue-greenborn-modal-manager'
+import '@greenborn/vue-greenborn-modal-manager/style.css'
 
 export default { components: { ModalContainer } }
 </script>
@@ -31,7 +31,7 @@ export default { components: { ModalContainer } }
 ### 2. Abre un modal desde cualquier componente
 
 ```js
-import { useModal } from 'vue-greenborn-modal-manager'
+import { useModal } from '@greenborn/vue-greenborn-modal-manager'
 
 const { mostrar_modal, ocultar_modal, mostrar_alerta, mostrar_confirm } = useModal()
 
@@ -132,7 +132,7 @@ La pila de modales se monta en `Teleport to="body"` y siempre usa una **base de 
 Si tu aplicación necesita una base distinta, ajústala en caliente desde cualquier componente sin tocar la librería:
 
 ```js
-import { useModal } from 'vue-greenborn-modal-manager'
+import { useModal } from '@greenborn/vue-greenborn-modal-manager'
 
 const { set_z_index_base } = useModal()
 set_z_index_base(5000) // todos los modales se re-apilan al instante

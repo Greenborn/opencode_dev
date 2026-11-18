@@ -20,12 +20,12 @@ export default defineConfig({
       cssFileName: 'vue-greenborn-reporte-contextual',
     },
     rollupOptions: {
-      external: ['vue', 'vue-greenborn-modal-manager'],
+      external: ['vue', '@greenborn/vue-greenborn-modal-manager'],
       output: {
         exports: 'named',
         globals: {
           vue: 'Vue',
-          'vue-greenborn-modal-manager': 'VueGreenbornModalManager',
+          '@greenborn/vue-greenborn-modal-manager': 'VueGreenbornModalManager',
         },
         assetFileNames: (assetInfo) =>
           assetInfo.name && assetInfo.name.endsWith('.css')

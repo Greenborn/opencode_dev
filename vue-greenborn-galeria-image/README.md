@@ -1,19 +1,19 @@
-# vue-greenborn-galeria-image
+# @greenborn/vue-greenborn-galeria-image
 
 Galería de imágenes para Vue 3: grilla con lazy load y lightbox tipo image-detail (zoom, pan, pantalla completa, navegación prev/next, atajos de teclado, descarga y panel lateral de metadatos). Permisos opcionales vía `permissionsCheck` — **compatible con el RBAC de greenborn pero usable sin él**. Sin dependencias de UI (CSS propio) y sin dependencias runtime (usa `fetch`).
 
-Pensado para consumir el API de [express-greenborn-galeria-image](../express-greenborn-galeria-image), pero funciona con cualquier lista de imágenes.
+Pensado para consumir el API de [@greenborn/express-greenborn-galeria-image](../express-greenborn-galeria-image), pero funciona con cualquier lista de imágenes.
 
 ## Install
 
 ```bash
-npm install vue-greenborn-galeria-image
+npm install @greenborn/vue-greenborn-galeria-image
 ```
 
 Requiere Vue ^3.3. Importar el CSS una vez:
 
 ```js
-import 'vue-greenborn-galeria-image/style.css';
+import '@greenborn/vue-greenborn-galeria-image/style.css';
 ```
 
 ## Uso rápido
@@ -21,13 +21,13 @@ import 'vue-greenborn-galeria-image/style.css';
 ```vue
 <script setup>
 import { ref, onMounted } from 'vue';
-import { GaleriaGrid, GaleriaLightbox, useGaleriaImage } from 'vue-greenborn-galeria-image';
-import 'vue-greenborn-galeria-image/style.css';
+import { GaleriaGrid, GaleriaLightbox, useGaleriaImage } from '@greenborn/vue-greenborn-galeria-image';
+import '@greenborn/vue-greenborn-galeria-image/style.css';
 
 const abierto = ref(false);
 const indice = ref(0);
 
-// Cliente del backend express-greenborn-galeria-image
+// Cliente del backend @greenborn/express-greenborn-galeria-image
 const galeria = useGaleriaImage({ baseUrl: 'http://localhost:5175' });
 
 onMounted(() => galeria.listar());
@@ -52,7 +52,7 @@ function seleccion(i) {
 </template>
 ```
 
-También acepta el modelo `ImageDetailItem` de `angular-greenborn-image-detail` (`url`, `title`, `caption`, `section`, `metadata: [{label, value}]`) — se normaliza automáticamente.
+También acepta el modelo `ImageDetailItem` de `@greenborn/angular-greenborn-image-detail` (`url`, `title`, `caption`, `section`, `metadata: [{label, value}]`) — se normaliza automáticamente.
 
 ## Componentes
 
@@ -107,7 +107,7 @@ Visor individual con zoom (rueda / botones / doble click), pan por arrastre y te
 
 ## Composable `useGaleriaImage(config)`
 
-Cliente del API de `express-greenborn-galeria-image` con `fetch`:
+Cliente del API de `@greenborn/express-greenborn-galeria-image` con `fetch`:
 
 | Opción | Descripción |
 |---|---|

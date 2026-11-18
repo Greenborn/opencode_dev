@@ -5,7 +5,7 @@ import {
   SSOAuthService,
   SSOSocketService,
   RoleService,
-} from 'angular-greenborn-sso-front';
+} from '@greenborn/angular-greenborn-sso-front';
 
 @Component({
   standalone: true,

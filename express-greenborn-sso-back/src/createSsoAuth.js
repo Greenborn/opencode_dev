@@ -1,4 +1,4 @@
-import MemoryCache from 'greenborn-memory-cache';
+import MemoryCache from '@greenborn/greenborn-memory-cache';
 import { createSsoClient } from './ssoClient.js';
 import { createService } from './service.js';
 import { createMiddleware } from './middleware.js';

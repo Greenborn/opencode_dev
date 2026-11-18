@@ -1,11 +1,11 @@
-# angular-greenborn-sso-front
+# @greenborn/angular-greenborn-sso-front
 
-Cliente SSO (Single Sign-On) para aplicaciones **Angular 21**. Integra login con Google (OAuth), intercambio de token temporal por bearer token, verificación de sesión, logout, renovación de token (`X-New-Token`), guard de rutas y WebSocket complementario (`socket.io`). Compatible con `express-greenborn-sso-back`.
+Cliente SSO (Single Sign-On) para aplicaciones **Angular 21**. Integra login con Google (OAuth), intercambio de token temporal por bearer token, verificación de sesión, logout, renovación de token (`X-New-Token`), guard de rutas y WebSocket complementario (`socket.io`). Compatible con `@greenborn/express-greenborn-sso-back`.
 
 ## Instalación
 
 ```bash
-npm install angular-greenborn-sso-front
+npm install @greenborn/angular-greenborn-sso-front
 ```
 
 Peer dependencies: `@angular/common`, `@angular/core`, `@angular/router` (`^21.0.0`) y `rxjs` (`^7.5.0`).
@@ -103,7 +103,7 @@ En `main.ts`, llama a `.install()` una sola vez, **antes** de `bootstrapApplicat
 ```ts
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, withHashLocation } from '@angular/router';
-import { provideSso, installSsoAxiosInterceptors } from 'angular-greenborn-sso-front';
+import { provideSso, installSsoAxiosInterceptors } from '@greenborn/angular-greenborn-sso-front';
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app-routing.module';
 
@@ -155,7 +155,7 @@ provideSso(SSO_CONFIG)
 ## Login con Google
 
 ```ts
-import { SSOAuthService } from 'angular-greenborn-sso-front';
+import { SSOAuthService } from '@greenborn/angular-greenborn-sso-front';
 
 export class HomeComponent {
   constructor(private ssoAuth: SSOAuthService) {}
@@ -173,7 +173,7 @@ Maneja el token temporal, intercambia por bearer token, verifica el perfil local
 
 ```ts
 import { Component } from '@angular/core';
-import { SsoCallbackComponent, SSOCallbackResult } from 'angular-greenborn-sso-front';
+import { SsoCallbackComponent, SSOCallbackResult } from '@greenborn/angular-greenborn-sso-front';
 
 @Component({
   standalone: true,
@@ -216,7 +216,7 @@ los valida y autentica la conexión.
 Configura `wsUrl` y `wsPath` en `SSO_CONFIG`, y conecta **solo si hay sesión iniciada**:
 
 ```ts
-import { SSOSocketService, SSOAuthService } from 'angular-greenborn-sso-front';
+import { SSOSocketService, SSOAuthService } from '@greenborn/angular-greenborn-sso-front';
 
 // SSO_CONFIG con:
 //   wsUrl: 'https://mi-app.api2.greenborn.com.ar',
@@ -250,7 +250,7 @@ ngOnInit() {
 > **Importante:** el header `Access-Control-Allow-Origin` del `/socket.io` lo emite el propio
 > servidor socket.io (no nginx). Su valor se controla con `CORS_ORIGIN`.
 
-El backend compatible (`express-greenborn-sso-back` → `createSsoSocket`) configura el CORS del
+El backend compatible (`@greenborn/express-greenborn-sso-back` → `createSsoSocket`) configura el CORS del
 socket con `cors: { origin: corsOrigin }`. Si el **origen del frontend no está en `CORS_ORIGIN`**,
 el navegador bloquea la lectura de la respuesta: el servidor responde `200` (con el `sid`) pero
 **sin** el header `Access-Control-Allow-Origin`, y aparece un error del tipo:
@@ -294,7 +294,7 @@ websocket falla.
 ## Guard de rutas
 
 ```ts
-import { SSOAuthGuard } from 'angular-greenborn-sso-front';
+import { SSOAuthGuard } from '@greenborn/angular-greenborn-sso-front';
 
 // routes: { path: 'perfil', canActivate: [SSOAuthGuard], loadChildren: ... }
 ```
@@ -323,7 +323,7 @@ export {
 ## Repositorio
 
 - Código fuente: <https://github.com/Greenborn/opencode_dev/tree/main/angular-greenborn-sso-front>
-- Backend compatible: `express-greenborn-sso-back`
+- Backend compatible: `@greenborn/express-greenborn-sso-back`
 
 ## Licencia
 

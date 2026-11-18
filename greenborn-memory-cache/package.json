@@ -1,6 +1,6 @@
 {
-  "name": "greenborn-memory-cache",
-  "version": "1.0.0",
+  "name": "@greenborn/greenborn-memory-cache",
+  "version": "1.0.1",
   "description": "Caché en memoria del lado del servidor para Node.js: TTL por entrada, eventos y limpieza periódica automática. Sin dependencias de runtime (usa node:events).",
   "type": "module",
   "files": [

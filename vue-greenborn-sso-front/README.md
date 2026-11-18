@@ -1,4 +1,4 @@
-# vue-greenborn-sso-front
+# @greenborn/vue-greenborn-sso-front
 
 Cliente de **SSO (Single Sign-On)** para aplicaciones **Vue 3** que se integra con el servidor de autenticación de Greenborn (`https://auth.greenborn.com.ar`).
 
@@ -18,7 +18,7 @@ Sin dependencias de UI. JS plano (sin TypeScript), estados reactivos con `ref`/`
 ## Instalación
 
 ```bash
-npm install vue-greenborn-sso-front
+npm install @greenborn/vue-greenborn-sso-front
 ```
 
 Requiere `vue@^3.3` y, si usas el componente `SsoCallback`, también `vue-router@^4`.
@@ -31,7 +31,7 @@ Crea un cliente y exponlo a la app mediante `installSso` (un solo punto de confi
 // main.js
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
-import { installSso } from 'vue-greenborn-sso-front'
+import { installSso } from '@greenborn/vue-greenborn-sso-front'
 import App from './App.vue'
 
 const router = createRouter({
@@ -94,7 +94,7 @@ installSso(app, {
 ### Iniciar sesión (login con Google)
 
 ```js
-import { useSsoAuth } from 'vue-greenborn-sso-front'
+import { useSsoAuth } from '@greenborn/vue-greenborn-sso-front'
 
 const sso = useSsoAuth()
 
@@ -109,7 +109,7 @@ function loginWithGoogle() {
 
 ### Iniciar sesión local (usuario/contraseña) — opcional
 
-Requiere que el backend exponga el endpoint de login local (en `express-greenborn-sso-back`, la opción `localLogin`):
+Requiere que el backend exponga el endpoint de login local (en `@greenborn/express-greenborn-sso-back`, la opción `localLogin`):
 
 ```js
 const sso = useSsoAuth()
@@ -131,7 +131,7 @@ El front envía `POST {nodeApiBaseUrl}{loginEndpoint}` (default `/login`) con `{
 
 <script setup>
 import { ref } from 'vue'
-import { useSsoAuth } from 'vue-greenborn-sso-front'
+import { useSsoAuth } from '@greenborn/vue-greenborn-sso-front'
 const sso = useSsoAuth()
 const username = ref('')
 const password = ref('')
@@ -145,7 +145,7 @@ async function submit() {
 </script>
 ```
 
-Si el login falla, el `Error` lanzado incluye `status` (HTTP), `code` (campo `code` de la respuesta, ej. `'ACCOUNT_SUSPENDED'` cuando el backend usa la opción `suspension` de `express-greenborn-sso-back`) y `data` (cuerpo completo de la respuesta, con los datos extra que devuelva el backend).
+Si el login falla, el `Error` lanzado incluye `status` (HTTP), `code` (campo `code` de la respuesta, ej. `'ACCOUNT_SUSPENDED'` cuando el backend usa la opción `suspension` de `@greenborn/express-greenborn-sso-back`) y `data` (cuerpo completo de la respuesta, con los datos extra que devuelva el backend).
 
 ### Página callback
 
@@ -157,7 +157,7 @@ Si el login falla, el `Error` lanzado incluye `status` (HTTP), `code` (campo `co
 </template>
 
 <script setup>
-import { SsoCallback } from 'vue-greenborn-sso-front'
+import { SsoCallback } from '@greenborn/vue-greenborn-sso-front'
 
 function onSuccess(result) {
   // result.exists: boolean
@@ -243,7 +243,7 @@ sso.accessToken.value     // bearer token reactivo (o null)
 
 ## RBAC (roles y permisos)
 
-Si el backend local usa el esquema de roles/permisos (por ejemplo, `express-greenborn-sso-back` con `rbac: true`, o el RBAC de `sistema-gestion-interno`), el front expone helpers reactivos derivados de `user.roles`/`user.permisos`:
+Si el backend local usa el esquema de roles/permisos (por ejemplo, `@greenborn/express-greenborn-sso-back` con `rbac: true`, o el RBAC de `sistema-gestion-interno`), el front expone helpers reactivos derivados de `user.roles`/`user.permisos`:
 
 ```js
 const sso = useSsoAuth()
@@ -293,7 +293,7 @@ Conexión persistente y autenticada con el bearer token SSO, con mensajes genér
 ```js
 const sso = useSsoAuth();
 // o, más directo:
-import { useSsoSocket } from 'vue-greenborn-sso-front';
+import { useSsoSocket } from '@greenborn/vue-greenborn-sso-front';
 const socket = useSsoSocket();
 ```
 
@@ -314,7 +314,7 @@ sso.socket.on('ping', (data) => console.log('ping', data));
 ```
 
 - API del composable: `emit`, `on`, `off`, `once`, `connect`, `disconnect`, `client`.
-- Contraparte de backend: `express-greenborn-sso-back` → `sso.attachSocket(server)`.
+- Contraparte de backend: `@greenborn/express-greenborn-sso-back` → `sso.attachSocket(server)`.
 
 ## Autoactualización PWA
 
@@ -335,7 +335,7 @@ Uso:
 ```js
 // main.js
 import { useRegisterSW } from 'virtual:pwa-register/vue'
-import { useAutoUpdatePwa } from 'vue-greenborn-sso-front'
+import { useAutoUpdatePwa } from '@greenborn/vue-greenborn-sso-front'
 import { version as buildVersion } from '../package.json'
 
 const autoUpdate = useAutoUpdatePwa({

@@ -36,7 +36,7 @@ app.use(express.json());
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
-    package: 'express-greenborn-mercado-pago',
+    package: '@greenborn/express-greenborn-mercado-pago',
     hasClient: !!mp.client,
     hasWebhook: !!mp.webhookRouter,
   });

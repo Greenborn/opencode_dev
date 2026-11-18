@@ -34,7 +34,7 @@ app.use(express.json());
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
-    package: 'express-greenborn-galeria-image',
+    package: '@greenborn/express-greenborn-galeria-image',
     rootPath: galeria.rootPath,
     config: galeria.config,
   });

@@ -1,6 +1,6 @@
 {
-  "name": "angular-greenborn-sso-front",
-  "version": "1.0.1",
+  "name": "@greenborn/angular-greenborn-sso-front",
+  "version": "1.0.2",
   "description": "Cliente SSO (Single Sign-On) para aplicaciones Angular 21. Integra login con Google (OAuth), intercambio de token temporal por bearer token, verificación de sesión, logout, renovación de token (X-New-Token), guard de rutas y WebSocket complementario (socket.io). Compatible con express-greenborn-sso-back.",
   "keywords": [
     "angular",
@@ -23,14 +23,14 @@
     "type": "git",
     "url": "git+https://github.com/Greenborn/opencode_dev.git"
   },
-  "main": "dist/fesm2022/angular-greenborn-sso-front.mjs",
-  "module": "dist/fesm2022/angular-greenborn-sso-front.mjs",
-  "types": "dist/types/angular-greenborn-sso-front.d.ts",
+  "main": "dist/fesm2022/greenborn-angular-greenborn-sso-front.mjs",
+  "module": "dist/fesm2022/greenborn-angular-greenborn-sso-front.mjs",
+  "types": "dist/types/greenborn-angular-greenborn-sso-front.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/angular-greenborn-sso-front.d.ts",
-      "import": "./dist/fesm2022/angular-greenborn-sso-front.mjs",
-      "default": "./dist/fesm2022/angular-greenborn-sso-front.mjs"
+      "types": "./dist/types/greenborn-angular-greenborn-sso-front.d.ts",
+      "import": "./dist/fesm2022/greenborn-angular-greenborn-sso-front.mjs",
+      "default": "./dist/fesm2022/greenborn-angular-greenborn-sso-front.mjs"
     }
   },
   "files": [

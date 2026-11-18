@@ -1,6 +1,6 @@
 {
-  "name": "express-greenborn-galeria-image",
-  "version": "1.0.0",
+  "name": "@greenborn/express-greenborn-galeria-image",
+  "version": "1.0.1",
   "description": "Galería de imágenes para backends Express/Node.js: CRUD de imágenes con subida (multer), thumbnails y metadatos (sharp), storage en disco local y paginación. Con inyección de dependencias (knex, logger, middlewares) y agnóstico del esquema de base de datos. Compatible con el RBAC de express-greenborn-sso-back mediante middlewares inyectables, pero utilizable sin él.",
   "type": "module",
   "files": [

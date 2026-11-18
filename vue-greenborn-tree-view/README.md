@@ -1,4 +1,4 @@
-# vue-greenborn-tree-view
+# @greenborn/vue-greenborn-tree-view
 
 Vista de árbol genérica para Vue 3 con **carga diferida (lazy-load)**: trae primero los nodos
 raíz y, recién cuando el usuario expande un nodo, pide sus hijos. No asume ningún backend ni
@@ -8,12 +8,12 @@ puede llamar a una API, filtrar un array local, etc.
 ## Instalación
 
 ```bash
-npm install vue-greenborn-tree-view
+npm install @greenborn/vue-greenborn-tree-view
 ```
 
 ```js
-import { GbTreeView } from 'vue-greenborn-tree-view'
-import 'vue-greenborn-tree-view/style.css'
+import { GbTreeView } from '@greenborn/vue-greenborn-tree-view'
+import '@greenborn/vue-greenborn-tree-view/style.css'
 ```
 
 ## Uso básico
@@ -24,7 +24,7 @@ import 'vue-greenborn-tree-view/style.css'
 </template>
 
 <script setup>
-import { GbTreeView } from 'vue-greenborn-tree-view'
+import { GbTreeView } from '@greenborn/vue-greenborn-tree-view'
 
 // nodoPadre es null cuando se pide el nivel raiz.
 async function cargarNodos(nodoPadre) {
