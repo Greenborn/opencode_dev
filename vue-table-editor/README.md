@@ -1,4 +1,4 @@
-# vue-table-editor
+# @greenborn/vue-table-editor
 
 Tabla genérica reutilizable y **autocontenida** para **Vue 3**. Lista de funcionalidades:
 
@@ -25,7 +25,7 @@ autocontenido (`te-*`) y un set de iconos SVG embebido. Solo requiere `vue` como
 ## Instalación
 
 ```bash
-npm install vue-table-editor
+npm install @greenborn/vue-table-editor
 ```
 
 > `vue` es peer dependency. La app consumidora debe tenerlo instalado.
@@ -35,7 +35,7 @@ npm install vue-table-editor
 ### 1. Importar y registrar el componente
 
 ```js
-import { TableEditor } from 'vue-table-editor'
+import { TableEditor } from '@greenborn/vue-table-editor'
 import 'vue-table-editor/style.css'
 
 export default {
@@ -46,7 +46,7 @@ export default {
 Con `<script setup>`:
 
 ```js
-import { TableEditor } from 'vue-table-editor'
+import { TableEditor } from '@greenborn/vue-table-editor'
 import 'vue-table-editor/style.css'
 ```
 
@@ -66,7 +66,7 @@ import 'vue-table-editor/style.css'
 ### 3. API (server-side / lazy)
 
 ```js
-import { BtnConfig } from 'vue-table-editor'
+import { BtnConfig } from '@greenborn/vue-table-editor'
 
 export default {
   data() {
@@ -224,7 +224,7 @@ const config = {
 **Pipeline legacy** (paridad con el frontend):
 
 ```js
-import { greenbornDataPipeline } from 'vue-table-editor'
+import { greenbornDataPipeline } from '@greenborn/vue-table-editor'
 
 const config = {
   lazy: true,
@@ -290,14 +290,14 @@ que exponga:
 También puedes registrar un adaptador global:
 
 ```js
-import { setGlobalPreferencesAdapter } from 'vue-table-editor'
+import { setGlobalPreferencesAdapter } from '@greenborn/vue-table-editor'
 setGlobalPreferencesAdapter(miAdaptador)
 ```
 
 Y crear adaptadores de localStorage con clave propia:
 
 ```js
-import { createLocalStoragePrefsAdapter } from 'vue-table-editor'
+import { createLocalStoragePrefsAdapter } from '@greenborn/vue-table-editor'
 const adapter = createLocalStoragePrefsAdapter('mi_clave')
 ```
 
