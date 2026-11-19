@@ -1,0 +1,41 @@
+{
+  "name": "@greenborn/modelos-vehiculos",
+  "version": "0.2.0",
+  "description": "Modelos visuales procedurales de vehículos (autos, pickups, furgones, buses, camiones, motos y drones) para three.js. Agnóstico del juego: las medidas y los asientos se inyectan con configurar(). La construcción de geometría corre en un Web Worker y sólo viajan typed arrays.",
+  "type": "module",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./geometria": "./src/geometria/index.js",
+    "./three": "./src/three/materiales.js",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "peerDependencies": {
+    "three": ">=0.150.0"
+  },
+  "keywords": [
+    "three",
+    "vehiculos",
+    "procedural",
+    "modelos",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

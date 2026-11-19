@@ -1,0 +1,42 @@
+{
+  "name": "@greenborn/modelos-personajes",
+  "version": "0.1.0",
+  "description": "Modelo visual del muñeco voxel articulado (jugadores, bots, zombies y tenderos) para three.js. Agnóstico del juego: los colores y las referencias se inyectan. La geometría corre en un Web Worker y sólo viajan typed arrays.",
+  "type": "module",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./geometria": "./src/geometria/index.js",
+    "./three": "./src/three/index.js",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "peerDependencies": {
+    "three": ">=0.170.0"
+  },
+  "keywords": [
+    "three",
+    "personajes",
+    "voxel",
+    "procedural",
+    "zombies",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "@greenborn/motor-multijugador",
+  "version": "0.1.0",
+  "description": "Núcleo multijugador genérico para Node: salas con worker_thread, puente socket.io <-> worker, acks, registro de sistemas con hooks (onJugadorEntra, onJugadorSale, onTick, onMensaje). Sin dependencias de runtime; agnóstico del juego.",
+  "type": "module",
+  "files": [
+    "src",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "demo": "node src/ejemplo/demo.js"
+  },
+  "keywords": [
+    "multiplayer",
+    "socket.io",
+    "worker_threads",
+    "rooms",
+    "game-server",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/motor-multijugador",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
