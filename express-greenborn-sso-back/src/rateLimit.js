@@ -194,16 +194,6 @@ function sendBlocked(res, kind, retryAfterMs) {
   return res.status(429).json(blockedBody(kind, retryAfterMs));
 }
 
-// Con IP bloqueada y token presente: si la validación responde 401, se devuelve 429 en su lugar.
-function convertirNoAutorizadoEn429(res, kind, retryAfterMs) {
-  const statusOriginal = res.status;
-  res.status = function status(code) {
-    if (code !== 401) return statusOriginal.apply(this, arguments);
-    res.status = statusOriginal;
-    return { json: () => sendBlocked(res, kind, retryAfterMs) };
-  };
-}
-
 export function createRateLimiter(input = true) {
   const config = normalizeRateLimitConfig(input);
   const store = createStore(config);
@@ -240,14 +230,10 @@ export function createRateLimiter(input = true) {
 
       const key = keyFor(kind, req);
       const status = store.check(key);
+      // IP bloqueada: se corta cualquier request, tenga o no un token válido.
       if (status.blocked) {
-        // Un request con Bearer token no se corta por el bloqueo de IP: la validación decide.
-        // Si el token es válido (sesión iniciada) pasa; si es inválido, el 401 se convierte en 429.
-        if (kind !== 'token' || !getBearerToken(req)) {
-          notifyBlocked(kind, { key, retryAfterMs: status.retryAfterMs });
-          return sendBlocked(res, kind, status.retryAfterMs);
-        }
-        convertirNoAutorizadoEn429(res, kind, status.retryAfterMs);
+        notifyBlocked(kind, { key, retryAfterMs: status.retryAfterMs });
+        return sendBlocked(res, kind, status.retryAfterMs);
       }
 
       const credentialsPresent = kind === 'login' || Boolean(getBearerToken(req));

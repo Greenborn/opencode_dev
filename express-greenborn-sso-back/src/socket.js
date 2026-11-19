@@ -38,20 +38,13 @@ export function createSsoSocket({
 
   io.use(async (socket, next) => {
     const handshake = socket.handshake;
-    // Con IP bloqueada solo se rechaza a quien no presenta token: un token válido (sesión iniciada) pasa.
-    // Si el token es inválido, el error de auth se reemplaza por el de bloqueo.
-    let bloqueado = false;
-    const rechazar = (mensaje) => next(new Error(bloqueado
-      ? 'unauthorized: demasiados intentos fallidos, reintente más tarde'
-      : mensaje));
+    const rechazar = (mensaje) => next(new Error(mensaje));
     try {
+      // IP bloqueada: se rechaza el handshake aunque presente un token válido.
       if (rateLimiter?.config?.enabled) {
         const status = rateLimiter.checkSocket(handshake);
         if (status.blocked) {
-          if (!handshake?.auth?.token) {
-            return next(new Error('unauthorized: demasiados intentos fallidos, reintente más tarde'));
-          }
-          bloqueado = true;
+          return next(new Error('unauthorized: demasiados intentos fallidos, reintente más tarde'));
         }
       }
 
