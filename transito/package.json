@@ -1,0 +1,38 @@
+{
+  "name": "@greenborn/transito",
+  "version": "0.1.0",
+  "description": "Red vial y simulación de tránsito para mapas en grilla: carriles precalculados, car-following IDM, reserva de celdas en intersecciones y mano derecha. Módulo puro, sin three.js ni DOM.",
+  "type": "module",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./red": "./src/red.js",
+    "./transito": "./src/transito.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "transito",
+    "trafico",
+    "simulacion",
+    "carriles",
+    "idm",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

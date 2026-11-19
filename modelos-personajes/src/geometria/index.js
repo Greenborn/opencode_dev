@@ -11,3 +11,7 @@ export { ConstructorPiezas } from './constructor_piezas.js';
 export {
     serializarGeometria, reconstruirGeometria, serializarHumanoide, reconstruirHumanoide
 } from './serializar.js';
+// Personaje voxel (estilo cubos) y personajes aleatorios.
+export { voxelesPersonaje, serializarVoxeles, reconstruirVoxeles, PIEL_DEFECTO, PEINADOS, COLORES_PELO, COLORES_REMERA, COLORES_PANTALON, COLORES_CALZADO, COLOR_GORRA } from './voxel.js';
+export { CATALOGO_PERSONAJE, NOMBRES, PIELES_NATURALES, personajeAleatorio, personajeDesdeSemilla, generadorSembrado, normalizarPersonaje } from './aleatorio.js';
+export { tint, mezclar, luz } from './color.js';

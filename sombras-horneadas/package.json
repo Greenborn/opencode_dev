@@ -1,0 +1,37 @@
+{
+  "name": "@greenborn/sombras-horneadas",
+  "version": "0.1.0",
+  "description": "Sombra del sol horneada para mapas voxel (three.js/Web Worker): muestreo de visibilidad por cara, ocluyentes de árboles y postes, y reglas de los modos de sombra baked/mixto/realtime. Módulo puro, sin dependencias.",
+  "type": "module",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./modos": "./src/modos.js",
+    "./rayos": "./src/rayos.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "sombras",
+    "horneado",
+    "voxel",
+    "lighting",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
