@@ -281,6 +281,10 @@ Migrar el juego a las funciones de la 0.3.0 es un cambio aparte.
 
 ## Versiones
 
+- **0.4.0**: personaje voxel con el mismo esquema que el muñeco articulado: `crearPersonajeVoxel`
+  (partes con pivote, `{ group, partes }`), `animarCaminataVoxel`, `piezasVoxelRigidas` (geometría por
+  parte, cacheada por cfg) y `matrizParteVoxel` / `matricesVoxelInstancia` para `PoolInstanciado`.
+  Escala con `escalaVoxelParaAlto(alto)`.
 - **0.3.0**: subruta `/animacion` (poses puras), personaje voxel, personajes aleatorios,
   `PoolInstanciado` con atributos, matrices de instancias y cadáveres, geometría de cadáver
   fundida, y aplicación de muerte, agachado e inclinación sobre three.
