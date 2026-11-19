@@ -384,6 +384,8 @@ app.get('/api/mi-ruta', sso.tokenRateLimit, async (req, res) => { /* ... */ });
 
 `tokenRateLimit` es idempotente: montarlo junto a `authMiddleware` no duplica el conteo.
 
+**Sesiones válidas con IP bloqueada (desde 1.10.2):** el bloqueo por IP no corta a quien presenta un token válido. En rutas protegidas (`Authorization: Bearer ...`) y en el handshake de socket.io, la validación decide: el token válido pasa; el inválido recibe `429` (o el error de bloqueo en socket). Sin token, la IP bloqueada sigue recibiendo `429`. El login (`loginRateLimit`) no cambia: sigue bloqueando por IP.
+
 También se expone `sso.rateLimiter` para control manual:
 
 ```js

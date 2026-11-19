@@ -4,6 +4,25 @@
 export const MAX_PROFUNDIDAD_SELECTOR = 6;
 export const MAX_TEXTO_ELEMENTO = 120;
 export const MAX_LOCALIZACION = 255;
+export const MAX_CLASES_ELEMENTO = 500;
+export const MAX_ATRIBUTOS_DATA = 30;
+export const MAX_VALOR_DATA = 300;
+
+/**
+ * Atributos `data-*` propios del elemento (no de sus ancestros), como objeto
+ * `{ "data-x": "valor" }`. Se acota la cantidad y el largo de cada valor.
+ */
+export function extraerAtributosData(el) {
+  const atributos = {};
+  let cantidad = 0;
+  for (const attr of Array.from(el.attributes || [])) {
+    if (!attr.name.startsWith('data-')) continue;
+    if (cantidad >= MAX_ATRIBUTOS_DATA) break;
+    atributos[attr.name] = attr.value.slice(0, MAX_VALOR_DATA);
+    cantidad += 1;
+  }
+  return atributos;
+}
 
 function descripcionNodo(el) {
   const tag = el.tagName.toLowerCase();
@@ -79,6 +98,11 @@ export function obtenerInfoElemento(el) {
     selector: selector.slice(0, MAX_LOCALIZACION),
     tag: el.tagName.toLowerCase(),
     texto: extraerTexto(el),
+    id_elemento: el.id ? el.id.slice(0, MAX_LOCALIZACION) : null,
+    clases_elemento: typeof el.className === 'string'
+      ? el.className.trim().replace(/\s+/g, ' ').slice(0, MAX_CLASES_ELEMENTO)
+      : '',
+    atributos_data: extraerAtributosData(el),
     url: window.location.href,
     navegador: navigator.userAgent || '',
     ancho_viewport: window.innerWidth,

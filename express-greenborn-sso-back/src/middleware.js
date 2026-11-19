@@ -132,7 +132,7 @@ export function createMiddleware(ctx, service) {
       return res.status(result.status).json(result.body);
     } catch (error) {
       log.error(`[SSO] Error inesperado: ${error.message}`);
-      return res.status(500).json({ success: false, message: 'Error de autenticación', error: error.message });
+      return res.status(500).json({ success: false, message: 'Error de autenticación' });
     }
   }
 

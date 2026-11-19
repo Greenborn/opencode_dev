@@ -38,17 +38,26 @@ export function createSsoSocket({
 
   io.use(async (socket, next) => {
     const handshake = socket.handshake;
+    // Con IP bloqueada solo se rechaza a quien no presenta token: un token válido (sesión iniciada) pasa.
+    // Si el token es inválido, el error de auth se reemplaza por el de bloqueo.
+    let bloqueado = false;
+    const rechazar = (mensaje) => next(new Error(bloqueado
+      ? 'unauthorized: demasiados intentos fallidos, reintente más tarde'
+      : mensaje));
     try {
       if (rateLimiter?.config?.enabled) {
         const status = rateLimiter.checkSocket(handshake);
         if (status.blocked) {
-          return next(new Error('unauthorized: demasiados intentos fallidos, reintente más tarde'));
+          if (!handshake?.auth?.token) {
+            return next(new Error('unauthorized: demasiados intentos fallidos, reintente más tarde'));
+          }
+          bloqueado = true;
         }
       }
 
       const token = handshake?.auth?.token;
       if (!token) {
-        return next(new Error('unauthorized: token requerido'));
+        return rechazar('unauthorized: token requerido');
       }
 
       const localUser = await findLocalUserByToken(token);
@@ -63,14 +72,14 @@ export function createSsoSocket({
       const uniqueId = normalizeUniqueId(handshake?.auth?.unique_id);
       if (!uniqueId) {
         rateLimiter?.recordSocketFailure(handshake);
-        return next(new Error('unauthorized: unique_id requerido para token SSO'));
+        return rechazar('unauthorized: unique_id requerido para token SSO');
       }
 
       const response = await verifySsoToken(token, uniqueId);
       if (!response?.data?.success || !response?.data?.data?.valid) {
         rateLimiter?.recordSocketFailure(handshake);
         log.error(`[Socket] SSO rechazó token: ${JSON.stringify(response?.data)}`);
-        return next(new Error('unauthorized: token SSO inválido'));
+        return rechazar('unauthorized: token SSO inválido');
       }
 
       const ssoUser = response.data.data.user;
@@ -87,7 +96,7 @@ export function createSsoSocket({
         rateLimiter?.recordSocketFailure(handshake);
       }
       log.error(`[Socket] Error de autenticación: ${JSON.stringify(ssoBody) || error.message}`);
-      return next(new Error('unauthorized: error de autenticación'));
+      return rechazar('unauthorized: error de autenticación');
     }
   });
 

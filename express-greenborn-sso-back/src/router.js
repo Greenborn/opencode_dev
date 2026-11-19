@@ -141,7 +141,7 @@ export function createRouter(ctx, service, middleware) {
       if (ssoStatus === 401 || ssoStatus === 403) {
         return res.status(401).json({ success: false, message: 'Token SSO inválido' });
       }
-      return res.status(500).json({ success: false, message: 'Error al verificar SSO', error: ssoBody || error.message });
+      return res.status(500).json({ success: false, message: 'Error al verificar SSO' });
     }
   });
 

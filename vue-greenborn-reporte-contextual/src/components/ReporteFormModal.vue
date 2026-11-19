@@ -21,6 +21,13 @@
       <div class="rc-info-titulo"><strong>Detalles del elemento</strong></div>
       <div><strong>Elemento:</strong> <code>{{ info.tag }}</code></div>
       <div v-if="info.texto"><strong>Texto:</strong> {{ info.texto }}</div>
+      <div v-if="info.id_elemento"><strong>ID:</strong> <code>{{ info.id_elemento }}</code></div>
+      <div v-if="info.clases_elemento"><strong>Clase:</strong> <code>{{ info.clases_elemento }}</code></div>
+      <div v-if="Object.keys(info.atributos_data || {}).length"><strong>Atributos data:</strong>
+        <ul class="rc-atributos">
+          <li v-for="(valor, nombre) in info.atributos_data" :key="nombre"><code>{{ nombre }}="{{ valor }}"</code></li>
+        </ul>
+      </div>
       <div class="rc-muted"><code>{{ info.selector }}</code></div>
     </div>
 
@@ -112,6 +119,9 @@ async function enviar() {
         ancho_viewport: info.ancho_viewport,
         alto_viewport: info.alto_viewport,
         es_movil: info.es_movil,
+        id_elemento: info.id_elemento,
+        clases_elemento: info.clases_elemento,
+        atributos_data: info.atributos_data,
       },
     })
     if (!respuesta.status) {

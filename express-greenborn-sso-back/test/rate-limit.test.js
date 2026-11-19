@@ -166,7 +166,7 @@ test('login: rateLimit false desactiva el límite', async () => {
   }
 });
 
-test('rutas protegidas: 3 tokens inválidos → 429 también para token válido', async () => {
+test('rutas protegidas: 3 tokens inválidos bloquean → token inválido 429, token válido sigue entrando', async () => {
   const { app } = buildTokenApp(true);
   for (let i = 0; i < 3; i += 1) {
     const res = await request(app)
@@ -178,11 +178,22 @@ test('rutas protegidas: 3 tokens inválidos → 429 también para token válido'
     .get('/protected?unique_id=req_1')
     .set('Authorization', 'Bearer invalido-x');
   assert.equal(blocked.status, 429);
+  assert.ok(Number(blocked.headers['retry-after']) >= 1);
 
-  const validButBlocked = await request(app)
+  // Usuario con sesión iniciada desde la IP bloqueada: no se le aplica el rate limit.
+  const validWhileBlocked = await request(app)
     .get('/protected')
     .set('Authorization', 'Bearer local-token');
-  assert.equal(validButBlocked.status, 429);
+  assert.equal(validWhileBlocked.status, 200);
+  assert.equal(validWhileBlocked.body.user.username, 'lucho');
+});
+
+test('rutas protegidas: sin token, la IP bloqueada responde 429 aunque exista sesión válida', async () => {
+  const { app } = buildTokenApp(true);
+  for (let i = 0; i < 3; i += 1) {
+    await request(app).get('/protected?unique_id=r').set('Authorization', `Bearer invalido-${i}`);
+  }
+  assert.equal((await request(app).get('/protected')).status, 429);
 });
 
 test('rutas protegidas: el token válido resetea los fallos', async () => {
@@ -299,10 +310,15 @@ test('socket: 3 handshakes inválidos bloquean la IP', async () => {
     for (let i = 0; i < 3; i += 1) {
       await assert.rejects(() => connect({ token: `malo-${i}`, unique_id: 'r' }));
     }
+    // Token inválido desde la IP bloqueada: sigue rechazado con el mensaje de bloqueo.
     await assert.rejects(
-      () => connect({ token: 'local-token', unique_id: 'r' }),
+      () => connect({ token: 'malo-x', unique_id: 'r' }),
       /demasiados intentos/,
     );
+    // Sesión válida desde la IP bloqueada: entra (no se le aplica el rate limit).
+    // Un handshake válido resetea los fallos de la IP (comportamiento existente).
+    const client = await connect({ token: 'local-token', unique_id: 'r' });
+    client.close();
   } finally {
     httpServer.close();
   }
