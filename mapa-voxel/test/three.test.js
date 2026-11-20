@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MapaVoxel } from '../src/mapa.js';
-import { crearMallaLado, cacheDeMateriales, liberarMalla } from '../src/three.js';
+import { crearMallaLado, cacheDeMateriales, liberarMalla, crearMallasPorRegion } from '../src/three.js';
 
 const THREE = {
     BufferAttribute: class { constructor(arr, size) { this.array = arr; this.itemSize = size; } },
@@ -50,4 +50,20 @@ test('crearMallaLado con un solo material no usa grupos', () => {
     const mesh = crearMallaLado(THREE, m.combinarTodo().opacos, { materialDe: () => 'mat' });
     assert.equal(mesh.material, 'mat');
     assert.equal(mesh.geometry.groups.length, 0);
+});
+
+test('crearMallasPorRegion genera una malla por región con materiales compartidos', () => {
+    const T = 4, ALTO = 4;
+    const m = new MapaVoxel({ tamanoChunk: T, alto: ALTO, modo: 'estatico', regionTamano: 2 });
+    for (const [cx, cz] of [[0, 0], [1, 1], [2, 0], [5, 5]]) {
+        const datos = new Uint8Array(T * ALTO * T);
+        for (let x = 0; x < T; x++) for (let z = 0; z < T; z++) datos[(x * ALTO) * T + z] = 1;
+        m.setChunk(cx, cz, datos);
+    }
+    m.congelar();
+    const materialDe = cacheDeMateriales(() => ({}));
+    const { opacos, transparentes } = crearMallasPorRegion(THREE, m, { materialDe });
+    assert.equal(opacos.length, 3, 'regiones 0_0 (2 chunks), 1_0 y 2_2');
+    assert.equal(transparentes.length, 0);
+    assert.ok(opacos.every(x => x.material === opacos[0].material), 'material compartido');
 });

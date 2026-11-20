@@ -64,7 +64,8 @@ const comb = mapa.combinarTodo();      // una geometría por lado, un grupo por 
 - `setVoxel` lanza error en modo estático (y tras `congelar()`).
 - `congelar()` libera `datos`/`tintes` de los chunks: sólo queda la malla. Ahorra
   la memoria del mapa completo.
-- `combinarTodo()` reduce al mínimo los draw calls.
+- `combinarTodo()` reduce al mínimo los draw calls, pero es una sola malla: three.js no puede hacer frustum culling y dibuja todo el mapa en cada frame.
+- Para mapas grandes use `crearMallasPorRegion(THREE, mapa, { materialDe })` (`/three`): una malla por región (`regionTamano`² chunks), con culling y material compartido.
 
 ## Iluminación horneada (hook)
 

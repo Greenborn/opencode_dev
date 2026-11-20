@@ -1,6 +1,6 @@
 {
   "name": "@greenborn/mapa-voxel",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Visualización cliente de mapas voxel: greedy meshing por plano con códigos de máscara (tipo, tinte, sol, luz), culling entre chunks con bordes sin T-junctions, fusión por región, pool de Web Workers con caché de chunks crudos, y modo estático para mapas no destructibles. Núcleo sin dependencias; adaptador opcional a three.js.",
   "type": "module",
   "files": [

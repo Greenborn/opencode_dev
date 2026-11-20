@@ -40,6 +40,38 @@ export function crearMallaLado(THREE, lado, { materialDe, lado: nombreLado = 'op
 }
 
 /**
+ * Una malla por región (grupos de `mapa.regionTamano`² chunks) para que three.js
+ * haga frustum culling: con `combinarTodo()` el mapa es una sola malla y se dibuja
+ * entero en cada frame. Pensado para mapas estáticos grandes.
+ *
+ * @param {typeof import('three')} THREE
+ * @param {import('./mapa.js').MapaVoxel} mapa  con los chunks ya mallados (p. ej. tras `congelar()`)
+ * @param {Object} opts
+ * @param {Function} opts.materialDe   ver `crearMallaLado` (use `cacheDeMateriales` para compartir materiales)
+ * @param {string} [opts.nombre]
+ * @param {boolean} [opts.transparentes=false]  incluir también el lado transparente
+ * @returns {{ opacos: THREE.Mesh[], transparentes: THREE.Mesh[] }}
+ */
+export function crearMallasPorRegion(THREE, mapa, { materialDe, nombre = 'mapa_voxel', transparentes = false } = {}) {
+    const regiones = new Set();
+    for (const k of mapa.salidas.keys()) {
+        const [cx, cz] = k.split('_').map(Number);
+        regiones.add(mapa.regionDe(cx, cz));
+    }
+    const out = { opacos: [], transparentes: [] };
+    for (const r of regiones) {
+        const comb = mapa.combinarRegion(r);
+        if (!comb) continue;
+        const lados = transparentes ? ['opacos', 'transparentes'] : ['opacos'];
+        for (const lado of lados) {
+            const mesh = crearMallaLado(THREE, comb[lado], { materialDe, lado, nombre: nombre + '_' + r });
+            if (mesh) out[lado].push(mesh);
+        }
+    }
+    return out;
+}
+
+/**
  * Caché de materiales por (tipo, conTinte, lado). Evita crear un material por
  * región: todas las regiones comparten los mismos.
  * @param {(tipo:number, conTinte:boolean, lado:string) => any} fabrica

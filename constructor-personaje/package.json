@@ -1,0 +1,48 @@
+{
+  "name": "@greenborn/constructor-personaje",
+  "version": "0.1.0",
+  "description": "Constructor del personaje voxel: config (cuerpo + accesorios), panel DOM de chips y vista previa three.js. Usa @greenborn/modelos-personajes y @greenborn/accesorios-personaje.",
+  "type": "module",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./ui": "./src/ui.js",
+    "./three": "./src/three.js",
+    "./constructor": "./src/constructor.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "peerDependencies": {
+    "@greenborn/accesorios-personaje": ">=0.2.0 <1.0.0",
+    "@greenborn/modelos-personajes": ">=0.6.0 <1.0.0",
+    "three": ">=0.170.0"
+  },
+  "devDependencies": {
+    "@greenborn/accesorios-personaje": "^0.2.0",
+    "@greenborn/modelos-personajes": "^0.6.0"
+  },
+  "keywords": [
+    "three",
+    "voxel",
+    "personajes",
+    "accesorios",
+    "constructor",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
