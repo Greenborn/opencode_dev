@@ -1,6 +1,6 @@
 {
   "name": "@greenborn/accesorios-personaje",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Accesorios del personaje voxel (gorra, sombrero, lentes y canasta para vender) para three.js. Se integra con @greenborn/modelos-personajes (crearPersonajeVoxel y personajeAleatorio).",
   "type": "module",
   "files": [
@@ -20,11 +20,11 @@
     "test": "node --test"
   },
   "peerDependencies": {
-    "@greenborn/modelos-personajes": ">=0.4.0 <1.0.0",
+    "@greenborn/modelos-personajes": ">=0.6.0 <1.0.0",
     "three": ">=0.170.0"
   },
   "devDependencies": {
-    "@greenborn/modelos-personajes": "^0.5.0"
+    "@greenborn/modelos-personajes": "^0.6.0"
   },
   "keywords": [
     "three",

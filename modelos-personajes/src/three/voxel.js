@@ -12,8 +12,11 @@ const ACABADO = [0.1, 0.75, 0.35];
 const _t = new THREE.Matrix4(), _r = new THREE.Matrix4();
 const cacheRig = new Map();
 
-/** Cubo de un voxel con su color y acabado por vértice. */
-function cuboVoxel(v, marco, pivote) {
+/**
+ * Cubo de un voxel con su color y acabado por vértice, en el espacio del pivote `pivote`.
+ * Público (subruta /three): lo usa @greenborn/accesorios-personaje para armar sus piezas con el mismo acabado.
+ */
+export function cuboVoxel(v, marco, pivote) {
     const g = new THREE.BoxGeometry(1, 1, 1);
     const [x, y, z] = posModeloVoxel(v, marco);
     g.translate(x - pivote[0], y - pivote[1], z - pivote[2]);

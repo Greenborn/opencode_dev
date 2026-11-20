@@ -10,9 +10,9 @@
 //
 // Lógica pura: la geometría three.js la arma src/three.js.
 
-import { tint } from '@greenborn/modelos-personajes/geometria';
+import { tint, generadorSembrado } from '@greenborn/modelos-personajes/geometria';
 import { COLORES_ACCESORIO, COLOR_CINTA, COLOR_LENTE, COLOR_MONTURA } from './catalogo.js';
-import { canastaDesdeSemilla } from './aleatorio.js';
+import { generarCanasta } from './aleatorio.js';
 
 /** Color de gorra/sombrero según la cfg. */
 function colorCabeza(cfg) {
@@ -87,7 +87,7 @@ export function voxelesAccesorios(cfg = {}) {
     if (cfg.cabeza === 1 && cfg.pelo !== 4) body.push(...voxelesGorra(colorCabeza(cfg)));
     if (cfg.cabeza === 2) body.push(...voxelesSombrero(colorCabeza(cfg)));
     if (cfg.lentes === 1) body.push(...voxelesLentes());
-    if (cfg.mano === 1) armB.push(...voxelesCanasta(canastaDesdeSemilla(cfg.semillaCanasta || 0)));
+    if (cfg.mano === 1) armB.push(...voxelesCanasta(generarCanasta(generadorSembrado(cfg.semillaCanasta || 0))));
     return { body: unicosPorPosicion(body), armB: unicosPorPosicion(armB) };
 }
 

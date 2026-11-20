@@ -9,11 +9,11 @@ export * from './geometria/index.js';
 export * from './animacion/poses.js';
 export { crearMuneco, animarCaminata, apuntarBrazo } from './three/esqueleto.js';
 export { materialUnido } from './three/materiales.js';
-export { crearPersonajeVoxel, animarCaminataVoxel, piezasVoxelRigidas, matrizParteVoxel, matricesVoxelInstancia } from './three/voxel.js';
+export { crearPersonajeVoxel, animarCaminataVoxel, piezasVoxelRigidas, matrizParteVoxel, matricesVoxelInstancia, cuboVoxel } from './three/voxel.js';
 export { PoolInstanciado } from './three/pool.js';
 export {
     aplicarMuerte, aplicarInclinacion, aplicarAgachado,
     matrizHuesoInstancia, matrizRaizInstancia, matrizGrupoInstancia, matrizCadaver,
     geometriaCadaverFusionada,
 } from './three/animacion.js';
-export const VERSION = '0.5.0';
+export const VERSION = '0.6.0';

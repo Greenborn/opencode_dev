@@ -255,6 +255,7 @@ Lo que no llegó a tiempo se construye en el hilo principal con el mismo resulta
 - `poseCadaver(t, cfg?) → {angulo, hundimiento, terminado}`
 
 **`@greenborn/modelos-personajes/three`**
+- Voxel: `crearPersonajeVoxel(cfg, {material}) → {group, partes}`, `animarCaminataVoxel(partes, fase, fuerza)`, `piezasVoxelRigidas(cfg)`, `cuboVoxel(voxel, marco, pivote) → BufferGeometry` (un cubo con color y acabado por vértice, en el espacio del pivote)
 - Muñeco: `crearMuneco({colores, sombras, proyecta, emisivo}) → {group, partes}`, `animarCaminata(partes, fase, fuerza, conBrazos)`, `apuntarBrazo(partes, 'Izq'|'Der', objetivo)`, `materialUnido(opciones)`
 - Animación: `aplicarMuerte(modelo, raiz, yOriginal, t, altoImpacto)`, `aplicarInclinacion(modelo, corriendo, dt)`, `aplicarAgachado(modelo, escalaYObjetivo, dt)`
 - Instancing: `PoolInstanciado(scene, geometria, material, {nombre, capacidadInicial, atributos})` con `reservar`, `poner`, `escribirAtributo(id, nombre, valores)`, `liberar`, `subir`, `slotDeId`, `vivos`, `destruir`
@@ -282,6 +283,7 @@ Migrar el juego a las funciones de la 0.3.0 es un cambio aparte.
 
 ## Versiones
 
+- **0.6.0**: exporta `cuboVoxel` (subruta `/three` y raíz). Cambio aditivo: la API anterior no cambia.
 - **0.5.0**: policía a pie. `cfg.policia = true` cambia la camisa y el pantalón por el uniforme fijo
   (`COLOR_UNIFORME_POLICIA`, `COLOR_PANTALON_POLICIA`), agrega la placa dorada en el pecho y usa la gorra
   (`pelo: 4`). Nuevas funciones: `personajePolicia` y `personajeAleatorioConPolicia` (pool de peatones con una

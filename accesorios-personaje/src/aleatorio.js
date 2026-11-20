@@ -3,7 +3,7 @@
 // Usan el mismo `rnd` (número en [0, 1)) que personajeAleatorio del paquete de personajes,
 // así un mismo flujo de números da el mismo personaje completo (cuerpo + accesorios).
 
-import { personajeAleatorio, generadorSembrado, tint } from '@greenborn/modelos-personajes/geometria';
+import { personajeAleatorio, tint } from '@greenborn/modelos-personajes/geometria';
 import { CATALOGO_ACCESORIOS, COLORES_ACCESORIO, MERCANCIA, TEJIDOS_CANASTA } from './catalogo.js';
 
 const elegir = (lista, rnd) => lista[Math.floor(rnd() * lista.length)];
@@ -54,9 +54,4 @@ export function accesoriosAleatorios(rnd = Math.random) {
 export function personajeConAccesorios(rnd = Math.random, opciones = {}) {
     const cuerpo = personajeAleatorio(rnd, opciones);
     return { ...cuerpo, ...accesoriosAleatorios(rnd) };
-}
-
-/** Canasta a partir de la semilla guardada en la cfg (determinista). */
-export function canastaDesdeSemilla(semilla) {
-    return generarCanasta(generadorSembrado(semilla));
 }
