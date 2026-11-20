@@ -6,10 +6,10 @@ constructor de `vendedores_capital`.
 ## Instalación
 
 ```bash
-npm install @greenborn/accesorios-personaje@^0.1.1
+npm install @greenborn/accesorios-personaje@^0.1.2
 ```
 
-Requiere `@greenborn/modelos-personajes` (^0.4.0) y `three` (>=0.170.0) como peer.
+Requiere `@greenborn/modelos-personajes` (>=0.4.0 <1.0.0) y `three` (>=0.170.0) como peer.
 
 ## Slots y valores de la cfg
 

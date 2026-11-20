@@ -21,3 +21,11 @@ export { ESQUEMA_PLUGINS } from './plugins/datos.js';
 export { VolumeBuffer, computeColumnHeights } from './generador/volumeBuffer.js';
 export { generateMapType3, generateVolumeType3 } from './generador/mapType3.js';
 export * as chunkCompacto from './formato/chunk_compacto.js';
+
+// Piezas del generador que usan el servidor (bots, supervivencia) y las pruebas.
+// No forman parte del API principal: son las funciones que el generador ya
+// usaba internamente, expuestas para que Lab no tenga que importar src/.
+export { patternSize, blockZoneSize } from './generador/mapType3Block.js';
+export { generarNidos } from './generador/genera_nidos.js';
+export { generarRefugios } from './generador/genera_refugios.js';
+export { elegirTiendas, geometriaTienda } from './generador/genera_tiendas.js';

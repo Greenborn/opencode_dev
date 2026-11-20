@@ -1,6 +1,6 @@
 {
   "name": "@greenborn/mapa-voxel-back",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Generador de mapas voxel del lado del servidor (terreno, edificios, chunks, luces e índice de salas) con plugins de datos de juego. Módulo para correr en Node o en un Web Worker/worker_thread.",
   "type": "module",
   "files": [
@@ -10,7 +10,8 @@
   ],
   "main": "./src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./constantes": "./src/constantes.js"
   },
   "scripts": {
     "test": "node --test"
