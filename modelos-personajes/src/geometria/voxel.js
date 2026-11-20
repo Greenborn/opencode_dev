@@ -18,6 +18,10 @@ export const COLORES_CALZADO = Object.freeze(['#111111', '#f1f3f5', '#8b5a2b', '
 /** Peinados: 0 corto, 1 rulos, 2 trenza, 3 rapado, 4 gorra. */
 export const PEINADOS = Object.freeze(['corto', 'rulos', 'trenza', 'rapado', 'gorra']);
 export const COLOR_GORRA = '#2b2d42';
+/** Uniforme de policía: camisa azul marino, pantalón oscuro, placa dorada en el pecho. */
+export const COLOR_UNIFORME_POLICIA = '#1d3d7a';
+export const COLOR_PANTALON_POLICIA = '#1b2233';
+export const COLOR_PLACA_POLICIA = '#d4a017';
 
 /**
  * Construye los voxels de un personaje.
@@ -35,8 +39,12 @@ export function voxelesPersonaje(cfg = {}) {
     };
     // Torso x 0..11, piernas x 0..5 y 6..11 (z 2..11), cabeza 8x8x8 (x 2..9, y 0..7, z 25..32), frente = +y (y 7).
     const skin = HEX.test(cfg.piel) ? cfg.piel : PIEL_DEFECTO;
-    const hair = idx(COLORES_PELO, cfg.pelocolor), shirt = idx(COLORES_REMERA, cfg.remera);
-    const pants = idx(COLORES_PANTALON, cfg.pantalon), shoe = idx(COLORES_CALZADO, cfg.calzado);
+    // cfg.policia: uniforme fijo (camisa y pantalón de policía) en lugar de las paletas de prendas.
+    const policia = cfg.policia === true;
+    const hair = idx(COLORES_PELO, cfg.pelocolor);
+    const shirt = policia ? COLOR_UNIFORME_POLICIA : idx(COLORES_REMERA, cfg.remera);
+    const pants = policia ? COLOR_PANTALON_POLICIA : idx(COLORES_PANTALON, cfg.pantalon);
+    const shoe = idx(COLORES_CALZADO, cfg.calzado);
     const contraste = hex => tint(hex, luz(hex) > 140 ? .55 : 2.4);   // cordones y detalles legibles sobre el calzado
     const piel2 = tint(skin, .84), pielOsc = tint(skin, .7), rubor = mezclar(skin, '#e0605a', .35);
     const remOsc = tint(shirt, .8), remSombra = tint(shirt, .65);
@@ -59,6 +67,7 @@ export function voxelesPersonaje(cfg = {}) {
     box(0, 2, 13, 12, 4, 1, remSombra);                  // dobladillo
     for (let x = 3; x <= 8; x++) { put(x, 5, 23, remOsc); put(x, 2, 23, remOsc); }   // cuello
     box(1, 5, 18, 3, 1, 2, remOsc); box(8, 5, 18, 3, 1, 2, remOsc);                   // bolsillos del pecho
+    if (policia) { put(5, 5, 20, COLOR_PLACA_POLICIA); put(6, 5, 20, COLOR_PLACA_POLICIA); }   // placa
 
     // cuello
     box(4, 3, 24, 4, 2, 1, piel2);

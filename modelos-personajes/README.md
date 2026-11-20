@@ -21,7 +21,7 @@ el catálogo, el mapa ni las reglas. **Si sos un agente de IA, leé primero la s
 ## Instalación
 
 ```bash
-npm install @greenborn/modelos-personajes@^0.3.0
+npm install @greenborn/modelos-personajes@^0.5.0
 ```
 
 Requisitos: `three` como peer (`>=0.170.0`). El material usa `MeshStandardNodeMaterial`
@@ -49,6 +49,7 @@ Las subrutas `/geometria` y `/animacion` no dibujan nada: sólo calculan.
 | Precalcular paletas fijas al arrancar | `serializarHumanoide` + `sembrarHumanoide` (receta E) | `/geometria` |
 | Personaje voxel de cubos | `voxelesPersonaje(cfg)` | `/geometria` |
 | Personaje aleatorio (voxel) | `personajeAleatorio(rnd?)`, `personajeDesdeSemilla(semilla)` | `/geometria` |
+| Policía a pie (voxel) | `personajePolicia(rnd?)` o `personajeAleatorioConPolicia(rnd?, opciones?, probPolicia=0.1)` para el pool de peatones | `/geometria` |
 | Saber en qué estado está un personaje | `estadoDe({ muerto, agachado, corriendo, velocidad })` | `/animacion` |
 
 ## Guía para agentes de IA
@@ -281,6 +282,11 @@ Migrar el juego a las funciones de la 0.3.0 es un cambio aparte.
 
 ## Versiones
 
+- **0.5.0**: policía a pie. `cfg.policia = true` cambia la camisa y el pantalón por el uniforme fijo
+  (`COLOR_UNIFORME_POLICIA`, `COLOR_PANTALON_POLICIA`), agrega la placa dorada en el pecho y usa la gorra
+  (`pelo: 4`). Nuevas funciones: `personajePolicia` y `personajeAleatorioConPolicia` (pool de peatones con una
+  fracción de policías). `personajeAleatorio` no cambió: mismo sorteo y mismos personajes para una semilla dada.
+  La clave de caché del personaje voxel incluye `policia`.
 - **0.4.0**: personaje voxel con el mismo esquema que el muñeco articulado: `crearPersonajeVoxel`
   (partes con pivote, `{ group, partes }`), `animarCaminataVoxel`, `piezasVoxelRigidas` (geometría por
   parte, cacheada por cfg) y `matrizParteVoxel` / `matricesVoxelInstancia` para `PoolInstanciado`.

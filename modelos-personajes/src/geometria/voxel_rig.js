@@ -63,7 +63,7 @@ export function escalaVoxelParaAlto(alto) {
 
 /** Clave de caché de una cfg (sólo los campos que cambian la geometría). */
 export function claveVoxel(cfg = {}) {
-    return JSON.stringify([cfg.piel, cfg.pelo, cfg.pelocolor, cfg.remera, cfg.pantalon, cfg.calzado]);
+    return JSON.stringify([cfg.piel, cfg.pelo, cfg.pelocolor, cfg.remera, cfg.pantalon, cfg.calzado, cfg.policia === true]);
 }
 
 /** Voxels del personaje agrupados por parte, con el marco y los pivotes. */

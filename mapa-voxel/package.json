@@ -1,0 +1,48 @@
+{
+  "name": "@greenborn/mapa-voxel",
+  "version": "0.1.0",
+  "description": "Visualización cliente de mapas voxel: greedy meshing por plano con códigos de máscara (tipo, tinte, sol, luz), culling entre chunks con bordes sin T-junctions, fusión por región, pool de Web Workers con caché de chunks crudos, y modo estático para mapas no destructibles. Núcleo sin dependencias; adaptador opcional a three.js.",
+  "type": "module",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./three": "./src/three.js",
+    "./worker": "./src/worker/mallador.worker.js",
+    "./pool": "./src/worker/pool.js"
+  },
+  "peerDependencies": {
+    "three": ">=0.150.0"
+  },
+  "peerDependenciesMeta": {
+    "three": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "test": "node --test test/mallador.test.js test/mapa.test.js test/pool.test.js test/three.test.js"
+  },
+  "keywords": [
+    "voxel",
+    "meshing",
+    "greedy-meshing",
+    "three.js",
+    "web-worker",
+    "chunks",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

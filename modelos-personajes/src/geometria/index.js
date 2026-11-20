@@ -12,8 +12,8 @@ export {
     serializarGeometria, reconstruirGeometria, serializarHumanoide, reconstruirHumanoide
 } from './serializar.js';
 // Personaje voxel (estilo cubos) y personajes aleatorios.
-export { voxelesPersonaje, serializarVoxeles, reconstruirVoxeles, PIEL_DEFECTO, PEINADOS, COLORES_PELO, COLORES_REMERA, COLORES_PANTALON, COLORES_CALZADO, COLOR_GORRA } from './voxel.js';
-export { CATALOGO_PERSONAJE, NOMBRES, PIELES_NATURALES, personajeAleatorio, personajeDesdeSemilla, generadorSembrado, normalizarPersonaje } from './aleatorio.js';
+export { voxelesPersonaje, serializarVoxeles, reconstruirVoxeles, PIEL_DEFECTO, PEINADOS, COLORES_PELO, COLORES_REMERA, COLORES_PANTALON, COLORES_CALZADO, COLOR_GORRA, COLOR_UNIFORME_POLICIA, COLOR_PANTALON_POLICIA, COLOR_PLACA_POLICIA } from './voxel.js';
+export { CATALOGO_PERSONAJE, NOMBRES, PIELES_NATURALES, personajeAleatorio, personajePolicia, personajeAleatorioConPolicia, personajeDesdeSemilla, generadorSembrado, normalizarPersonaje } from './aleatorio.js';
 export { tint, mezclar, luz } from './color.js';
 export {
     PARTES_VOXEL, ALTO_VOXEL, rigVoxel, parteDeVoxel, marcoVoxel, posModeloVoxel, pivotesVoxel,

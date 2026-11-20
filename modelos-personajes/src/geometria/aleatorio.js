@@ -67,6 +67,24 @@ export function personajeDesdeSemilla(semilla, opciones = {}) {
 }
 
 /**
+ * Policía a pie: uniforme fijo (cfg.policia = true), gorra y calzado de la paleta.
+ * Mismo orden de sorteo que personajeAleatorio para piel, nombre y pelo de color.
+ * Devuelve { nombre, piel, pelo: 4 (gorra), pelocolor, remera, pantalon, calzado, policia: true }.
+ */
+export function personajePolicia(rnd = Math.random, opciones = {}) {
+    const cfg = personajeAleatorio(rnd, opciones);
+    return { ...cfg, pelo: 4, policia: true };
+}
+
+/**
+ * Pool de peatones: con probabilidad `probPolicia` devuelve un policía, si no un personaje
+ * común (personajeAleatorio). Consume un número extra de `rnd` por cada personaje.
+ */
+export function personajeAleatorioConPolicia(rnd = Math.random, opciones = {}, probPolicia = 0.1) {
+    return rnd() < probPolicia ? personajePolicia(rnd, opciones) : personajeAleatorio(rnd, opciones);
+}
+
+/**
  * Completa una cfg parcial con valores por defecto y lleva los índices al rango del
  * catálogo (los que no encajan caen en 0). No lanza: sirve para configs de red.
  */
@@ -77,5 +95,6 @@ export function normalizarPersonaje(cfg = {}) {
         out[cat] = Number.isInteger(cfg[cat]) && cfg[cat] >= 0 && cfg[cat] < n ? cfg[cat] : 0;
     }
     out.piel = /^#[0-9a-f]{6}$/i.test(cfg.piel) ? cfg.piel : PIEL_DEFECTO;
+    if (cfg.policia === true) out.policia = true;
     return out;
 }

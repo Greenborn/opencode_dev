@@ -16,4 +16,4 @@ export {
     matrizHuesoInstancia, matrizRaizInstancia, matrizGrupoInstancia, matrizCadaver,
     geometriaCadaverFusionada,
 } from './three/animacion.js';
-export const VERSION = '0.4.0';
+export const VERSION = '0.5.0';
