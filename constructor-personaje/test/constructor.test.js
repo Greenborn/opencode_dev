@@ -69,3 +69,10 @@ test('normalizarConfig sin argumentos da una config válida', () => {
     assert.equal(out.nombre, CONFIG_DEFECTO.nombre);
     assert.match(out.piel, /^#[0-9a-f]{6}$/i);
 });
+
+test('la canasta es obligatoria: defecto, azar y normalizar la fuerzan y el panel no ofrece "mano"', () => {
+    assert.equal(configDefecto().mano, 1);
+    assert.equal(azarPersonaje(generadorSembrado(7)).mano, 1);
+    assert.equal(normalizarConfig({ mano: 0 }).mano, 1);
+    assert.ok(!categorias().some(c => c.key === 'mano'));
+});

@@ -26,7 +26,7 @@ export const ROTACIONES = 4;
 /** Etiquetas de los peinados, en el mismo orden que CATALOGO_PERSONAJE.pelo. */
 export const ETIQUETAS_PEINADO = Object.freeze(['Corto', 'Rulos', 'Trenza', 'Rapado', 'Gorra']);
 
-/** Config por defecto (sin accesorios). Se usa al abrir el constructor y en "Reiniciar". */
+/** Config por defecto (la canasta, mano: 1, es obligatoria; no hay accesorios de cabeza ni lentes). Se usa al abrir el constructor y en "Reiniciar". */
 export const CONFIG_DEFECTO = Object.freeze({
     piel: '#e0a878',
     pelo: 0,
@@ -37,6 +37,7 @@ export const CONFIG_DEFECTO = Object.freeze({
     rot: 0,
     nombre: 'Lucas',
     ...ACCESORIOS_DEFECTO,
+    mano: 1,   // la canasta es obligatoria
 });
 
 const capitalizar = s => s[0].toUpperCase() + s.slice(1);
@@ -60,7 +61,6 @@ export function categorias() {
         { key: 'cabeza', label: 'Cabeza', items: CATALOGO_ACCESORIOS.cabeza.map(s => ({ label: capitalizar(s) })) },
         { key: 'cabezaColor', label: 'Color de gorra o sombrero', items: COLORES_ACCESORIO.map(c => ({ c })) },
         { key: 'lentes', label: 'Lentes', items: CATALOGO_ACCESORIOS.lentes.map(s => ({ label: capitalizar(s) })) },
-        { key: 'mano', label: 'En la mano', items: CATALOGO_ACCESORIOS.mano.map(s => ({ label: capitalizar(s) })) },
     ];
 }
 
@@ -69,7 +69,7 @@ export function categorias() {
  * `rnd` devuelve un número en [0, 1); con una semilla fija el resultado es reproducible.
  */
 export function azarPersonaje(rnd = Math.random, opciones = {}) {
-    return { ...personajeAleatorio(rnd, opciones), ...accesoriosAleatorios(rnd) };
+    return { ...personajeAleatorio(rnd, opciones), ...accesoriosAleatorios(rnd), mano: 1 };
 }
 
 /** Gira una cuarto de vuelta (rot + 1, módulo ROTACIONES). Devuelve una config nueva. */
@@ -84,5 +84,5 @@ export function girar(cfg) {
 export function normalizarConfig(cfg = {}) {
     const rot = Number.isInteger(cfg.rot) && cfg.rot >= 0 && cfg.rot < ROTACIONES ? cfg.rot : 0;
     const nombre = typeof cfg.nombre === 'string' ? cfg.nombre.slice(0, NOMBRE_MAX) : CONFIG_DEFECTO.nombre;
-    return { ...normalizarPersonaje(cfg), ...normalizarAccesorios(cfg), rot, nombre };
+    return { ...normalizarPersonaje(cfg), ...normalizarAccesorios(cfg), mano: 1, rot, nombre };
 }
