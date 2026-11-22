@@ -22,6 +22,12 @@ import {
   clavePreferenciasTabla,
   crearPreferenciasLocales,
   crearAdaptadorPreferencias,
+  normalizarAcciones,
+  accionPermitida,
+  normalizarFormulario,
+  construirParametrosFormulario,
+  erroresDeRespuesta,
+  procesarGuardado,
 } from './helpers.js'
 import './styles/crud.css'
 
@@ -49,5 +55,11 @@ export {
   clavePreferenciasTabla,
   crearPreferenciasLocales,
   crearAdaptadorPreferencias,
+  normalizarAcciones,
+  accionPermitida,
+  normalizarFormulario,
+  construirParametrosFormulario,
+  erroresDeRespuesta,
+  procesarGuardado,
 }
 export default CrudModulo

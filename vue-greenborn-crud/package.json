@@ -1,6 +1,6 @@
 {
   "name": "@greenborn/vue-greenborn-crud",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Módulo CRUD genérico para Vue 3: tabla lazy (@greenborn/vue-table-editor), formularios y confirmaciones (@greenborn/vue-greenborn-modal-manager) y botones habilitados según permisos RBAC.",
   "type": "module",
   "files": [
@@ -23,7 +23,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "node --test test/helpers.test.js test/preferencias_filtros_ayuda.test.js",
+    "test": "node --test test/helpers.test.js test/preferencias_filtros_ayuda.test.js test/acciones_formulario.test.js",
     "prepublishOnly": "npm run build && npm test",
     "preview": "vite preview"
   },

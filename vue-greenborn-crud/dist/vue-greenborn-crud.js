@@ -1,14 +1,14 @@
-import { reactive as J, ref as U, openBlock as p, createElementBlock as m, withModifiers as Ve, toDisplayString as E, createCommentVNode as V, Fragment as T, renderList as z, unref as d, mergeProps as Fe, createElementVNode as _, createTextVNode as fe, withDirectives as C, vModelCheckbox as pe, vModelSelect as X, vModelText as me, vModelDynamic as Z, computed as S, watch as ye, createVNode as De } from "vue";
-import { BtnConfig as I, TableEditor as Ue } from "@greenborn/vue-table-editor";
-import { useModal as le } from "@greenborn/vue-greenborn-modal-manager";
-const Pe = ["listar", "crear", "editar", "eliminar"], qe = 4, Me = {
+import { reactive as K, ref as L, openBlock as m, createElementBlock as p, withModifiers as Je, toDisplayString as j, createCommentVNode as M, Fragment as q, renderList as J, unref as u, mergeProps as Ye, createElementVNode as k, createTextVNode as ne, withDirectives as P, vModelCheckbox as be, vModelSelect as ee, vModelText as ve, vModelDynamic as re, computed as A, watch as he, createVNode as Qe } from "vue";
+import { BtnConfig as B, TableEditor as We } from "@greenborn/vue-table-editor";
+import { useModal as ue } from "@greenborn/vue-greenborn-modal-manager";
+const Ae = ["listar", "crear", "editar", "eliminar"], Xe = 4, Ze = {
   text: "text",
   number: "number",
   date: "date",
   boolean: "checkbox",
   select: "select",
   multiselect: "multiselect"
-}, Te = [
+}, er = [
   "text",
   "number",
   "date",
@@ -19,174 +19,174 @@ const Pe = ["listar", "crear", "editar", "eliminar"], qe = 4, Me = {
   "markdown",
   "email"
 ];
-function g(e, n) {
+function _(e, t) {
   if (e == null || e === "")
-    throw new Error(`[crud] Parámetro requerido faltante: ${n}`);
+    throw new Error(`[crud] Parámetro requerido faltante: ${t}`);
   return e;
 }
-function Re({ recurso: e, endpoint: n, http: t, permisos: r }) {
-  if (g(e, "recurso"), g(n, "endpoint"), g(t, "http"), typeof t.get != "function" || typeof t.post != "function" || typeof t.put != "function" || typeof t.delete != "function")
+function rr({ recurso: e, endpoint: t, http: n, permisos: r }) {
+  if (_(e, "recurso"), _(t, "endpoint"), _(n, "http"), typeof n.get != "function" || typeof n.post != "function" || typeof n.put != "function" || typeof n.delete != "function")
     throw new Error('[crud] "http" debe exponer get, post, put y delete');
   if (!Array.isArray(r))
     throw new Error('[crud] "permisos" es requerido y debe ser un array de strings');
   return !0;
 }
-function Le(e) {
-  g(e, "recurso");
-  const n = {};
-  for (const t of Pe)
-    n[t] = `${e}.${t}`;
-  return n;
+function nr(e) {
+  _(e, "recurso");
+  const t = {};
+  for (const n of Ae)
+    t[n] = `${e}.${n}`;
+  return t;
 }
-function be(e, n) {
+function Ce(e, t) {
   if (!Array.isArray(e))
     throw new Error('[crud] tienePermiso: "permisos" debe ser un array');
-  return e.includes(n);
+  return e.includes(t);
 }
-function we(e) {
-  if (g(e, "campo"), g(e.field, "campo.field"), e.form_type !== void 0) {
-    if (!Te.includes(e.form_type))
+function Se(e) {
+  if (_(e, "campo"), _(e.field, "campo.field"), e.form_type !== void 0) {
+    if (!er.includes(e.form_type))
       throw new Error(`[crud] form_type inválido en "${e.field}": ${e.form_type}`);
     return e.form_type;
   }
-  const n = Me[e.type];
-  return n === void 0 ? "text" : n;
+  const t = Ze[e.type];
+  return t === void 0 ? "text" : t;
 }
-function re(e) {
+function X(e) {
   if (!Array.isArray(e))
     throw new Error('[crud] camposFormulario: "campos" debe ser un array');
-  return e.filter((n) => n.writable !== !1).map((n) => ({ ...n, form_type: we(n) }));
+  return e.filter((t) => t.writable !== !1).map((t) => ({ ...t, form_type: Se(t) }));
 }
-function Ie(e, n) {
+function tr(e, t) {
   if (!Array.isArray(e))
     throw new Error('[crud] combinarOpciones: "campos" debe ser un array');
-  if (n == null) return e;
-  if (!Array.isArray(n))
+  if (t == null) return e;
+  if (!Array.isArray(t))
     throw new Error('[crud] combinarOpciones: "fieldsDef" debe ser un array o null');
-  return e.map((t) => {
-    if (t.options !== void 0) return t;
-    const r = n.find((o) => o !== null && typeof o == "object" && o.field === t.field);
-    return r === void 0 || !Array.isArray(r.options) ? t : { ...t, options: r.options };
+  return e.map((n) => {
+    if (n.options !== void 0) return n;
+    const r = t.find((o) => o !== null && typeof o == "object" && o.field === n.field);
+    return r === void 0 || !Array.isArray(r.options) ? n : { ...n, options: r.options };
   });
 }
-function se(e) {
-  return g(e, "campo"), Array.isArray(e.options) ? e.options : [];
+function de(e) {
+  return _(e, "campo"), Array.isArray(e.options) ? e.options : [];
 }
-function ze(e) {
-  if (g(e, "campo"), e.filas === void 0) return qe;
+function or(e) {
+  if (_(e, "campo"), e.filas === void 0) return Xe;
   if (!Number.isInteger(e.filas) || e.filas < 1)
     throw new Error(`[crud] "filas" inválido en "${e.field}": debe ser un entero >= 1`);
   return e.filas;
 }
-function ke(e) {
+function je(e) {
   return e == null ? !0 : Array.isArray(e) ? e.length === 0 : String(e).trim() === "";
 }
-function He(e) {
+function ir(e) {
   if (!Array.isArray(e))
     throw new Error('[crud] fieldsDefDesdeCampos: "campos" debe ser un array');
-  return e.map((n) => {
-    g(n.field, "campo.field");
-    const t = {
-      field: n.field,
-      headerName: n.headerName === void 0 ? n.field : n.headerName,
-      type: n.type,
-      sortable: n.sortable,
-      filterable: n.filterable,
-      form_type: we(n)
+  return e.map((t) => {
+    _(t.field, "campo.field");
+    const n = {
+      field: t.field,
+      headerName: t.headerName === void 0 ? t.field : t.headerName,
+      type: t.type,
+      sortable: t.sortable,
+      filterable: t.filterable,
+      form_type: Se(t)
     };
-    return n.css !== void 0 && (t.css = n.css), t;
+    return t.css !== void 0 && (n.css = t.css), n;
   });
 }
-function Be(e, n) {
-  const t = {};
-  for (const r of re(e)) {
-    const o = n == null ? void 0 : n[r.field];
-    r.form_type === "checkbox" ? t[r.field] = o === !0 || o === 1 : r.form_type === "multiselect" ? t[r.field] = Array.isArray(o) ? o.slice() : [] : t[r.field] = o ?? "";
+function xe(e, t) {
+  const n = {};
+  for (const r of X(e)) {
+    const o = t == null ? void 0 : t[r.field];
+    r.form_type === "checkbox" ? n[r.field] = o === !0 || o === 1 : r.form_type === "multiselect" ? n[r.field] = Array.isArray(o) ? o.slice() : [] : n[r.field] = o ?? "";
   }
-  return t;
+  return n;
 }
-function Ke(e, n) {
-  const t = {};
-  for (const r of re(e)) {
-    const o = n[r.field];
+function lr(e, t) {
+  const n = {};
+  for (const r of X(e)) {
+    const o = t[r.field];
     if (r.form_type === "checkbox") continue;
-    const l = ke(o);
-    if (r.required === !0 && l) {
-      t[r.field] = `${r.headerName === void 0 ? r.field : r.headerName} es obligatorio`;
+    const i = je(o);
+    if (r.required === !0 && i) {
+      n[r.field] = `${r.headerName === void 0 ? r.field : r.headerName} es obligatorio`;
       continue;
     }
-    r.form_type === "number" && !l && Number.isNaN(Number(o)) && (t[r.field] = "Debe ser un número");
+    r.form_type === "number" && !i && Number.isNaN(Number(o)) && (n[r.field] = "Debe ser un número");
   }
-  return t;
+  return n;
 }
-function Ge(e, n) {
-  const t = {};
-  for (const r of re(e)) {
-    const o = n[r.field];
-    r.form_type === "checkbox" ? t[r.field] = o === !0 || o === 1 : r.form_type === "multiselect" ? t[r.field] = Array.isArray(o) ? o.slice() : [] : ke(o) ? t[r.field] = null : r.form_type === "number" ? t[r.field] = Number(o) : t[r.field] = o;
+function ar(e, t) {
+  const n = {};
+  for (const r of X(e)) {
+    const o = t[r.field];
+    r.form_type === "checkbox" ? n[r.field] = o === !0 || o === 1 : r.form_type === "multiselect" ? n[r.field] = Array.isArray(o) ? o.slice() : [] : je(o) ? n[r.field] = null : r.form_type === "number" ? n[r.field] = Number(o) : n[r.field] = o;
   }
-  return t;
+  return n;
 }
-const Je = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-function K(e) {
-  return String(e).replace(/[&<>"']/g, (n) => Je[n]);
+const sr = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+function Q(e) {
+  return String(e).replace(/[&<>"']/g, (t) => sr[t]);
 }
-function ve(e, n) {
-  const t = se(e).find((r) => String(r.value) === String(n));
-  return t === void 0 ? void 0 : t.label;
+function ge(e, t) {
+  const n = de(e).find((r) => String(r.value) === String(t));
+  return n === void 0 ? void 0 : n.label;
 }
-function Ye(e, n) {
-  g(e, "campo"), g(n, "fila");
-  const t = n[e.field], r = `${e.field}_etiqueta`;
-  if (n[r] !== void 0 && n[r] !== null)
-    return K(n[r]);
+function ur(e, t) {
+  _(e, "campo"), _(t, "fila");
+  const n = t[e.field], r = `${e.field}_etiqueta`;
+  if (t[r] !== void 0 && t[r] !== null)
+    return Q(t[r]);
   if (e.form_type === "multiselect" || e.type === "multiselect")
-    return Array.isArray(t) ? t.map((l) => {
-      const u = ve(e, l);
-      return K(u === void 0 ? l : u);
-    }).join(", ") : K(t ?? "");
-  if (t == null) return "";
-  const o = ve(e, t);
-  return K(o === void 0 ? t : o);
+    return Array.isArray(n) ? n.map((i) => {
+      const a = ge(e, i);
+      return Q(a === void 0 ? i : a);
+    }).join(", ") : Q(n ?? "");
+  if (n == null) return "";
+  const o = ge(e, n);
+  return Q(o === void 0 ? n : o);
 }
-function Qe(e) {
+function dr(e) {
   if (e == null) return {};
   if (!Array.isArray(e))
     throw new Error('[crud] formateadoresCeldas: "campos" debe ser un array o null');
-  const n = {};
-  for (const t of e)
-    n[t.field] = (r) => Ye(t, r);
-  return n;
+  const t = {};
+  for (const n of e)
+    t[n.field] = (r) => ur(n, r);
+  return t;
 }
-function We(e) {
+function cr(e) {
   if (typeof e != "string")
     throw new Error('[crud] markdownAHtmlSeguro: "texto" debe ser string');
-  const n = (l) => l.replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/\*([^*]+)\*/g, "<em>$1</em>"), t = [];
+  const t = (i) => i.replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/\*([^*]+)\*/g, "<em>$1</em>"), n = [];
   let r = [];
   const o = () => {
-    r.length > 0 && (t.push(`<p>${r.join("<br>")}</p>`), r = []);
+    r.length > 0 && (n.push(`<p>${r.join("<br>")}</p>`), r = []);
   };
-  for (const l of K(e).split(/\r?\n/)) {
-    const u = /^(#{1,3})\s+(.*)$/.exec(l);
-    if (u !== null) {
+  for (const i of Q(e).split(/\r?\n/)) {
+    const a = /^(#{1,3})\s+(.*)$/.exec(i);
+    if (a !== null) {
       o();
-      const c = u[1].length;
-      t.push(`<h${c}>${n(u[2])}</h${c}>`);
-    } else l.trim() === "" ? o() : r.push(n(l));
+      const s = a[1].length;
+      n.push(`<h${s}>${t(a[2])}</h${s}>`);
+    } else i.trim() === "" ? o() : r.push(t(i));
   }
-  return o(), t.join(`
+  return o(), n.join(`
 `);
 }
-function G(e) {
-  let n = null;
-  e !== null && typeof e == "object" && e.response && typeof e.response == "object" ? n = e.response.data === void 0 ? null : e.response.data : e !== null && typeof e == "object" && e.status === !1 && (n = e);
-  const t = n && typeof n.message == "string" ? n.message : e instanceof Error ? e.message : "Error desconocido", r = n && n.errors && typeof n.errors == "object" ? n.errors : {};
-  return { message: t, errors: r };
+function W(e) {
+  let t = null;
+  e !== null && typeof e == "object" && e.response && typeof e.response == "object" ? t = e.response.data === void 0 ? null : e.response.data : e !== null && typeof e == "object" && e.status === !1 && (t = e);
+  const n = t && typeof t.message == "string" ? t.message : e instanceof Error ? e.message : "Error desconocido", r = t && t.errors && typeof t.errors == "object" ? t.errors : {};
+  return { message: n, errors: r };
 }
-function he(e) {
+function we(e) {
   return e !== null && typeof e == "object" && e.status === !1;
 }
-const $e = {
+const Oe = {
   igual: "Igual a",
   distinto: "Distinto de",
   contiene: "Contiene",
@@ -194,628 +194,741 @@ const $e = {
   rango: "Entre",
   nulo: "Es nulo"
 };
-function ee(e) {
-  return g(e, "campo"), e.filterable !== !0 ? [] : Array.isArray(e.operadores) ? e.operadores.filter((n) => $e[n] !== void 0) : [];
+function te(e) {
+  return _(e, "campo"), e.filterable !== !0 ? [] : Array.isArray(e.operadores) ? e.operadores.filter((t) => Oe[t] !== void 0) : [];
 }
-function ie(e, n) {
-  if (n == null) return;
-  const t = String(n).trim();
-  if (t !== "") {
+function ae(e, t) {
+  if (t == null) return;
+  const n = String(t).trim();
+  if (n !== "") {
     if (e.type === "number") {
-      const r = Number(t);
+      const r = Number(n);
       if (Number.isNaN(r)) throw new Error(`[crud] "${e.field}": debe ser un número`);
       return r;
     }
     if (e.type === "boolean") {
-      if (t === "si") return !0;
-      if (t === "no") return !1;
+      if (n === "si") return !0;
+      if (n === "no") return !1;
       throw new Error(`[crud] "${e.field}": debe ser si o no`);
     }
-    return t;
+    return n;
   }
 }
-function Xe(e, n) {
+function fr(e, t) {
   if (!Array.isArray(e)) throw new Error('[crud] construirFiltrosAvanzados: "campos" debe ser un array');
-  const t = {};
+  const n = {};
   for (const r of e) {
-    const o = n[r.field];
+    const o = t[r.field];
     if (o == null) continue;
-    const l = o.op;
-    if (!(l === void 0 || l === "" || l === null)) {
-      if (!ee(r).includes(l))
-        throw new Error(`[crud] operador "${l}" no permitido en "${r.field}"`);
-      if (l === "rango") {
-        const u = ie(r, o.desde), c = ie(r, o.hasta);
-        if (u === void 0 && c === void 0) continue;
-        const k = { op: l };
-        u !== void 0 && (k.desde = u), c !== void 0 && (k.hasta = c), t[r.field] = k;
-      } else if (l === "en") {
-        const u = String(o.valor === void 0 || o.valor === null ? "" : o.valor).split(",").map((c) => c.trim()).filter((c) => c !== "").map((c) => r.type === "number" ? Number(c) : c);
-        if (u.length === 0) continue;
-        t[r.field] = { op: l, valor: u };
-      } else if (l === "nulo")
-        (o.valor === "si" || o.valor === "no") && (t[r.field] = { op: l, valor: o.valor === "si" });
+    const i = o.op;
+    if (!(i === void 0 || i === "" || i === null)) {
+      if (!te(r).includes(i))
+        throw new Error(`[crud] operador "${i}" no permitido en "${r.field}"`);
+      if (i === "rango") {
+        const a = ae(r, o.desde), s = ae(r, o.hasta);
+        if (a === void 0 && s === void 0) continue;
+        const w = { op: i };
+        a !== void 0 && (w.desde = a), s !== void 0 && (w.hasta = s), n[r.field] = w;
+      } else if (i === "en") {
+        const a = String(o.valor === void 0 || o.valor === null ? "" : o.valor).split(",").map((s) => s.trim()).filter((s) => s !== "").map((s) => r.type === "number" ? Number(s) : s);
+        if (a.length === 0) continue;
+        n[r.field] = { op: i, valor: a };
+      } else if (i === "nulo")
+        (o.valor === "si" || o.valor === "no") && (n[r.field] = { op: i, valor: o.valor === "si" });
       else {
-        const u = ie(r, o.valor);
-        if (u === void 0) continue;
-        t[r.field] = { op: l, valor: u };
+        const a = ae(r, o.valor);
+        if (a === void 0) continue;
+        n[r.field] = { op: i, valor: a };
       }
     }
   }
-  return t;
+  return n;
 }
-function Ze(e, n) {
-  let t = {};
+function mr(e, t) {
+  let n = {};
   if (e != null && e !== "") {
     if (typeof e != "string") throw new Error('[crud] combinarFiltros: "filters" debe ser string JSON');
     const o = JSON.parse(e);
     if (o === null || typeof o != "object" || Array.isArray(o))
       throw new Error('[crud] combinarFiltros: "filters" debe ser un objeto JSON');
-    t = o;
+    n = o;
   }
-  const r = { ...t, ...n ?? {} };
+  const r = { ...n, ...t ?? {} };
   return Object.keys(r).length === 0 ? void 0 : JSON.stringify(r);
 }
-function Ee(e) {
-  g(e, "paginacion");
-  const t = (Array.isArray(e.tamanosPermitidos) ? e.tamanosPermitidos : [10, 25, 50, 100, 200]).filter((r) => r <= e.tamanoMaximo);
-  return t.includes(e.tamanoDefecto) || t.push(e.tamanoDefecto), [...new Set(t)].sort((r, o) => r - o);
+function Fe(e) {
+  _(e, "paginacion");
+  const n = (Array.isArray(e.tamanosPermitidos) ? e.tamanosPermitidos : [10, 25, 50, 100, 200]).filter((r) => r <= e.tamanoMaximo);
+  return n.includes(e.tamanoDefecto) || n.push(e.tamanoDefecto), [...new Set(n)].sort((r, o) => r - o);
 }
-function ge(e, n) {
-  if (n == null) return;
-  const t = Ee(n);
-  return e !== void 0 && t.includes(Number(e)) ? Number(e) : n.tamanoDefecto;
+function _e(e, t) {
+  if (t == null) return;
+  const n = Fe(t);
+  return e !== void 0 && n.includes(Number(e)) ? Number(e) : t.tamanoDefecto;
 }
-const _e = ["listar", "crear", "editar", "eliminar"];
-function er(e, { recurso: n }) {
-  g(n, "recurso");
-  const t = { botones: {}, campos: {} };
-  for (const u of _e) t.botones[u] = null;
-  if (e == null) return t;
+const ke = ["listar", "crear", "editar", "eliminar"];
+function pr(e, { recurso: t }) {
+  _(t, "recurso");
+  const n = { botones: {}, campos: {} };
+  for (const a of ke) n.botones[a] = null;
+  if (e == null) return n;
   if (typeof e != "object") throw new Error('[crud] "ayuda" debe ser un objeto');
   let r = null;
   if (typeof e.clave == "function") {
-    if (r = e.clave({ recurso: n }), typeof r != "string" || r === "") throw new Error("[crud] ayuda.clave(ctx) debe devolver un string no vacío");
+    if (r = e.clave({ recurso: t }), typeof r != "string" || r === "") throw new Error("[crud] ayuda.clave(ctx) debe devolver un string no vacío");
   } else if (e.clave !== void 0) {
     if (typeof e.clave != "string" || e.clave === "") throw new Error("[crud] ayuda.clave debe ser string o función");
     r = e.clave;
   }
   const o = e.botones === void 0 ? {} : e.botones;
-  for (const u of _e) {
-    const c = o[u];
-    if (!(c === void 0 || c === !1))
-      if (c === !0) {
-        if (r === null) throw new Error(`[crud] ayuda.botones.${u}: true requiere ayuda.clave`);
-        t.botones[u] = `${r}-${u}`;
-      } else if (typeof c == "string" && c !== "")
-        t.botones[u] = c;
+  for (const a of ke) {
+    const s = o[a];
+    if (!(s === void 0 || s === !1))
+      if (s === !0) {
+        if (r === null) throw new Error(`[crud] ayuda.botones.${a}: true requiere ayuda.clave`);
+        n.botones[a] = `${r}-${a}`;
+      } else if (typeof s == "string" && s !== "")
+        n.botones[a] = s;
       else
-        throw new Error(`[crud] ayuda.botones.${u} debe ser string, true o false`);
+        throw new Error(`[crud] ayuda.botones.${a} debe ser string, true o false`);
   }
-  const l = o.campo === void 0 ? {} : o.campo;
-  if (l === null || typeof l != "object") throw new Error("[crud] ayuda.botones.campo debe ser un objeto");
-  for (const [u, c] of Object.entries(l))
-    if (c === !0) {
-      if (r === null) throw new Error(`[crud] ayuda.botones.campo.${u}: true requiere ayuda.clave`);
-      t.campos[u] = `${r}-campo-${u}`;
-    } else if (typeof c == "string" && c !== "")
-      t.campos[u] = c;
-    else if (c !== !1 && c !== void 0)
-      throw new Error(`[crud] ayuda.botones.campo.${u} debe ser string, true o false`);
-  return t;
+  const i = o.campo === void 0 ? {} : o.campo;
+  if (i === null || typeof i != "object") throw new Error("[crud] ayuda.botones.campo debe ser un objeto");
+  for (const [a, s] of Object.entries(i))
+    if (s === !0) {
+      if (r === null) throw new Error(`[crud] ayuda.botones.campo.${a}: true requiere ayuda.clave`);
+      n.campos[a] = `${r}-campo-${a}`;
+    } else if (typeof s == "string" && s !== "")
+      n.campos[a] = s;
+    else if (s !== !1 && s !== void 0)
+      throw new Error(`[crud] ayuda.botones.campo.${a} debe ser string, true o false`);
+  return n;
 }
-function rr(e) {
+function yr(e) {
   return e == null ? {} : { "data-help": e };
 }
-function tr(e) {
-  return g(e, "recurso"), `te_cfg_${e}`;
+function br(e) {
+  return _(e, "recurso"), `te_cfg_${e}`;
 }
-function Qr(e, n = "crud_prefs:") {
-  return g(e, "storage"), {
-    leer(t) {
+function yn(e, t = "crud_prefs:") {
+  return _(e, "storage"), {
+    leer(n) {
       try {
-        return e.getItem(`${n}${t}`);
+        return e.getItem(`${t}${n}`);
       } catch (r) {
         return console.error("[crud] preferencias locales: error al leer", r), null;
       }
     },
-    guardar(t, r) {
+    guardar(n, r) {
       try {
-        e.setItem(`${n}${t}`, typeof r == "string" ? r : JSON.stringify(r));
+        e.setItem(`${t}${n}`, typeof r == "string" ? r : JSON.stringify(r));
       } catch (o) {
         console.error("[crud] preferencias locales: error al guardar", o);
       }
     }
   };
 }
-function nr(e, n) {
+function vr(e, t) {
   if (e == null) return null;
   if (typeof e.leer != "function" || typeof e.guardar != "function")
     throw new Error('[crud] "preferencias" debe exponer leer(clave) y guardar(clave, valor)');
-  const t = tr(n), r = {};
+  const n = br(t), r = {};
   return {
     get misValores() {
       return r;
     },
     valor(o) {
-      const l = r[o];
-      return l == null || l === "" ? null : l;
+      const i = r[o];
+      return i == null || i === "" ? null : i;
     },
     async fetchMisPreferencias() {
       try {
-        const o = await e.leer(t);
-        o != null && (r[t] = o);
+        const o = await e.leer(n);
+        o != null && (r[n] = o);
       } catch (o) {
         console.error("[crud] error al leer preferencias de columnas:", o);
       }
     },
     async guardarValores(o) {
-      let l = { status: !0 };
-      for (const [u, c] of Object.entries(o)) {
-        r[u] = c;
+      let i = { status: !0 };
+      for (const [a, s] of Object.entries(o)) {
+        r[a] = s;
         try {
-          await e.guardar(u, c);
-        } catch (k) {
-          console.error("[crud] error al guardar preferencias de columnas:", k), l = { status: !1, error: String(k && k.message ? k.message : k) };
+          await e.guardar(a, s);
+        } catch (w) {
+          console.error("[crud] error al guardar preferencias de columnas:", w), i = { status: !1, error: String(w && w.message ? w.message : w) };
         }
       }
-      return l;
+      return i;
     }
   };
 }
-const or = {
+const se = ["crear", "editar", "eliminar", "listar"];
+function Ne(e) {
+  if (e == null)
+    return { crear: !0, editar: !0, eliminar: !0, listar: !0 };
+  if (typeof e != "object" || Array.isArray(e))
+    throw new Error('[crud] "acciones" debe ser un objeto { crear, editar, eliminar, listar } con booleanos');
+  for (const n of Object.keys(e)) {
+    if (!se.includes(n))
+      throw new Error(`[crud] "acciones" tiene una clave desconocida: "${n}" (válidas: ${se.join(", ")})`);
+    if (typeof e[n] != "boolean")
+      throw new Error(`[crud] "acciones.${n}" debe ser booleano`);
+  }
+  const t = {};
+  for (const n of se)
+    t[n] = e[n] === void 0 ? !0 : e[n];
+  return t;
+}
+function hr(e, t, n, r) {
+  if (!Ae.includes(r))
+    throw new Error(`[crud] acción desconocida: "${r}"`);
+  const o = Ne(e), i = nr(n)[r];
+  return o[r] === !0 && Ce(t, i);
+}
+const gr = ["componente", "footer"];
+function Ee(e) {
+  return typeof e == "function" || e !== null && typeof e == "object" && !Array.isArray(e);
+}
+function wr(e) {
+  if (e == null) return null;
+  if (typeof e != "object" || Array.isArray(e))
+    throw new Error('[crud] "formulario" debe ser un objeto { componente, footer? }');
+  for (const t of Object.keys(e))
+    if (!gr.includes(t))
+      throw new Error(`[crud] "formulario" tiene una clave desconocida: "${t}" (válidas: componente, footer)`);
+  if (!Ee(e.componente))
+    throw new Error('[crud] "formulario.componente" es requerido y debe ser un componente Vue');
+  if (e.footer !== void 0 && !Ee(e.footer))
+    throw new Error('[crud] "formulario.footer" debe ser un componente Vue');
+  return {
+    componente: e.componente,
+    footer: e.footer === void 0 ? null : e.footer
+  };
+}
+function _r({ modo: e, fila: t, campos: n, valores: r, guardar: o, modalState: i }) {
+  if (e !== "crear" && e !== "editar")
+    throw new Error(`[crud] modo de formulario inválido: ${e}`);
+  if (e === "editar" && (t === null || typeof t != "object"))
+    throw new Error('[crud] construirParametrosFormulario: "fila" es requerida en modo editar');
+  if (e === "crear" && t !== null)
+    throw new Error('[crud] construirParametrosFormulario: "fila" debe ser null en modo crear');
+  if (!Array.isArray(n)) throw new Error('[crud] construirParametrosFormulario: "campos" debe ser un array');
+  if (r === null || typeof r != "object") throw new Error('[crud] construirParametrosFormulario: "valores" debe ser un objeto');
+  if (typeof o != "function") throw new Error('[crud] construirParametrosFormulario: "guardar" debe ser una función');
+  if (i === null || typeof i != "object") throw new Error('[crud] construirParametrosFormulario: "modalState" debe ser un objeto');
+  return { modo: e, fila: t, campos: n, valores: r, guardar: o, _modalState: i };
+}
+function kr(e, t) {
+  const { message: n, errors: r } = W(e), o = t.map((E) => E.field), i = {};
+  for (const E of Object.keys(r))
+    o.includes(E) && (i[E] = r[E]);
+  const a = Object.keys(r).filter((E) => !o.includes(E)), s = [n, ...a.map((E) => `${E}: ${r[E]}`)], w = Object.keys(r).length === 0 || a.length > 0 ? s.join(" ") : "";
+  return { errores: i, errorGeneral: w };
+}
+async function Ve({ campos: e, valores: t, modo: n, id: r, ejecutar: o, alEnviar: i }) {
+  const a = lr(e, t);
+  if (Object.keys(a).length > 0)
+    return { ok: !1, errores: a, errorGeneral: "" };
+  i();
+  try {
+    return await o(n, r, ar(e, t)), { ok: !0, errores: {}, errorGeneral: "" };
+  } catch (s) {
+    return console.error("[crud] error al guardar formulario:", s), { ok: !1, ...kr(s, e) };
+  }
+}
+const Er = {
   key: 0,
   class: "crud-error crud-error-general"
-}, ir = ["for"], lr = {
+}, $r = ["for"], Ar = {
   key: 0,
   class: "crud-required"
-}, sr = ["id", "onUpdate:modelValue"], ar = ["id", "onUpdate:modelValue"], ur = {
+}, Cr = ["id", "onUpdate:modelValue"], Sr = ["id", "onUpdate:modelValue"], jr = {
   key: 0,
   value: "",
   disabled: ""
-}, dr = {
+}, xr = {
   key: 1,
   value: ""
-}, cr = ["value"], fr = ["id"], pr = ["onUpdate:modelValue", "value"], mr = {
+}, Or = ["value"], Fr = ["id"], Nr = ["onUpdate:modelValue", "value"], Vr = {
   key: 0,
   class: "crud-help"
-}, yr = ["id", "onUpdate:modelValue", "rows"], br = {
+}, Pr = ["id", "onUpdate:modelValue", "rows"], Dr = {
   key: 4,
   class: "crud-markdown"
-}, vr = ["id", "onUpdate:modelValue", "rows"], hr = { class: "crud-markdown-barra" }, gr = ["onClick"], _r = ["innerHTML"], wr = ["id", "onUpdate:modelValue", "type"], kr = {
+}, Ur = ["id", "onUpdate:modelValue", "rows"], qr = { class: "crud-markdown-barra" }, Mr = ["onClick"], Rr = ["innerHTML"], Tr = ["id", "onUpdate:modelValue", "type"], Lr = {
   key: 6,
   class: "crud-error"
-}, $r = {
+}, Gr = {
   __name: "FormCrud",
   props: {
     parametros: { type: Object, required: !0 }
   },
   setup(e) {
-    const n = e, { ocultar_modal: t } = le(), r = n.parametros, o = r.campos, l = J(Be(o, r.fila)), u = J({}), c = U(""), k = J({});
-    function O(h) {
-      return rr(r.ayudaCampos === void 0 ? void 0 : r.ayudaCampos[h.field]);
-    }
-    function x(h) {
-      return `crud-${r.modo}-${h.field}`;
-    }
-    function P(h) {
-      return se(h);
-    }
-    function v(h) {
-      return ze(h);
+    const t = e, { ocultar_modal: n } = ue(), r = t.parametros, o = r.campos, i = K(xe(o, r.fila)), a = K({}), s = L(""), w = K({});
+    function E(h) {
+      return yr(r.ayudaCampos === void 0 ? void 0 : r.ayudaCampos[h.field]);
     }
     function F(h) {
-      const A = l[h.field];
-      return A == null ? "" : String(A);
+      return `crud-${r.modo}-${h.field}`;
+    }
+    function O(h) {
+      return de(h);
+    }
+    function z(h) {
+      return or(h);
+    }
+    function b(h) {
+      const C = i[h.field];
+      return C == null ? "" : String(C);
+    }
+    function R(h) {
+      w[h.field] = w[h.field] !== !0;
     }
     function N(h) {
-      k[h.field] = k[h.field] !== !0;
-    }
-    function L(h) {
       return h.form_type === "date" ? "date" : h.form_type === "number" ? "number" : h.form_type === "email" ? "email" : "text";
     }
-    function q() {
-      for (const h of Object.keys(u)) delete u[h];
-      c.value = "";
+    function I() {
+      for (const h of Object.keys(a)) delete a[h];
+      s.value = "";
     }
-    async function M() {
-      q();
-      const h = r._modalState, A = Ke(o, l);
-      if (Object.keys(A).length > 0) {
-        Object.assign(u, A);
+    async function T() {
+      I();
+      const h = r._modalState, C = await Ve({
+        campos: o,
+        valores: i,
+        modo: r.modo,
+        id: r.id,
+        ejecutar: r.ejecutar,
+        alEnviar: () => {
+          h.guardando = !0;
+        }
+      });
+      if (h.guardando = !1, C.ok) {
+        n(r._modal_cod), r.onGuardado();
         return;
       }
-      h.guardando = !0;
-      try {
-        await r.ejecutar(r.modo, r.id, Ge(o, l)), h.guardando = !1, t(r._modal_cod), r.onGuardado();
-      } catch (s) {
-        console.error("[crud] error al guardar formulario:", s), h.guardando = !1;
-        const { message: y, errors: a } = G(s), b = o.map(($) => $.field), Y = Object.keys(a).filter(($) => !b.includes($));
-        for (const $ of Object.keys(a))
-          b.includes($) && (u[$] = a[$]);
-        const R = [y, ...Y.map(($) => `${$}: ${a[$]}`)];
-        R.length > 0 && (Object.keys(a).length === 0 || Y.length > 0) && (c.value = R.join(" "));
-      }
+      Object.assign(a, C.errores), s.value = C.errorGeneral;
     }
-    return r._modalState.guardar = M, (h, A) => (p(), m("form", {
+    return r._modalState.guardar = T, (h, C) => (m(), p("form", {
       class: "crud-form",
       novalidate: "",
-      onSubmit: Ve(M, ["prevent"])
+      onSubmit: Je(T, ["prevent"])
     }, [
-      c.value ? (p(), m("div", or, E(c.value), 1)) : V("", !0),
-      (p(!0), m(T, null, z(d(o), (s) => (p(), m("div", Fe({
-        key: s.field,
+      s.value ? (m(), p("div", Er, j(s.value), 1)) : M("", !0),
+      (m(!0), p(q, null, J(u(o), (d) => (m(), p("div", Ye({
+        key: d.field,
         class: "crud-field"
-      }, { ref_for: !0 }, O(s)), [
-        _("label", {
-          for: x(s)
+      }, { ref_for: !0 }, E(d)), [
+        k("label", {
+          for: F(d)
         }, [
-          fe(E(s.headerName === void 0 ? s.field : s.headerName) + " ", 1),
-          s.required === !0 ? (p(), m("span", lr, "*")) : V("", !0)
-        ], 8, ir),
-        s.form_type === "checkbox" ? C((p(), m("input", {
+          ne(j(d.headerName === void 0 ? d.field : d.headerName) + " ", 1),
+          d.required === !0 ? (m(), p("span", Ar, "*")) : M("", !0)
+        ], 8, $r),
+        d.form_type === "checkbox" ? P((m(), p("input", {
           key: 0,
-          id: x(s),
-          "onUpdate:modelValue": (y) => l[s.field] = y,
+          id: F(d),
+          "onUpdate:modelValue": (y) => i[d.field] = y,
           type: "checkbox",
           class: "crud-checkbox"
-        }, null, 8, sr)), [
-          [pe, l[s.field]]
-        ]) : s.form_type === "select" ? C((p(), m("select", {
+        }, null, 8, Cr)), [
+          [be, i[d.field]]
+        ]) : d.form_type === "select" ? P((m(), p("select", {
           key: 1,
-          id: x(s),
-          "onUpdate:modelValue": (y) => l[s.field] = y,
+          id: F(d),
+          "onUpdate:modelValue": (y) => i[d.field] = y,
           class: "crud-input"
         }, [
-          s.required === !0 ? (p(), m("option", ur, "— Seleccionar —")) : (p(), m("option", dr, "— Seleccionar —")),
-          (p(!0), m(T, null, z(P(s), (y) => (p(), m("option", {
+          d.required === !0 ? (m(), p("option", jr, "— Seleccionar —")) : (m(), p("option", xr, "— Seleccionar —")),
+          (m(!0), p(q, null, J(O(d), (y) => (m(), p("option", {
             key: String(y.value),
             value: y.value
-          }, E(y.label), 9, cr))), 128))
-        ], 8, ar)), [
-          [X, l[s.field]]
-        ]) : s.form_type === "multiselect" ? (p(), m("div", {
+          }, j(y.label), 9, Or))), 128))
+        ], 8, Sr)), [
+          [ee, i[d.field]]
+        ]) : d.form_type === "multiselect" ? (m(), p("div", {
           key: 2,
-          id: x(s),
+          id: F(d),
           class: "crud-checks",
           role: "group"
         }, [
-          (p(!0), m(T, null, z(P(s), (y) => (p(), m("label", {
+          (m(!0), p(q, null, J(O(d), (y) => (m(), p("label", {
             key: String(y.value),
             class: "crud-check"
           }, [
-            C(_("input", {
-              "onUpdate:modelValue": (a) => l[s.field] = a,
+            P(k("input", {
+              "onUpdate:modelValue": (S) => i[d.field] = S,
               type: "checkbox",
               class: "crud-checkbox",
               value: y.value
-            }, null, 8, pr), [
-              [pe, l[s.field]]
+            }, null, 8, Nr), [
+              [be, i[d.field]]
             ]),
-            fe(" " + E(y.label), 1)
+            ne(" " + j(y.label), 1)
           ]))), 128)),
-          P(s).length === 0 ? (p(), m("div", mr, "Sin opciones disponibles.")) : V("", !0)
-        ], 8, fr)) : s.form_type === "textarea" ? C((p(), m("textarea", {
+          O(d).length === 0 ? (m(), p("div", Vr, "Sin opciones disponibles.")) : M("", !0)
+        ], 8, Fr)) : d.form_type === "textarea" ? P((m(), p("textarea", {
           key: 3,
-          id: x(s),
-          "onUpdate:modelValue": (y) => l[s.field] = y,
-          rows: v(s),
+          id: F(d),
+          "onUpdate:modelValue": (y) => i[d.field] = y,
+          rows: z(d),
           class: "crud-input"
-        }, null, 8, yr)), [
-          [me, l[s.field]]
-        ]) : s.form_type === "markdown" ? (p(), m("div", br, [
-          C(_("textarea", {
-            id: x(s),
-            "onUpdate:modelValue": (y) => l[s.field] = y,
-            rows: v(s),
+        }, null, 8, Pr)), [
+          [ve, i[d.field]]
+        ]) : d.form_type === "markdown" ? (m(), p("div", Dr, [
+          P(k("textarea", {
+            id: F(d),
+            "onUpdate:modelValue": (y) => i[d.field] = y,
+            rows: z(d),
             class: "crud-input"
-          }, null, 8, vr), [
-            [me, l[s.field]]
+          }, null, 8, Ur), [
+            [ve, i[d.field]]
           ]),
-          _("div", hr, [
-            A[0] || (A[0] = _("small", { class: "crud-help" }, "Acepta markdown.", -1)),
-            _("button", {
+          k("div", qr, [
+            C[0] || (C[0] = k("small", { class: "crud-help" }, "Acepta markdown.", -1)),
+            k("button", {
               type: "button",
               class: "crud-btn-preview",
-              onClick: (y) => N(s)
-            }, E(k[s.field] === !0 ? "Editar" : "Vista previa"), 9, gr)
+              onClick: (y) => R(d)
+            }, j(w[d.field] === !0 ? "Editar" : "Vista previa"), 9, Mr)
           ]),
-          k[s.field] === !0 ? (p(), m("div", {
+          w[d.field] === !0 ? (m(), p("div", {
             key: 0,
             class: "crud-markdown-preview",
-            innerHTML: d(We)(F(s))
-          }, null, 8, _r)) : V("", !0)
-        ])) : C((p(), m("input", {
+            innerHTML: u(cr)(b(d))
+          }, null, 8, Rr)) : M("", !0)
+        ])) : P((m(), p("input", {
           key: 5,
-          id: x(s),
-          "onUpdate:modelValue": (y) => l[s.field] = y,
-          type: L(s),
+          id: F(d),
+          "onUpdate:modelValue": (y) => i[d.field] = y,
+          type: N(d),
           class: "crud-input"
-        }, null, 8, wr)), [
-          [Z, l[s.field]]
+        }, null, 8, Tr)), [
+          [re, i[d.field]]
         ]),
-        u[s.field] ? (p(), m("div", kr, E(u[s.field]), 1)) : V("", !0)
+        a[d.field] ? (m(), p("div", Lr, j(a[d.field]), 1)) : M("", !0)
       ], 16))), 128))
     ], 32));
   }
-}, Er = { class: "gmm-footer-bar" }, Ar = ["disabled"], Sr = {
+}, zr = { class: "gmm-footer-bar" }, Ir = ["disabled"], $e = {
   __name: "FormCrudFooter",
   props: {
     parametros: { type: Object, required: !0 }
   },
   setup(e) {
-    const n = e, { ocultar_modal: t } = le(), r = n.parametros._modalState;
+    const t = e, { ocultar_modal: n } = ue(), r = t.parametros._modalState;
     function o() {
       if (r.guardar === null)
         throw new Error("[crud] el formulario no registró su función guardar");
       return r.guardar();
     }
-    function l() {
-      t(n.parametros._modal_cod);
+    function i() {
+      n(t.parametros._modal_cod);
     }
-    return (u, c) => (p(), m("div", Er, [
-      _("button", {
+    return (a, s) => (m(), p("div", zr, [
+      k("button", {
         type: "button",
         class: "gmm-btn gmm-btn-secondary",
-        onClick: l
+        onClick: i
       }, "Cancelar"),
-      _("button", {
+      k("button", {
         type: "button",
         class: "gmm-btn gmm-btn-success",
-        disabled: d(r).guardando,
+        disabled: u(r).guardando,
         onClick: o
-      }, E(d(r).guardando ? "Guardando…" : "Guardar"), 9, Ar)
+      }, j(u(r).guardando ? "Guardando…" : "Guardar"), 9, Ir)
     ]));
   }
 };
-function Cr(e) {
-  Re({ recurso: e.recurso, endpoint: e.endpoint, http: e.http, permisos: d(e.permisos) });
-  const n = e.pk === void 0 ? "id" : e.pk, t = nr(e.preferencias, e.recurso), r = er(e.ayuda, { recurso: e.recurso }), o = U(null), l = J({}), u = U({}), c = U(""), { mostrar_modal: k, mostrar_alerta: O, mostrar_confirm: x } = le(), P = Le(e.recurso), v = e.http, F = e.endpoint, N = S(() => {
-    const i = d(e.elemento);
-    return i == null || i.singular === void 0 ? "Registro" : i.singular;
+function Hr(e) {
+  rr({ recurso: e.recurso, endpoint: e.endpoint, http: e.http, permisos: u(e.permisos) });
+  const t = A(() => Ne(u(e.acciones)));
+  t.value;
+  const n = A(() => wr(u(e.formulario)));
+  n.value;
+  const r = e.pk === void 0 ? "id" : e.pk, o = vr(e.preferencias, e.recurso), i = pr(e.ayuda, { recurso: e.recurso }), a = L(null), s = K({}), w = L({}), E = L(""), { mostrar_modal: F, mostrar_alerta: O, mostrar_confirm: z } = ue(), b = e.http, R = e.endpoint, N = A(() => {
+    const l = u(e.elemento);
+    return l == null || l.singular === void 0 ? "Registro" : l.singular;
   });
-  function L() {
-    const i = d(e.accionesExtra);
-    return i ?? [];
+  function I() {
+    const l = u(e.accionesExtra);
+    return l ?? [];
   }
-  const q = U(null), M = U(null), h = S(() => {
-    const i = q.value;
-    return i === null ? [] : i.filter((f) => ee(f).length > 0);
+  const T = L(null), h = L(null), C = A(() => {
+    const l = T.value;
+    return l === null ? [] : l.filter((f) => te(f).length > 0);
   });
-  function A(i) {
-    for (const f of i)
-      ee(f).length !== 0 && l[f.field] === void 0 && (l[f.field] = { op: "", valor: "", desde: "", hasta: "" });
-  }
-  function s() {
-    c.value = "";
-    try {
-      u.value = Xe(h.value, l);
-    } catch (i) {
-      console.error("[crud] filtros inválidos:", i), c.value = i.message;
-      return;
-    }
-    $();
+  function d(l) {
+    for (const f of l)
+      te(f).length !== 0 && s[f.field] === void 0 && (s[f.field] = { op: "", valor: "", desde: "", hasta: "" });
   }
   function y() {
-    for (const i of Object.keys(l))
-      l[i] = { op: "", valor: "", desde: "", hasta: "" };
-    u.value = {}, c.value = "", $();
+    E.value = "";
+    try {
+      w.value = fr(C.value, s);
+    } catch (l) {
+      console.error("[crud] filtros inválidos:", l), E.value = l.message;
+      return;
+    }
+    H();
   }
-  const a = S(() => d(e.permisos)), b = (i) => be(a.value, P[i]);
-  function Y() {
-    const i = d(e.campos);
-    return i != null;
+  function S() {
+    for (const l of Object.keys(s))
+      s[l] = { op: "", valor: "", desde: "", hasta: "" };
+    w.value = {}, E.value = "", H();
   }
-  const R = S(() => Y() ? Ie(d(e.campos), q.value) : q.value);
-  function $() {
-    M.value !== null && M.value.refresh();
+  const c = A(() => u(e.permisos)), v = (l) => hr(t.value, c.value, e.recurso, l);
+  function Pe() {
+    const l = u(e.campos);
+    return l != null;
   }
-  function Ae(i) {
-    M.value = i;
+  const Z = A(() => Pe() ? tr(u(e.campos), T.value) : T.value);
+  function H() {
+    h.value !== null && h.value.refresh();
   }
-  function ae(i, f) {
-    console.error(`[crud] ${i}:`, f);
-    const { message: w } = G(f);
-    O(w);
+  function De(l) {
+    h.value = l;
   }
-  const Se = {
-    list: async (i) => {
+  function ce(l, f) {
+    console.error(`[crud] ${l}:`, f);
+    const { message: g } = W(f);
+    O(g);
+  }
+  const Ue = {
+    list: async (l) => {
       try {
-        g(i, "params");
-        const { pageSize: f, filters: w, ...Q } = i, j = { ...Q }, W = ge(f, o.value);
-        W !== void 0 && (j.pageSize = W);
-        const B = Ze(w, u.value);
-        B !== void 0 && (j.filters = B);
-        const D = await v.get(`${F}/list`, { params: j });
-        if (he(D))
-          return O(G(D).message), D;
-        const oe = D.data.fields_def;
-        return oe !== void 0 && (q.value = oe, A(oe)), D.data.paginacion !== void 0 && (o.value = D.data.paginacion), D;
+        _(l, "params");
+        const { pageSize: f, filters: g, ...U } = l, $ = { ...U }, D = _e(f, a.value);
+        D !== void 0 && ($.pageSize = D);
+        const V = mr(g, w.value);
+        V !== void 0 && ($.filters = V);
+        const x = await b.get(`${R}/list`, { params: $ });
+        if (we(x))
+          return O(W(x).message), x;
+        const G = x.data.fields_def;
+        return G !== void 0 && (T.value = G, d(G)), x.data.paginacion !== void 0 && (a.value = x.data.paginacion), x;
       } catch (f) {
-        return ae("error al listar", f), { status: !1, message: G(f).message };
+        return ce("error al listar", f), { status: !1, message: W(f).message };
       }
     }
   };
-  async function ue(i, f, w) {
-    if (i === "crear")
-      return v.post(F, w);
-    if (i === "editar")
-      return g(f, "id"), v.put(`${F}/${f}`, w);
-    throw new Error(`[crud] modo de formulario inválido: ${i}`);
+  async function oe(l, f, g) {
+    if (l === "crear")
+      return b.post(R, g);
+    if (l === "editar")
+      return _(f, "id"), b.put(`${R}/${f}`, g);
+    throw new Error(`[crud] modo de formulario inválido: ${l}`);
   }
-  function de(i, f) {
-    const w = R.value;
-    if (w === null) {
+  async function qe(l, f, g, U, $, D) {
+    const V = await Ve({
+      campos: g,
+      valores: U,
+      modo: l,
+      id: f,
+      ejecutar: oe,
+      alEnviar: () => {
+        $.guardando = !0;
+      }
+    });
+    return $.guardando = !1, $.errores = V.errores, $.errorGeneral = V.errorGeneral, V.ok && (ocultar_modal(D()), O(`${N.value} guardado correctamente.`), H()), V;
+  }
+  function fe(l, f) {
+    const g = Z.value;
+    if (g === null) {
       O("Todavía no hay definición de campos. Actualizá la tabla e intentá de nuevo.");
       return;
     }
-    const Q = i === "editar" ? f[n] : void 0, j = J({
+    const U = l === "editar" ? f[r] : void 0, $ = K({
       guardar: null,
-      guardando: !1
-    }), W = {
-      campos: re(w),
-      ayudaCampos: r.campos,
+      guardando: !1,
+      errores: {},
+      errorGeneral: ""
+    }), D = N.value.toLowerCase(), V = l === "crear" ? `Nuevo ${D}` : `Editar ${D}`, x = n.value;
+    if (x !== null) {
+      Me(x, l, U, f, g, $, V);
+      return;
+    }
+    const G = {
+      campos: X(g),
+      ayudaCampos: i.campos,
       fila: f === void 0 ? null : f,
-      modo: i,
-      id: Q,
+      modo: l,
+      id: U,
       singular: N.value,
-      ejecutar: ue,
+      ejecutar: oe,
       onGuardado: () => {
-        O(`${N.value} guardado correctamente.`), $();
+        O(`${N.value} guardado correctamente.`), H();
       },
-      _modalState: j
-    }, B = N.value.toLowerCase(), D = i === "crear" ? `Nuevo ${B}` : `Editar ${B}`;
-    k({ body: $r, footer: Sr }, D, W, { size: "md" });
+      _modalState: $
+    };
+    F({ body: Gr, footer: $e }, V, G, { size: "md" });
   }
-  function ce() {
-    b("crear") && de("crear");
+  function Me(l, f, g, U, $, D, V) {
+    const x = X($), G = K(xe(x, U));
+    let pe = null;
+    const ye = (Ke) => qe(f, g, x, Ke, D, () => pe);
+    D.guardar = () => ye(G);
+    const Ie = _r({
+      modo: f,
+      fila: f === "editar" ? U : null,
+      campos: x,
+      valores: G,
+      guardar: ye,
+      modalState: D
+    }), He = l.footer === null ? $e : l.footer, { code: Be } = F({ body: l.componente, footer: He }, V, Ie, { size: "md" });
+    pe = Be;
   }
-  function te(i) {
-    b("editar") && (g(i, "fila"), de("editar", i));
+  function me() {
+    v("crear") && fe("crear");
   }
-  function ne(i) {
-    if (!b("eliminar")) return;
-    g(i, "fila");
-    const f = g(i[n], `fila.${n}`);
-    x({
+  function ie(l) {
+    v("editar") && (_(l, "fila"), fe("editar", l));
+  }
+  function le(l) {
+    if (!v("eliminar")) return;
+    _(l, "fila");
+    const f = _(l[r], `fila.${r}`);
+    z({
       title: "Eliminar",
-      text: `¿Eliminar ${N.value.toLowerCase()} (${n}: ${f})? Esta acción no se puede deshacer.`,
+      text: `¿Eliminar ${N.value.toLowerCase()} (${r}: ${f})? Esta acción no se puede deshacer.`,
       severity_confirmar: "danger",
       confirmar_accion: async () => {
         try {
-          const w = await v.delete(`${F}/${f}`);
-          if (he(w)) {
-            O(G(w).message);
+          const g = await b.delete(`${R}/${f}`);
+          if (we(g)) {
+            O(W(g).message);
             return;
           }
-          O(`${N.value} eliminado.`), $();
-        } catch (w) {
-          ae("error al eliminar", w);
+          O(`${N.value} eliminado.`), H();
+        } catch (g) {
+          ce("error al eliminar", g);
         }
       }
     });
   }
-  const H = U(null);
-  function Ce(i) {
-    H.value = Array.isArray(i) || i === void 0 ? null : i;
+  const Y = L(null);
+  function Re(l) {
+    Y.value = Array.isArray(l) || l === void 0 ? null : l;
   }
-  const xe = S(() => {
-    const i = [];
-    return b("crear") && i.push(new I({
+  const Te = A(() => {
+    const l = [];
+    return v("crear") && l.push(new B({
       key: "crud-crear",
       icon: "plus",
       severity: "success",
       label: "Nuevo",
-      helpKey: r.botones.crear,
-      onClick: () => ce()
-    })), b("editar") && i.push(new I({
+      helpKey: i.botones.crear,
+      onClick: () => me()
+    })), v("editar") && l.push(new B({
       key: "crud-editar",
       icon: "pencil",
       severity: "warning",
       label: "Editar",
-      helpKey: r.botones.editar,
-      isDisabled: () => H.value === null,
-      onClick: () => te(H.value)
-    })), b("eliminar") && i.push(new I({
+      helpKey: i.botones.editar,
+      isDisabled: () => Y.value === null,
+      onClick: () => ie(Y.value)
+    })), v("eliminar") && l.push(new B({
       key: "crud-eliminar",
       icon: "trash",
       severity: "danger",
       label: "Eliminar",
-      helpKey: r.botones.eliminar,
-      isDisabled: () => H.value === null,
-      onClick: () => ne(H.value)
-    })), i;
-  }), Ne = S(() => {
-    const i = [];
-    b("editar") && i.push(new I({
+      helpKey: i.botones.eliminar,
+      isDisabled: () => Y.value === null,
+      onClick: () => le(Y.value)
+    })), l;
+  }), Le = A(() => {
+    const l = [];
+    v("editar") && l.push(new B({
       key: "crud-fila-editar",
       icon: "pencil",
       severity: "outline-warning",
       label: "Editar",
-      helpKey: r.botones.editar,
-      onClick: (f) => te(f)
-    })), b("eliminar") && i.push(new I({
+      helpKey: i.botones.editar,
+      onClick: (f) => ie(f)
+    })), v("eliminar") && l.push(new B({
       key: "crud-fila-eliminar",
       icon: "trash",
       severity: "outline-danger",
       label: "Eliminar",
-      helpKey: r.botones.eliminar,
-      onClick: (f) => ne(f)
+      helpKey: i.botones.eliminar,
+      onClick: (f) => le(f)
     }));
-    for (const f of L())
-      g(f.key, "accionesExtra[].key"), !(f.permiso !== void 0 && !be(a.value, f.permiso)) && i.push(new I({
+    for (const f of I())
+      _(f.key, "accionesExtra[].key"), !(f.permiso !== void 0 && !Ce(c.value, f.permiso)) && l.push(new B({
         key: `extra-${f.key}`,
         icon: f.icon,
         severity: f.severity,
         label: f.label,
-        onClick: (w) => f.onClick(w)
+        onClick: (g) => f.onClick(g)
       }));
-    return i;
+    return l;
   });
-  function Oe() {
-    const i = d(e.elemento);
-    return i == null || i.gender === void 0 ? "M" : i.gender;
+  function Ge() {
+    const l = u(e.elemento);
+    return l == null || l.gender === void 0 ? "M" : l.gender;
   }
-  const je = S(() => {
-    const i = {
+  const ze = A(() => {
+    const l = {
       lazy: !0,
       infiniteScroll: !1,
       selectionMode: "single",
-      elementName: { singular: N.value, gender: Oe() },
+      elementName: { singular: N.value, gender: Ge() },
       dataPipeline: {
         processFields: (f) => {
-          const w = R.value;
-          return (w === null ? f : He(w)).map((j) => r.campos[j.field] === void 0 ? j : { ...j, helpKey: r.campos[j.field] });
+          const g = Z.value;
+          return (g === null ? f : ir(g)).map(($) => i.campos[$.field] === void 0 ? $ : { ...$, helpKey: i.campos[$.field] });
         }
       },
       // Lookups (<campo>_etiqueta), multiselect (labels) y escapado de texto.
-      valueFormatters: Qe(R.value),
+      valueFormatters: dr(Z.value),
       buttons: {
-        toolbar: xe.value,
-        rowActions: Ne.value
+        toolbar: Te.value,
+        rowActions: Le.value
       }
     };
-    return o.value !== null && (i.pageSize = ge(void 0, o.value), i.pageSizeOptions = Ee(o.value)), t !== null && (i.preferencesStore = t), i;
+    return a.value !== null && (l.pageSize = _e(void 0, a.value), l.pageSizeOptions = Fe(a.value)), o !== null && (l.preferencesStore = o), l;
   });
   return {
-    api: Se,
-    tableConfig: je,
-    puede: b,
-    permisosActuales: a,
-    camposEfectivos: R,
-    puedeListar: S(() => b("listar")),
-    onRowSelected: Ce,
-    setTabla: Ae,
-    refresh: $,
-    filtrosDisponibles: h,
-    filtrosEstado: l,
-    errorFiltros: c,
-    aplicarFiltros: s,
-    limpiarFiltros: y,
-    paginacion: o,
-    ayudaResuelta: r,
-    abrirCrear: ce,
-    abrirEditar: te,
-    confirmarEliminar: ne,
-    ejecutar: ue
+    api: Ue,
+    tableConfig: ze,
+    puede: v,
+    permisosActuales: c,
+    camposEfectivos: Z,
+    puedeListar: A(() => v("listar")),
+    accionesActuales: A(() => t.value),
+    onRowSelected: Re,
+    setTabla: De,
+    refresh: H,
+    filtrosDisponibles: C,
+    filtrosEstado: s,
+    errorFiltros: E,
+    aplicarFiltros: y,
+    limpiarFiltros: S,
+    paginacion: a,
+    ayudaResuelta: i,
+    abrirCrear: me,
+    abrirEditar: ie,
+    confirmarEliminar: le,
+    ejecutar: oe
   };
 }
-const xr = { class: "crud-modulo" }, Nr = {
+const Br = { class: "crud-modulo" }, Kr = {
   key: 0,
   class: "crud-titulo"
-}, Or = {
+}, Jr = {
   key: 1,
   class: "crud-sin-permiso"
-}, jr = {
+}, Yr = {
   key: 0,
   class: "crud-filtros"
-}, Vr = ["aria-expanded"], Fr = {
+}, Qr = ["aria-expanded"], Wr = {
   key: 0,
   class: "crud-filtros-panel"
-}, Dr = ["for"], Ur = ["id", "onUpdate:modelValue"], Pr = ["value"], qr = ["onUpdate:modelValue", "type", "aria-label"], Mr = ["onUpdate:modelValue", "type", "aria-label"], Tr = ["onUpdate:modelValue", "aria-label"], Rr = { value: "si" }, Lr = { value: "no" }, Ir = ["onUpdate:modelValue", "aria-label"], zr = ["value"], Hr = ["onUpdate:modelValue", "type", "placeholder", "aria-label"], Br = {
+}, Xr = ["for"], Zr = ["id", "onUpdate:modelValue"], en = ["value"], rn = ["onUpdate:modelValue", "type", "aria-label"], nn = ["onUpdate:modelValue", "type", "aria-label"], tn = ["onUpdate:modelValue", "aria-label"], on = { value: "si" }, ln = { value: "no" }, an = ["onUpdate:modelValue", "aria-label"], sn = ["value"], un = ["onUpdate:modelValue", "type", "placeholder", "aria-label"], dn = {
   key: 0,
   class: "crud-error"
-}, Kr = { class: "crud-filtros-acciones" }, Wr = {
+}, cn = { class: "crud-filtros-acciones" }, bn = {
   __name: "CrudModulo",
   props: {
     recurso: { type: String, required: !0 },
@@ -830,184 +943,204 @@ const xr = { class: "crud-modulo" }, Nr = {
     // Dependencia opcional { leer(clave), guardar(clave, valor) } para preferencias de columnas (sin SSO: ver README).
     preferencias: { type: Object, default: null },
     // Configuración de ayuda contextual: { clave, botones: { listar, crear, editar, eliminar, campo } }.
-    ayuda: { type: Object, default: null }
+    ayuda: { type: Object, default: null },
+    // Operaciones habilitadas: { crear, editar, eliminar, listar } booleanos. Default: todas true.
+    // Un botón se muestra sólo si está habilitado aquí Y el usuario tiene `<recurso>.<accion>`.
+    acciones: { type: Object, default: null },
+    // Formulario personalizado: { componente, footer? } en lugar de FormCrud (y FormCrudFooter).
+    formulario: { type: Object, default: null }
   },
-  setup(e, { expose: n }) {
-    const t = e, r = U(null), o = U(!1), {
-      api: l,
-      tableConfig: u,
-      puedeListar: c,
-      onRowSelected: k,
-      setTabla: O,
-      refresh: x,
-      filtrosDisponibles: P,
-      filtrosEstado: v,
-      errorFiltros: F,
+  setup(e, { expose: t }) {
+    const n = e, r = L(null), o = L(!1), {
+      api: i,
+      tableConfig: a,
+      puedeListar: s,
+      accionesActuales: w,
+      onRowSelected: E,
+      setTabla: F,
+      refresh: O,
+      filtrosDisponibles: z,
+      filtrosEstado: b,
+      errorFiltros: R,
       aplicarFiltros: N,
-      limpiarFiltros: L
-    } = Cr({
-      recurso: t.recurso,
-      endpoint: t.endpoint,
-      http: t.http,
-      permisos: S(() => t.permisos),
-      campos: S(() => t.campos),
-      pk: t.pk,
-      elemento: S(() => t.elemento),
-      accionesExtra: S(() => t.accionesExtra),
-      preferencias: t.preferencias,
-      ayuda: t.ayuda
+      limpiarFiltros: I
+    } = Hr({
+      recurso: n.recurso,
+      endpoint: n.endpoint,
+      http: n.http,
+      permisos: A(() => n.permisos),
+      campos: A(() => n.campos),
+      pk: n.pk,
+      elemento: A(() => n.elemento),
+      accionesExtra: A(() => n.accionesExtra),
+      preferencias: n.preferencias,
+      ayuda: n.ayuda,
+      acciones: A(() => n.acciones),
+      formulario: A(() => n.formulario)
     });
-    function q(s) {
-      return ee(s);
+    function T(y) {
+      return te(y);
     }
-    function M(s) {
-      return $e[s];
+    function h(y) {
+      return Oe[y];
     }
-    function h(s) {
-      return se(s);
+    function C(y) {
+      return de(y);
     }
-    function A(s) {
-      return s.type === "number" ? "number" : s.type === "date" ? "date" : "text";
+    function d(y) {
+      return y.type === "number" ? "number" : y.type === "date" ? "date" : "text";
     }
-    return ye(r, (s) => O(s), { immediate: !0 }), ye(u, () => {
+    return he(r, (y) => F(y), { immediate: !0 }), he(a, () => {
       r.value !== null && r.value.applyConfig();
-    }), n({ refresh: x }), (s, y) => (p(), m("div", xr, [
-      e.titulo ? (p(), m("h2", Nr, E(e.titulo), 1)) : V("", !0),
-      d(c) ? (p(), m(T, { key: 2 }, [
-        d(P).length > 0 ? (p(), m("div", jr, [
-          _("button", {
+    }), t({ refresh: O }), (y, S) => (m(), p("div", Br, [
+      e.titulo ? (m(), p("h2", Kr, j(e.titulo), 1)) : M("", !0),
+      u(s) ? (m(), p(q, { key: 2 }, [
+        u(z).length > 0 ? (m(), p("div", Yr, [
+          k("button", {
             type: "button",
             class: "btn btn-sm btn-outline-secondary",
             "aria-expanded": o.value ? "true" : "false",
-            onClick: y[0] || (y[0] = (a) => o.value = !o.value)
-          }, E(o.value ? "Ocultar filtros" : "Filtros avanzados"), 9, Vr),
-          o.value ? (p(), m("div", Fr, [
-            (p(!0), m(T, null, z(d(P), (a) => (p(), m("div", {
-              key: a.field,
+            onClick: S[0] || (S[0] = (c) => o.value = !o.value)
+          }, j(o.value ? "Ocultar filtros" : "Filtros avanzados"), 9, Qr),
+          o.value ? (m(), p("div", Wr, [
+            (m(!0), p(q, null, J(u(z), (c) => (m(), p("div", {
+              key: c.field,
               class: "crud-filtro-fila"
             }, [
-              _("label", {
-                for: `crud-filtro-op-${e.recurso}-${a.field}`,
+              k("label", {
+                for: `crud-filtro-op-${e.recurso}-${c.field}`,
                 class: "form-label small mb-0"
-              }, E(a.headerName), 9, Dr),
-              C(_("select", {
-                id: `crud-filtro-op-${e.recurso}-${a.field}`,
-                "onUpdate:modelValue": (b) => d(v)[a.field].op = b,
+              }, j(c.headerName), 9, Xr),
+              P(k("select", {
+                id: `crud-filtro-op-${e.recurso}-${c.field}`,
+                "onUpdate:modelValue": (v) => u(b)[c.field].op = v,
                 class: "form-select form-select-sm"
               }, [
-                y[3] || (y[3] = _("option", { value: "" }, "Sin filtro", -1)),
-                (p(!0), m(T, null, z(q(a), (b) => (p(), m("option", {
-                  key: b,
-                  value: b
-                }, E(M(b)), 9, Pr))), 128))
-              ], 8, Ur), [
-                [X, d(v)[a.field].op]
+                S[3] || (S[3] = k("option", { value: "" }, "Sin filtro", -1)),
+                (m(!0), p(q, null, J(T(c), (v) => (m(), p("option", {
+                  key: v,
+                  value: v
+                }, j(h(v)), 9, en))), 128))
+              ], 8, Zr), [
+                [ee, u(b)[c.field].op]
               ]),
-              d(v)[a.field].op === "rango" ? (p(), m(T, { key: 0 }, [
-                C(_("input", {
-                  "onUpdate:modelValue": (b) => d(v)[a.field].desde = b,
-                  type: A(a),
+              u(b)[c.field].op === "rango" ? (m(), p(q, { key: 0 }, [
+                P(k("input", {
+                  "onUpdate:modelValue": (v) => u(b)[c.field].desde = v,
+                  type: d(c),
                   class: "form-control form-control-sm",
                   placeholder: "Desde",
-                  "aria-label": `${a.headerName} desde`
-                }, null, 8, qr), [
-                  [Z, d(v)[a.field].desde]
+                  "aria-label": `${c.headerName} desde`
+                }, null, 8, rn), [
+                  [re, u(b)[c.field].desde]
                 ]),
-                C(_("input", {
-                  "onUpdate:modelValue": (b) => d(v)[a.field].hasta = b,
-                  type: A(a),
+                P(k("input", {
+                  "onUpdate:modelValue": (v) => u(b)[c.field].hasta = v,
+                  type: d(c),
                   class: "form-control form-control-sm",
                   placeholder: "Hasta",
-                  "aria-label": `${a.headerName} hasta`
-                }, null, 8, Mr), [
-                  [Z, d(v)[a.field].hasta]
+                  "aria-label": `${c.headerName} hasta`
+                }, null, 8, nn), [
+                  [re, u(b)[c.field].hasta]
                 ])
-              ], 64)) : d(v)[a.field].op === "nulo" || a.type === "boolean" && d(v)[a.field].op !== "" && d(v)[a.field].op !== "en" ? C((p(), m("select", {
+              ], 64)) : u(b)[c.field].op === "nulo" || c.type === "boolean" && u(b)[c.field].op !== "" && u(b)[c.field].op !== "en" ? P((m(), p("select", {
                 key: 1,
-                "onUpdate:modelValue": (b) => d(v)[a.field].valor = b,
+                "onUpdate:modelValue": (v) => u(b)[c.field].valor = v,
                 class: "form-select form-select-sm",
-                "aria-label": `${a.headerName} valor`
+                "aria-label": `${c.headerName} valor`
               }, [
-                y[4] || (y[4] = _("option", { value: "" }, "—", -1)),
-                _("option", Rr, E(d(v)[a.field].op === "nulo" ? "Sí" : "Sí / verdadero"), 1),
-                _("option", Lr, E(d(v)[a.field].op === "nulo" ? "No" : "No / falso"), 1)
-              ], 8, Tr)), [
-                [X, d(v)[a.field].valor]
-              ]) : d(v)[a.field].op !== "" && d(v)[a.field].op !== "en" && h(a).length > 0 ? C((p(), m("select", {
+                S[4] || (S[4] = k("option", { value: "" }, "—", -1)),
+                k("option", on, j(u(b)[c.field].op === "nulo" ? "Sí" : "Sí / verdadero"), 1),
+                k("option", ln, j(u(b)[c.field].op === "nulo" ? "No" : "No / falso"), 1)
+              ], 8, tn)), [
+                [ee, u(b)[c.field].valor]
+              ]) : u(b)[c.field].op !== "" && u(b)[c.field].op !== "en" && C(c).length > 0 ? P((m(), p("select", {
                 key: 2,
-                "onUpdate:modelValue": (b) => d(v)[a.field].valor = b,
+                "onUpdate:modelValue": (v) => u(b)[c.field].valor = v,
                 class: "form-select form-select-sm",
-                "aria-label": `${a.headerName} valor`
+                "aria-label": `${c.headerName} valor`
               }, [
-                y[5] || (y[5] = _("option", { value: "" }, "—", -1)),
-                (p(!0), m(T, null, z(h(a), (b) => (p(), m("option", {
-                  key: String(b.value),
-                  value: String(b.value)
-                }, E(b.label), 9, zr))), 128))
-              ], 8, Ir)), [
-                [X, d(v)[a.field].valor]
-              ]) : d(v)[a.field].op !== "" ? C((p(), m("input", {
+                S[5] || (S[5] = k("option", { value: "" }, "—", -1)),
+                (m(!0), p(q, null, J(C(c), (v) => (m(), p("option", {
+                  key: String(v.value),
+                  value: String(v.value)
+                }, j(v.label), 9, sn))), 128))
+              ], 8, an)), [
+                [ee, u(b)[c.field].valor]
+              ]) : u(b)[c.field].op !== "" ? P((m(), p("input", {
                 key: 3,
-                "onUpdate:modelValue": (b) => d(v)[a.field].valor = b,
-                type: d(v)[a.field].op === "en" ? "text" : A(a),
+                "onUpdate:modelValue": (v) => u(b)[c.field].valor = v,
+                type: u(b)[c.field].op === "en" ? "text" : d(c),
                 class: "form-control form-control-sm",
-                placeholder: d(v)[a.field].op === "en" ? "Valores separados por coma" : "Valor",
-                "aria-label": `${a.headerName} valor`
-              }, null, 8, Hr)), [
-                [Z, d(v)[a.field].valor]
-              ]) : V("", !0)
+                placeholder: u(b)[c.field].op === "en" ? "Valores separados por coma" : "Valor",
+                "aria-label": `${c.headerName} valor`
+              }, null, 8, un)), [
+                [re, u(b)[c.field].valor]
+              ]) : M("", !0)
             ]))), 128)),
-            d(F) ? (p(), m("div", Br, E(d(F)), 1)) : V("", !0),
-            _("div", Kr, [
-              _("button", {
+            u(R) ? (m(), p("div", dn, j(u(R)), 1)) : M("", !0),
+            k("div", cn, [
+              k("button", {
                 type: "button",
                 class: "btn btn-sm btn-primary",
-                onClick: y[1] || (y[1] = (...a) => d(N) && d(N)(...a))
+                onClick: S[1] || (S[1] = (...c) => u(N) && u(N)(...c))
               }, "Aplicar filtros"),
-              _("button", {
+              k("button", {
                 type: "button",
                 class: "btn btn-sm btn-outline-secondary",
-                onClick: y[2] || (y[2] = (...a) => d(L) && d(L)(...a))
+                onClick: S[2] || (S[2] = (...c) => u(I) && u(I)(...c))
               }, "Limpiar")
             ])
-          ])) : V("", !0)
-        ])) : V("", !0),
-        De(d(Ue), {
+          ])) : M("", !0)
+        ])) : M("", !0),
+        Qe(u(We), {
           ref_key: "tabla",
           ref: r,
           id: e.recurso,
-          api: d(l),
-          config: d(u),
-          onRowSelected: d(k)
+          api: u(i),
+          config: u(a),
+          onRowSelected: u(E)
         }, null, 8, ["id", "api", "config", "onRowSelected"])
-      ], 64)) : (p(), m("div", Or, " No tenés permiso para ver este listado (" + E(e.recurso) + ".listar). ", 1))
+      ], 64)) : (m(), p("div", Jr, [
+        u(w).listar === !1 ? (m(), p(q, { key: 0 }, [
+          ne("Este listado está deshabilitado.")
+        ], 64)) : (m(), p(q, { key: 1 }, [
+          ne("No tenés permiso para ver este listado (" + j(e.recurso) + ".listar).", 1)
+        ], 64))
+      ]))
     ]));
   }
 };
 export {
-  Pe as ACCIONES,
-  Wr as CrudModulo,
-  $e as ETIQUETAS_OPERADOR,
-  rr as atributosAyuda,
-  re as camposFormulario,
-  tr as clavePreferenciasTabla,
-  Ze as combinarFiltros,
-  Xe as construirFiltrosAvanzados,
-  Ge as construirPayload,
-  nr as crearAdaptadorPreferencias,
-  Qr as crearPreferenciasLocales,
-  Wr as default,
-  G as extraerError,
-  He as fieldsDefDesdeCampos,
-  we as formTypeDeCampo,
-  Ee as opcionesTamanoPagina,
-  ee as operadoresDeFiltro,
-  ge as pageSizeAceptado,
-  Le as permisosDeRecurso,
-  er as resolverAyuda,
-  be as tienePermiso,
-  Cr as useCrud,
-  Ke as validarFormulario,
-  Be as valoresIniciales
+  Ae as ACCIONES,
+  bn as CrudModulo,
+  Oe as ETIQUETAS_OPERADOR,
+  hr as accionPermitida,
+  yr as atributosAyuda,
+  X as camposFormulario,
+  br as clavePreferenciasTabla,
+  mr as combinarFiltros,
+  fr as construirFiltrosAvanzados,
+  _r as construirParametrosFormulario,
+  ar as construirPayload,
+  vr as crearAdaptadorPreferencias,
+  yn as crearPreferenciasLocales,
+  bn as default,
+  kr as erroresDeRespuesta,
+  W as extraerError,
+  ir as fieldsDefDesdeCampos,
+  Se as formTypeDeCampo,
+  Ne as normalizarAcciones,
+  wr as normalizarFormulario,
+  Fe as opcionesTamanoPagina,
+  te as operadoresDeFiltro,
+  _e as pageSizeAceptado,
+  nr as permisosDeRecurso,
+  Ve as procesarGuardado,
+  pr as resolverAyuda,
+  Ce as tienePermiso,
+  Hr as useCrud,
+  lr as validarFormulario,
+  xe as valoresIniciales
 };
 //# sourceMappingURL=vue-greenborn-crud.js.map

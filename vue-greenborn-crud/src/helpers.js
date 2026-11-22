@@ -591,3 +591,139 @@ export function crearAdaptadorPreferencias(preferencias, recurso) {
     },
   }
 }
+
+// ── Acciones habilitadas (prop `acciones`) ───────────────────────────
+
+const CLAVES_ACCIONES = ['crear', 'editar', 'eliminar', 'listar']
+
+/**
+ * Normaliza la prop `acciones` de CrudModulo/useCrud.
+ * undefined o null → todas habilitadas (comportamiento de 0.3.x).
+ * Claves ausentes → habilitadas. Clave desconocida o valor no booleano → error explícito.
+ */
+export function normalizarAcciones(acciones) {
+  if (acciones === undefined || acciones === null) {
+    return { crear: true, editar: true, eliminar: true, listar: true }
+  }
+  if (typeof acciones !== 'object' || Array.isArray(acciones)) {
+    throw new Error('[crud] "acciones" debe ser un objeto { crear, editar, eliminar, listar } con booleanos')
+  }
+  for (const clave of Object.keys(acciones)) {
+    if (!CLAVES_ACCIONES.includes(clave)) {
+      throw new Error(`[crud] "acciones" tiene una clave desconocida: "${clave}" (válidas: ${CLAVES_ACCIONES.join(', ')})`)
+    }
+    if (typeof acciones[clave] !== 'boolean') {
+      throw new Error(`[crud] "acciones.${clave}" debe ser booleano`)
+    }
+  }
+  const resultado = {}
+  for (const clave of CLAVES_ACCIONES) {
+    resultado[clave] = acciones[clave] === undefined ? true : acciones[clave]
+  }
+  return resultado
+}
+
+/**
+ * true si la acción está habilitada en `acciones` Y el usuario tiene `<recurso>.<accion>`.
+ */
+export function accionPermitida(acciones, permisos, recurso, accion) {
+  if (!ACCIONES.includes(accion)) {
+    throw new Error(`[crud] acción desconocida: "${accion}"`)
+  }
+  const habilitadas = normalizarAcciones(acciones)
+  const permiso = permisosDeRecurso(recurso)[accion]
+  return habilitadas[accion] === true && tienePermiso(permisos, permiso)
+}
+
+// ── Formulario personalizado (prop `formulario`) ─────────────────────
+
+const CLAVES_FORMULARIO = ['componente', 'footer']
+
+function esComponente(valor) {
+  return typeof valor === 'function' || (valor !== null && typeof valor === 'object' && !Array.isArray(valor))
+}
+
+/**
+ * Normaliza la prop `formulario` ({ componente, footer? }).
+ * undefined o null → null (se usa FormCrud). Clave desconocida o componente inválido → error.
+ */
+export function normalizarFormulario(formulario) {
+  if (formulario === undefined || formulario === null) return null
+  if (typeof formulario !== 'object' || Array.isArray(formulario)) {
+    throw new Error('[crud] "formulario" debe ser un objeto { componente, footer? }')
+  }
+  for (const clave of Object.keys(formulario)) {
+    if (!CLAVES_FORMULARIO.includes(clave)) {
+      throw new Error(`[crud] "formulario" tiene una clave desconocida: "${clave}" (válidas: componente, footer)`)
+    }
+  }
+  if (!esComponente(formulario.componente)) {
+    throw new Error('[crud] "formulario.componente" es requerido y debe ser un componente Vue')
+  }
+  if (formulario.footer !== undefined && !esComponente(formulario.footer)) {
+    throw new Error('[crud] "formulario.footer" debe ser un componente Vue')
+  }
+  return {
+    componente: formulario.componente,
+    footer: formulario.footer === undefined ? null : formulario.footer,
+  }
+}
+
+/**
+ * Objeto `parametros` que recibe un formulario personalizado.
+ * `_modal_cod` no va aquí: lo agrega el modal manager al abrir.
+ */
+export function construirParametrosFormulario({ modo, fila, campos, valores, guardar, modalState }) {
+  if (modo !== 'crear' && modo !== 'editar') {
+    throw new Error(`[crud] modo de formulario inválido: ${modo}`)
+  }
+  if (modo === 'editar' && (fila === null || typeof fila !== 'object')) {
+    throw new Error('[crud] construirParametrosFormulario: "fila" es requerida en modo editar')
+  }
+  if (modo === 'crear' && fila !== null) {
+    throw new Error('[crud] construirParametrosFormulario: "fila" debe ser null en modo crear')
+  }
+  if (!Array.isArray(campos)) throw new Error('[crud] construirParametrosFormulario: "campos" debe ser un array')
+  if (valores === null || typeof valores !== 'object') throw new Error('[crud] construirParametrosFormulario: "valores" debe ser un objeto')
+  if (typeof guardar !== 'function') throw new Error('[crud] construirParametrosFormulario: "guardar" debe ser una función')
+  if (modalState === null || typeof modalState !== 'object') throw new Error('[crud] construirParametrosFormulario: "modalState" debe ser un objeto')
+  return { modo, fila, campos, valores, guardar, _modalState: modalState }
+}
+
+/**
+ * Traduce un error de guardado a errores por campo y error general
+ * (mismo criterio que FormCrud: errors[campo] en su campo; el resto va al mensaje general).
+ */
+export function erroresDeRespuesta(err, campos) {
+  const { message, errors } = extraerError(err)
+  const nombresCampos = campos.map((c) => c.field)
+  const errores = {}
+  for (const k of Object.keys(errors)) {
+    if (nombresCampos.includes(k)) errores[k] = errors[k]
+  }
+  const sinCampo = Object.keys(errors).filter((k) => !nombresCampos.includes(k))
+  const partes = [message, ...sinCampo.map((k) => `${k}: ${errors[k]}`)]
+  const errorGeneral = Object.keys(errors).length === 0 || sinCampo.length > 0 ? partes.join(' ') : ''
+  return { errores, errorGeneral }
+}
+
+/**
+ * Flujo de guardado compartido por FormCrud y los formularios personalizados.
+ * Valida en cliente; si pasa, llama `alEnviar()` y ejecuta `ejecutar(modo, id, payload)`.
+ * No cierra el modal ni refresca: eso lo hace quien llama según `ok`.
+ * @returns {Promise<{ ok: boolean, errores: Object, errorGeneral: string }>}
+ */
+export async function procesarGuardado({ campos, valores, modo, id, ejecutar, alEnviar }) {
+  const erroresCliente = validarFormulario(campos, valores)
+  if (Object.keys(erroresCliente).length > 0) {
+    return { ok: false, errores: erroresCliente, errorGeneral: '' }
+  }
+  alEnviar()
+  try {
+    await ejecutar(modo, id, construirPayload(campos, valores))
+    return { ok: true, errores: {}, errorGeneral: '' }
+  } catch (err) {
+    console.error('[crud] error al guardar formulario:', err)
+    return { ok: false, ...erroresDeRespuesta(err, campos) }
+  }
+}

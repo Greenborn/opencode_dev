@@ -97,12 +97,10 @@ import { useModal } from '@greenborn/vue-greenborn-modal-manager'
 import {
   atributosAyuda,
   valoresIniciales,
-  validarFormulario,
-  construirPayload,
-  extraerError,
   filasDeCampo,
   markdownAHtmlSeguro,
   opcionesDeCampo,
+  procesarGuardado,
 } from '../helpers.js'
 
 const props = defineProps({
@@ -157,31 +155,24 @@ function limpiarErrores() {
 async function guardar() {
   limpiarErrores()
   const estado = p._modalState
-  const erroresCliente = validarFormulario(campos, valores)
-  if (Object.keys(erroresCliente).length > 0) {
-    Object.assign(errores, erroresCliente)
-    return
-  }
-  estado.guardando = true
-  try {
-    await p.ejecutar(p.modo, p.id, construirPayload(campos, valores))
-    estado.guardando = false
+  const resultado = await procesarGuardado({
+    campos,
+    valores,
+    modo: p.modo,
+    id: p.id,
+    ejecutar: p.ejecutar,
+    alEnviar: () => {
+      estado.guardando = true
+    },
+  })
+  estado.guardando = false
+  if (resultado.ok) {
     ocultar_modal(p._modal_cod)
     p.onGuardado()
-  } catch (err) {
-    console.error('[crud] error al guardar formulario:', err)
-    estado.guardando = false
-    const { message, errors } = extraerError(err)
-    const nombresCampos = campos.map((c) => c.field)
-    const sinCampo = Object.keys(errors).filter((k) => !nombresCampos.includes(k))
-    for (const k of Object.keys(errors)) {
-      if (nombresCampos.includes(k)) errores[k] = errors[k]
-    }
-    const partes = [message, ...sinCampo.map((k) => `${k}: ${errors[k]}`)]
-    if (partes.length > 0 && (Object.keys(errors).length === 0 || sinCampo.length > 0)) {
-      errorGeneral.value = partes.join(' ')
-    }
+    return
   }
+  Object.assign(errores, resultado.errores)
+  errorGeneral.value = resultado.errorGeneral
 }
 
 p._modalState.guardar = guardar

@@ -85,6 +85,8 @@ El `http` debe lanzar (reject) ante errores HTTP: así el formulario y el borrad
 | `pk` | String | no | `'id'` | Clave primaria usada en editar, eliminar y en el mensaje de confirmación. |
 | `preferencias` | Object | no | `null` | Dependencia inyectada `{ leer(clave), guardar(clave, valor) }` para orden, ancho y visibilidad de columnas. Sin valor, TableEditor usa su adaptador global (ver "Preferencias de columnas"). |
 | `ayuda` | Object | no | `null` | Configuración de ayuda contextual `{ clave, botones: { listar, crear, editar, eliminar, campo } }` (ver "Ayuda contextual"). |
+| `acciones` | Object | no | `null` | Operaciones habilitadas `{ crear, editar, eliminar, listar }` con booleanos. Sin valor, todas habilitadas (ver "Acciones habilitadas"). |
+| `formulario` | Object | no | `null` | Formulario personalizado `{ componente, footer? }` en lugar de `FormCrud` (ver "Formulario personalizado"). |
 
 Eventos: `CrudModulo` no emite eventos propios. Internamente escucha el `rowSelected` del TableEditor para habilitar los botones de la toolbar. Las notificaciones de éxito y error van por `mostrar_alerta`.
 
@@ -170,6 +172,69 @@ Los nombres se construyen como `<recurso>.<accion>` (ver `permisosDeRecurso`).
 
 Con `permisos = []` no aparece ningún botón de acción.
 
+### Acciones habilitadas (`acciones`)
+
+`acciones` restringe qué operaciones muestra el componente, además de los permisos RBAC. Un botón (toolbar, fila o acción del composable) aparece sólo si la acción está habilitada en `acciones` **y** el usuario tiene `<recurso>.<accion>`.
+
+```vue
+<!-- Sólo lectura y alta: no hay editar ni eliminar, aunque el usuario tenga los permisos -->
+<CrudModulo recurso="productos" endpoint="/api/productos" :http="http" :permisos="permisos"
+  :acciones="{ editar: false, eliminar: false }" />
+```
+
+- Claves válidas: `crear`, `editar`, `eliminar`, `listar`. Valores: booleanos.
+- Las claves ausentes quedan habilitadas; `acciones` ausente equivale a `{ crear: true, editar: true, eliminar: true, listar: true }`.
+- Una clave desconocida o un valor que no sea booleano lanza un error (`[crud] ...`), sin conversión silenciosa.
+- `acciones.listar: false` no monta la tabla y muestra "Este listado está deshabilitado".
+- Se aplica igual en `useCrud`: `abrirCrear`, `abrirEditar`, `confirmarEliminar` y `puede(accion)` respetan `acciones`.
+
+### Formulario personalizado (`formulario`)
+
+`formulario` reemplaza `FormCrud` (y, si se indica, `FormCrudFooter`) en `mostrar_modal` para alta y edición:
+
+```js
+<CrudModulo ... :formulario="{ componente: MiFormulario, footer: MiFooter }" />
+```
+
+- `componente` (requerido): componente Vue (objeto o función). `footer` (opcional): componente Vue. Sin `footer` se usa `FormCrudFooter`, que llama a `_modalState.guardar()` (ver abajo).
+- Los datos del modal (`campos`, `valores`, `fila`) se preparan igual que en `FormCrud`: campos con `writable !== false` y `form_type` resuelto, valores iniciales con `valoresIniciales`.
+- Claves desconocidas o componentes inválidos lanzan error.
+
+**Contrato de `parametros`** que recibe el componente (el modal manager agrega `_modal_cod`):
+
+| Clave | Descripción |
+|-------|-------------|
+| `modo` | `'crear'` o `'editar'`. |
+| `fila` | Fila que se edita; `null` en alta. |
+| `campos` | Campos del formulario (mismo formato que `FormCrud`). |
+| `valores` | Objeto reactivo con los valores del formulario (lo modifica el componente). |
+| `guardar(valores)` | Async. Valida en cliente, arma el payload igual que `FormCrud`, hace `POST {endpoint}` (alta) o `PUT {endpoint}/:id` (edición). Devuelve `{ ok, errores, errorGeneral }`. Si `ok`: refresca la tabla, muestra `"<singular> guardado correctamente."` y cierra el modal con `ocultar_modal`. Si falla: no cierra; `errores` es `{ campo: mensaje }` y `errorGeneral` el mensaje general (mismo criterio que `FormCrud`). |
+| `_modal_cod` | Código del modal (lo agrega el modal manager). |
+| `_modalState` | `{ guardar, guardando, errores, errorGeneral }`. `guardar` lo usa el footer por defecto; `errores` y `errorGeneral` reflejan el último intento. |
+
+Ejemplo mínimo (sin footer propio, usa `FormCrudFooter`):
+
+```vue
+<!-- MiFormulario.vue -->
+<template>
+  <form @submit.prevent="p.guardar(p.valores)">
+    <label>Nombre
+      <input v-model="p.valores.nombre" class="form-control" />
+    </label>
+    <div v-if="p._modalState.errores.nombre" class="text-danger">{{ p._modalState.errores.nombre }}</div>
+    <div v-if="p._modalState.errorGeneral" class="text-danger">{{ p._modalState.errorGeneral }}</div>
+  </form>
+</template>
+
+<script setup>
+import { defineProps } from 'vue'
+const props = defineProps({ parametros: { type: Object, required: true } })
+const p = props.parametros
+</script>
+```
+
+Con un footer propio, el botón puede llamar a `parametros.guardar(parametros.valores)` directamente. Para que los errores de validación del servidor se vean, el componente debe leerlos de `_modalState` (como en el ejemplo).
+
 **Nota:** el back exige además `<recurso>.ver` para `GET /:id`, pero este paquete no tiene vista de detalle y no pide `ver` en la UI.
 
 ## Definición de campos (`campos`)
@@ -219,7 +284,7 @@ Reglas:
 ## Comportamiento
 
 - **Listado** (`api.list`): envía a `GET {endpoint}/list` los parámetros del protocolo `standard` de TableEditor: `page`, `pageSize`, `sortField`, `sortOrder`, `search` y `filters` (JSON `{ campo: valor }`). Espera `{ status, data: { rows, totalRecords, fields_def } }`. Si la respuesta tiene `status: false`, muestra el `message` con `mostrar_alerta`.
-- **Alta / edición**: abre `mostrar_modal` con `FormCrud` y su footer (`FormCrudFooter`). El payload se arma con `construirPayload` (checkbox a booleano, vacío a `null`, number a `Number`). Alta: `POST {endpoint}`. Edición: `PUT {endpoint}/:id`.
+- **Alta / edición**: abre `mostrar_modal` con `FormCrud` y su footer (`FormCrudFooter`), o con el `formulario` personalizado si se pasó (ver "Formulario personalizado"). El payload se arma con `construirPayload` (checkbox a booleano, vacío a `null`, number a `Number`). Alta: `POST {endpoint}`. Edición: `PUT {endpoint}/:id`.
 - **Errores de validación del back**: `errors: { campo: mensaje }` se muestran junto al campo correspondiente. Si hay errores de campos que no están en el formulario, o si no hay errores por campo, el `message` (y esos errores) se muestran en el encabezado del formulario. El modal no se cierra si falla.
 - **Eliminar**: `mostrar_confirm` (severidad `danger`), luego `DELETE {endpoint}/:id`. Éxito y error con `mostrar_alerta`.
 - Tras crear, editar o eliminar con éxito, la tabla se refresca.
@@ -280,6 +345,12 @@ Son funciones puras (sin Vue ni DOM) de `src/helpers.js`, testeadas con `node --
 | `validarFormulario(campos, valores)` | `{ campo: mensaje }` (vacío si todo está bien). |
 | `construirPayload(campos, valores)` | Payload para el back. |
 | `extraerError(err)` | `{ message, errors }` desde un error HTTP (`err.response.data`), un `{ status: false, ... }` o un `Error`. |
+| `normalizarAcciones(acciones)` | Valida `acciones` y devuelve las cuatro claves booleanas (lanza si hay clave desconocida o valor no booleano). |
+| `accionPermitida(acciones, permisos, recurso, accion)` | `true` si la acción está habilitada y el permiso `<recurso>.<accion>` está en `permisos`. |
+| `normalizarFormulario(formulario)` | Valida `{ componente, footer? }`; devuelve `null` si no hay formulario personalizado. |
+| `construirParametrosFormulario({ modo, fila, campos, valores, guardar, modalState })` | Arma el objeto `parametros` del formulario personalizado (valida sus campos). |
+| `procesarGuardado({ campos, valores, modo, id, ejecutar, alEnviar })` | Flujo de guardado compartido (validación, payload, `ejecutar`). Devuelve `{ ok, errores, errorGeneral }`. |
+| `erroresDeRespuesta(err, campos)` | Traduce un error del back a `{ errores, errorGeneral }`. |
 
 Internos del paquete (en `src/helpers.js`, sin exportar desde `index.js`): `combinarOpciones`, `opcionesDeCampo`, `filasDeCampo`, `estaVacio`, `escaparHtml`, `etiquetaDeOpcion`, `textoCeldaCampo` (celda de tabla para lookups/multiselect), `formateadoresCeldas` (mapa `valueFormatters`) y `markdownAHtmlSeguro` (vista previa markdown).
 
@@ -296,7 +367,7 @@ La demo usa `demo/mockHttp.js` (http en memoria que responde con la forma del co
 ## Tests y build
 
 ```bash
-npm test        # node --test: helpers puros (filtros, paginación, ayuda, preferencias)
+npm test        # node --test: helpers puros (filtros, paginación, ayuda, preferencias, acciones y formulario personalizado)
 npm run build   # dist/ (ESM + UMD + CSS)
 ```
 

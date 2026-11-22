@@ -2,7 +2,8 @@
   <div class="crud-modulo">
     <h2 v-if="titulo" class="crud-titulo">{{ titulo }}</h2>
     <div v-if="!puedeListar" class="crud-sin-permiso">
-      No tenés permiso para ver este listado ({{ recurso }}.listar).
+      <template v-if="accionesActuales.listar === false">Este listado está deshabilitado.</template>
+      <template v-else>No tenés permiso para ver este listado ({{ recurso }}.listar).</template>
     </div>
     <template v-else>
       <div v-if="filtrosDisponibles.length > 0" class="crud-filtros">
@@ -98,6 +99,11 @@ const props = defineProps({
   preferencias: { type: Object, default: null },
   // Configuración de ayuda contextual: { clave, botones: { listar, crear, editar, eliminar, campo } }.
   ayuda: { type: Object, default: null },
+  // Operaciones habilitadas: { crear, editar, eliminar, listar } booleanos. Default: todas true.
+  // Un botón se muestra sólo si está habilitado aquí Y el usuario tiene `<recurso>.<accion>`.
+  acciones: { type: Object, default: null },
+  // Formulario personalizado: { componente, footer? } en lugar de FormCrud (y FormCrudFooter).
+  formulario: { type: Object, default: null },
 })
 
 const tabla = ref(null)
@@ -107,6 +113,7 @@ const {
   api,
   tableConfig,
   puedeListar,
+  accionesActuales,
   onRowSelected,
   setTabla,
   refresh,
@@ -126,6 +133,8 @@ const {
   accionesExtra: computed(() => props.accionesExtra),
   preferencias: props.preferencias,
   ayuda: props.ayuda,
+  acciones: computed(() => props.acciones),
+  formulario: computed(() => props.formulario),
 })
 
 function operadoresDe(campo) {

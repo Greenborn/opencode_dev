@@ -10,8 +10,12 @@ import {
   opcionesTamanoPagina,
   resolverAyuda,
   crearAdaptadorPreferencias,
-  permisosDeRecurso,
   tienePermiso,
+  normalizarAcciones,
+  accionPermitida,
+  normalizarFormulario,
+  construirParametrosFormulario,
+  procesarGuardado,
   camposFormulario,
   combinarOpciones,
   fieldsDefDesdeCampos,
@@ -19,6 +23,7 @@ import {
   extraerError,
   esRespuestaFallida,
   requerido,
+  valoresIniciales,
 } from '../helpers.js'
 import FormCrud from '../components/FormCrud.vue'
 import FormCrudFooter from '../components/FormCrudFooter.vue'
@@ -40,9 +45,16 @@ import FormCrudFooter from '../components/FormCrudFooter.vue'
  * @param {Object} [opts.preferencias]       Dependencia inyectada { leer(clave), guardar(clave, valor) } para orden/ancho/visibilidad
  *                                           de columnas. Si no se pasa, TableEditor usa su adaptador global (localStorage por defecto).
  * @param {Object} [opts.ayuda]              Configuración de ayuda: { clave, botones: { listar, crear, editar, eliminar, campo } }.
+ * @param {Object|Ref<Object>} [opts.acciones] { crear, editar, eliminar, listar } booleanos; por defecto todas true.
+ * @param {Object|Ref<Object>} [opts.formulario] { componente, footer? } formulario personalizado en lugar de FormCrud.
  */
 export function useCrud(opts) {
   validarConfig({ recurso: opts.recurso, endpoint: opts.endpoint, http: opts.http, permisos: unref(opts.permisos) })
+  // Validación explícita al crear (lanza si la configuración es inválida) y reactividad si cambia.
+  const accionesActuales = computed(() => normalizarAcciones(unref(opts.acciones)))
+  accionesActuales.value
+  const formularioPersonalizado = computed(() => normalizarFormulario(unref(opts.formulario)))
+  formularioPersonalizado.value
   const pk = opts.pk === undefined ? 'id' : opts.pk
   const adaptadorPreferencias = crearAdaptadorPreferencias(opts.preferencias, opts.recurso)
   const ayudaResuelta = resolverAyuda(opts.ayuda, { recurso: opts.recurso })
@@ -53,7 +65,6 @@ export function useCrud(opts) {
   const filtrosAplicados = ref({})
   const errorFiltros = ref('')
   const { mostrar_modal, mostrar_alerta, mostrar_confirm } = useModal()
-  const nombres = permisosDeRecurso(opts.recurso)
   const http = opts.http
   const endpoint = opts.endpoint
   const singular = computed(() => {
@@ -106,7 +117,7 @@ export function useCrud(opts) {
   }
 
   const permisosActuales = computed(() => unref(opts.permisos))
-  const puede = (accion) => tienePermiso(permisosActuales.value, nombres[accion])
+  const puede = (accion) => accionPermitida(accionesActuales.value, permisosActuales.value, opts.recurso, accion)
 
   function hayCamposFijos() {
     const explicitos = unref(opts.campos)
@@ -181,6 +192,29 @@ export function useCrud(opts) {
     throw new Error(`[crud] modo de formulario inválido: ${modo}`)
   }
 
+  // Guardado compartido con formularios personalizados: POST/PUT, errores, refresco y cierre.
+  async function guardarFormulario(modo, id, camposForm, valoresRecibidos, estado, codigoModal) {
+    const resultado = await procesarGuardado({
+      campos: camposForm,
+      valores: valoresRecibidos,
+      modo,
+      id,
+      ejecutar,
+      alEnviar: () => {
+        estado.guardando = true
+      },
+    })
+    estado.guardando = false
+    estado.errores = resultado.errores
+    estado.errorGeneral = resultado.errorGeneral
+    if (resultado.ok) {
+      ocultar_modal(codigoModal())
+      mostrar_alerta(`${singular.value} guardado correctamente.`)
+      refresh()
+    }
+    return resultado
+  }
+
   function abrirFormulario(modo, fila) {
     const campos = camposEfectivos.value
     if (campos === null) {
@@ -191,7 +225,16 @@ export function useCrud(opts) {
     const estado = reactive({
       guardar: null,
       guardando: false,
+      errores: {},
+      errorGeneral: '',
     })
+    const nombre = singular.value.toLowerCase()
+    const titulo = modo === 'crear' ? `Nuevo ${nombre}` : `Editar ${nombre}`
+    const personalizado = formularioPersonalizado.value
+    if (personalizado !== null) {
+      abrirFormularioPersonalizado(personalizado, modo, id, fila, campos, estado, titulo)
+      return
+    }
     const parametros = {
       campos: camposFormulario(campos),
       ayudaCampos: ayudaResuelta.campos,
@@ -206,9 +249,27 @@ export function useCrud(opts) {
       },
       _modalState: estado,
     }
-    const nombre = singular.value.toLowerCase()
-    const titulo = modo === 'crear' ? `Nuevo ${nombre}` : `Editar ${nombre}`
     mostrar_modal({ body: FormCrud, footer: FormCrudFooter }, titulo, parametros, { size: 'md' })
+  }
+
+  function abrirFormularioPersonalizado(personalizado, modo, id, fila, campos, estado, titulo) {
+    const camposForm = camposFormulario(campos)
+    const valores = reactive(valoresIniciales(camposForm, fila))
+    let codigoModal = null
+    const guardar = (valoresRecibidos) => guardarFormulario(modo, id, camposForm, valoresRecibidos, estado, () => codigoModal)
+    // El footer por defecto (FormCrudFooter) llama a _modalState.guardar() sin argumentos.
+    estado.guardar = () => guardar(valores)
+    const parametros = construirParametrosFormulario({
+      modo,
+      fila: modo === 'editar' ? fila : null,
+      campos: camposForm,
+      valores,
+      guardar,
+      modalState: estado,
+    })
+    const footer = personalizado.footer === null ? FormCrudFooter : personalizado.footer
+    const { code } = mostrar_modal({ body: personalizado.componente, footer }, titulo, parametros, { size: 'md' })
+    codigoModal = code
   }
 
   function abrirCrear() {
@@ -350,6 +411,7 @@ export function useCrud(opts) {
     permisosActuales,
     camposEfectivos,
     puedeListar: computed(() => puede('listar')),
+    accionesActuales: computed(() => accionesActuales.value),
     onRowSelected,
     setTabla,
     refresh,
