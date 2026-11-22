@@ -141,7 +141,7 @@ export function useCrud(opts) {
   const api = {
     list: async (params) => {
       try {
-        requeridoValor(params, 'params')
+        requerido(params, 'params')
         // pageSize: sólo valores que el back acepta; filters: combina TableEditor con los filtros avanzados.
         const { pageSize, filters, ...resto } = params
         const consulta = { ...resto }

@@ -22,7 +22,7 @@ Listado de todos los paquetes npm del monorepo (38, todos bajo el scope `@greenb
 | Paquete | Versión | Para qué sirve |
 |---|---|---|
 | `@greenborn/vue-greenborn-sso-front` | 1.8.0 | Cliente SSO para Vue 3: login con Google, intercambio de token, verificación de sesión, logout y componente callback para vue-router. |
-| `@greenborn/vue-greenborn-crud` | 0.3.0 | Módulo CRUD genérico para Vue 3 que combina tabla lazy, filtros avanzados, formularios y confirmaciones, con botones según permisos RBAC, preferencias de columnas inyectadas y ayuda contextual (data-help). |
+| `@greenborn/vue-greenborn-crud` | 0.3.1 | Módulo CRUD genérico para Vue 3 que combina tabla lazy, filtros avanzados, formularios y confirmaciones, con botones según permisos RBAC, preferencias de columnas inyectadas y ayuda contextual (data-help). |
 | `@greenborn/vue-table-editor` | 1.4.9 | Tabla genérica: redimensionable, reordenable, edición inline, paginación, lazy loading, CSV export e infinite scroll. |
 | `@greenborn/vue-greenborn-modal-manager` | 1.7.1 | Gestor de modales (formularios, alertas y confirmaciones) con soporte de modales anidados, sin Pinia. |
 | `@greenborn/vue-side-menu` | 1.1.3 | Menú lateral configurable, responsive, con filtrado opcional por permisos y soporte de vue-router. |

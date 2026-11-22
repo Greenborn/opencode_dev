@@ -1,7 +1,7 @@
-import { reactive as J, ref as U, openBlock as p, createElementBlock as m, withModifiers as je, toDisplayString as E, createCommentVNode as j, Fragment as T, renderList as z, unref as d, mergeProps as Fe, createElementVNode as g, createTextVNode as fe, withDirectives as C, vModelCheckbox as pe, vModelSelect as X, vModelText as me, vModelDynamic as Z, computed as S, watch as ye, createVNode as De } from "vue";
+import { reactive as J, ref as U, openBlock as p, createElementBlock as m, withModifiers as Ve, toDisplayString as E, createCommentVNode as V, Fragment as T, renderList as z, unref as d, mergeProps as Fe, createElementVNode as _, createTextVNode as fe, withDirectives as C, vModelCheckbox as pe, vModelSelect as X, vModelText as me, vModelDynamic as Z, computed as S, watch as ye, createVNode as De } from "vue";
 import { BtnConfig as I, TableEditor as Ue } from "@greenborn/vue-table-editor";
 import { useModal as le } from "@greenborn/vue-greenborn-modal-manager";
-const qe = ["listar", "crear", "editar", "eliminar"], Pe = 4, Me = {
+const Pe = ["listar", "crear", "editar", "eliminar"], qe = 4, Me = {
   text: "text",
   number: "number",
   date: "date",
@@ -19,22 +19,22 @@ const qe = ["listar", "crear", "editar", "eliminar"], Pe = 4, Me = {
   "markdown",
   "email"
 ];
-function _(e, n) {
+function g(e, n) {
   if (e == null || e === "")
     throw new Error(`[crud] Parámetro requerido faltante: ${n}`);
   return e;
 }
 function Re({ recurso: e, endpoint: n, http: t, permisos: r }) {
-  if (_(e, "recurso"), _(n, "endpoint"), _(t, "http"), typeof t.get != "function" || typeof t.post != "function" || typeof t.put != "function" || typeof t.delete != "function")
+  if (g(e, "recurso"), g(n, "endpoint"), g(t, "http"), typeof t.get != "function" || typeof t.post != "function" || typeof t.put != "function" || typeof t.delete != "function")
     throw new Error('[crud] "http" debe exponer get, post, put y delete');
   if (!Array.isArray(r))
     throw new Error('[crud] "permisos" es requerido y debe ser un array de strings');
   return !0;
 }
 function Le(e) {
-  _(e, "recurso");
+  g(e, "recurso");
   const n = {};
-  for (const t of qe)
+  for (const t of Pe)
     n[t] = `${e}.${t}`;
   return n;
 }
@@ -44,7 +44,7 @@ function be(e, n) {
   return e.includes(n);
 }
 function we(e) {
-  if (_(e, "campo"), _(e.field, "campo.field"), e.form_type !== void 0) {
+  if (g(e, "campo"), g(e.field, "campo.field"), e.form_type !== void 0) {
     if (!Te.includes(e.form_type))
       throw new Error(`[crud] form_type inválido en "${e.field}": ${e.form_type}`);
     return e.form_type;
@@ -70,10 +70,10 @@ function Ie(e, n) {
   });
 }
 function se(e) {
-  return _(e, "campo"), Array.isArray(e.options) ? e.options : [];
+  return g(e, "campo"), Array.isArray(e.options) ? e.options : [];
 }
 function ze(e) {
-  if (_(e, "campo"), e.filas === void 0) return Pe;
+  if (g(e, "campo"), e.filas === void 0) return qe;
   if (!Number.isInteger(e.filas) || e.filas < 1)
     throw new Error(`[crud] "filas" inválido en "${e.field}": debe ser un entero >= 1`);
   return e.filas;
@@ -85,7 +85,7 @@ function He(e) {
   if (!Array.isArray(e))
     throw new Error('[crud] fieldsDefDesdeCampos: "campos" debe ser un array');
   return e.map((n) => {
-    _(n.field, "campo.field");
+    g(n.field, "campo.field");
     const t = {
       field: n.field,
       headerName: n.headerName === void 0 ? n.field : n.headerName,
@@ -136,7 +136,7 @@ function ve(e, n) {
   return t === void 0 ? void 0 : t.label;
 }
 function Ye(e, n) {
-  _(e, "campo"), _(n, "fila");
+  g(e, "campo"), g(n, "fila");
   const t = n[e.field], r = `${e.field}_etiqueta`;
   if (n[r] !== void 0 && n[r] !== null)
     return K(n[r]);
@@ -195,7 +195,7 @@ const $e = {
   nulo: "Es nulo"
 };
 function ee(e) {
-  return _(e, "campo"), e.filterable !== !0 ? [] : Array.isArray(e.operadores) ? e.operadores.filter((n) => $e[n] !== void 0) : [];
+  return g(e, "campo"), e.filterable !== !0 ? [] : Array.isArray(e.operadores) ? e.operadores.filter((n) => $e[n] !== void 0) : [];
 }
 function ie(e, n) {
   if (n == null) return;
@@ -257,7 +257,7 @@ function Ze(e, n) {
   return Object.keys(r).length === 0 ? void 0 : JSON.stringify(r);
 }
 function Ee(e) {
-  _(e, "paginacion");
+  g(e, "paginacion");
   const t = (Array.isArray(e.tamanosPermitidos) ? e.tamanosPermitidos : [10, 25, 50, 100, 200]).filter((r) => r <= e.tamanoMaximo);
   return t.includes(e.tamanoDefecto) || t.push(e.tamanoDefecto), [...new Set(t)].sort((r, o) => r - o);
 }
@@ -268,7 +268,7 @@ function ge(e, n) {
 }
 const _e = ["listar", "crear", "editar", "eliminar"];
 function er(e, { recurso: n }) {
-  _(n, "recurso");
+  g(n, "recurso");
   const t = { botones: {}, campos: {} };
   for (const u of _e) t.botones[u] = null;
   if (e == null) return t;
@@ -308,10 +308,10 @@ function rr(e) {
   return e == null ? {} : { "data-help": e };
 }
 function tr(e) {
-  return _(e, "recurso"), `te_cfg_${e}`;
+  return g(e, "recurso"), `te_cfg_${e}`;
 }
 function Qr(e, n = "crud_prefs:") {
-  return _(e, "storage"), {
+  return g(e, "storage"), {
     leer(t) {
       try {
         return e.getItem(`${n}${t}`);
@@ -398,7 +398,7 @@ const or = {
     function x(h) {
       return `crud-${r.modo}-${h.field}`;
     }
-    function q(h) {
+    function P(h) {
       return se(h);
     }
     function v(h) {
@@ -414,12 +414,12 @@ const or = {
     function L(h) {
       return h.form_type === "date" ? "date" : h.form_type === "number" ? "number" : h.form_type === "email" ? "email" : "text";
     }
-    function P() {
+    function q() {
       for (const h of Object.keys(u)) delete u[h];
       c.value = "";
     }
     async function M() {
-      P();
+      q();
       const h = r._modalState, A = Ke(o, l);
       if (Object.keys(A).length > 0) {
         Object.assign(u, A);
@@ -440,18 +440,18 @@ const or = {
     return r._modalState.guardar = M, (h, A) => (p(), m("form", {
       class: "crud-form",
       novalidate: "",
-      onSubmit: je(M, ["prevent"])
+      onSubmit: Ve(M, ["prevent"])
     }, [
-      c.value ? (p(), m("div", or, E(c.value), 1)) : j("", !0),
+      c.value ? (p(), m("div", or, E(c.value), 1)) : V("", !0),
       (p(!0), m(T, null, z(d(o), (s) => (p(), m("div", Fe({
         key: s.field,
         class: "crud-field"
       }, { ref_for: !0 }, O(s)), [
-        g("label", {
+        _("label", {
           for: x(s)
         }, [
           fe(E(s.headerName === void 0 ? s.field : s.headerName) + " ", 1),
-          s.required === !0 ? (p(), m("span", lr, "*")) : j("", !0)
+          s.required === !0 ? (p(), m("span", lr, "*")) : V("", !0)
         ], 8, ir),
         s.form_type === "checkbox" ? C((p(), m("input", {
           key: 0,
@@ -468,7 +468,7 @@ const or = {
           class: "crud-input"
         }, [
           s.required === !0 ? (p(), m("option", ur, "— Seleccionar —")) : (p(), m("option", dr, "— Seleccionar —")),
-          (p(!0), m(T, null, z(q(s), (y) => (p(), m("option", {
+          (p(!0), m(T, null, z(P(s), (y) => (p(), m("option", {
             key: String(y.value),
             value: y.value
           }, E(y.label), 9, cr))), 128))
@@ -480,11 +480,11 @@ const or = {
           class: "crud-checks",
           role: "group"
         }, [
-          (p(!0), m(T, null, z(q(s), (y) => (p(), m("label", {
+          (p(!0), m(T, null, z(P(s), (y) => (p(), m("label", {
             key: String(y.value),
             class: "crud-check"
           }, [
-            C(g("input", {
+            C(_("input", {
               "onUpdate:modelValue": (a) => l[s.field] = a,
               type: "checkbox",
               class: "crud-checkbox",
@@ -494,7 +494,7 @@ const or = {
             ]),
             fe(" " + E(y.label), 1)
           ]))), 128)),
-          q(s).length === 0 ? (p(), m("div", mr, "Sin opciones disponibles.")) : j("", !0)
+          P(s).length === 0 ? (p(), m("div", mr, "Sin opciones disponibles.")) : V("", !0)
         ], 8, fr)) : s.form_type === "textarea" ? C((p(), m("textarea", {
           key: 3,
           id: x(s),
@@ -504,7 +504,7 @@ const or = {
         }, null, 8, yr)), [
           [me, l[s.field]]
         ]) : s.form_type === "markdown" ? (p(), m("div", br, [
-          C(g("textarea", {
+          C(_("textarea", {
             id: x(s),
             "onUpdate:modelValue": (y) => l[s.field] = y,
             rows: v(s),
@@ -512,9 +512,9 @@ const or = {
           }, null, 8, vr), [
             [me, l[s.field]]
           ]),
-          g("div", hr, [
-            A[0] || (A[0] = g("small", { class: "crud-help" }, "Acepta markdown.", -1)),
-            g("button", {
+          _("div", hr, [
+            A[0] || (A[0] = _("small", { class: "crud-help" }, "Acepta markdown.", -1)),
+            _("button", {
               type: "button",
               class: "crud-btn-preview",
               onClick: (y) => N(s)
@@ -524,7 +524,7 @@ const or = {
             key: 0,
             class: "crud-markdown-preview",
             innerHTML: d(We)(F(s))
-          }, null, 8, _r)) : j("", !0)
+          }, null, 8, _r)) : V("", !0)
         ])) : C((p(), m("input", {
           key: 5,
           id: x(s),
@@ -534,7 +534,7 @@ const or = {
         }, null, 8, wr)), [
           [Z, l[s.field]]
         ]),
-        u[s.field] ? (p(), m("div", kr, E(u[s.field]), 1)) : j("", !0)
+        u[s.field] ? (p(), m("div", kr, E(u[s.field]), 1)) : V("", !0)
       ], 16))), 128))
     ], 32));
   }
@@ -554,12 +554,12 @@ const or = {
       t(n.parametros._modal_cod);
     }
     return (u, c) => (p(), m("div", Er, [
-      g("button", {
+      _("button", {
         type: "button",
         class: "gmm-btn gmm-btn-secondary",
         onClick: l
       }, "Cancelar"),
-      g("button", {
+      _("button", {
         type: "button",
         class: "gmm-btn gmm-btn-success",
         disabled: d(r).guardando,
@@ -570,7 +570,7 @@ const or = {
 };
 function Cr(e) {
   Re({ recurso: e.recurso, endpoint: e.endpoint, http: e.http, permisos: d(e.permisos) });
-  const n = e.pk === void 0 ? "id" : e.pk, t = nr(e.preferencias, e.recurso), r = er(e.ayuda, { recurso: e.recurso }), o = U(null), l = J({}), u = U({}), c = U(""), { mostrar_modal: k, mostrar_alerta: O, mostrar_confirm: x } = le(), q = Le(e.recurso), v = e.http, F = e.endpoint, N = S(() => {
+  const n = e.pk === void 0 ? "id" : e.pk, t = nr(e.preferencias, e.recurso), r = er(e.ayuda, { recurso: e.recurso }), o = U(null), l = J({}), u = U({}), c = U(""), { mostrar_modal: k, mostrar_alerta: O, mostrar_confirm: x } = le(), P = Le(e.recurso), v = e.http, F = e.endpoint, N = S(() => {
     const i = d(e.elemento);
     return i == null || i.singular === void 0 ? "Registro" : i.singular;
   });
@@ -578,8 +578,8 @@ function Cr(e) {
     const i = d(e.accionesExtra);
     return i ?? [];
   }
-  const P = U(null), M = U(null), h = S(() => {
-    const i = P.value;
+  const q = U(null), M = U(null), h = S(() => {
+    const i = q.value;
     return i === null ? [] : i.filter((f) => ee(f).length > 0);
   });
   function A(i) {
@@ -601,12 +601,12 @@ function Cr(e) {
       l[i] = { op: "", valor: "", desde: "", hasta: "" };
     u.value = {}, c.value = "", $();
   }
-  const a = S(() => d(e.permisos)), b = (i) => be(a.value, q[i]);
+  const a = S(() => d(e.permisos)), b = (i) => be(a.value, P[i]);
   function Y() {
     const i = d(e.campos);
     return i != null;
   }
-  const R = S(() => Y() ? Ie(d(e.campos), P.value) : P.value);
+  const R = S(() => Y() ? Ie(d(e.campos), q.value) : q.value);
   function $() {
     M.value !== null && M.value.refresh();
   }
@@ -621,16 +621,16 @@ function Cr(e) {
   const Se = {
     list: async (i) => {
       try {
-        requeridoValor(i, "params");
-        const { pageSize: f, filters: w, ...Q } = i, V = { ...Q }, W = ge(f, o.value);
-        W !== void 0 && (V.pageSize = W);
+        g(i, "params");
+        const { pageSize: f, filters: w, ...Q } = i, j = { ...Q }, W = ge(f, o.value);
+        W !== void 0 && (j.pageSize = W);
         const B = Ze(w, u.value);
-        B !== void 0 && (V.filters = B);
-        const D = await v.get(`${F}/list`, { params: V });
+        B !== void 0 && (j.filters = B);
+        const D = await v.get(`${F}/list`, { params: j });
         if (he(D))
           return O(G(D).message), D;
         const oe = D.data.fields_def;
-        return oe !== void 0 && (P.value = oe, A(oe)), D.data.paginacion !== void 0 && (o.value = D.data.paginacion), D;
+        return oe !== void 0 && (q.value = oe, A(oe)), D.data.paginacion !== void 0 && (o.value = D.data.paginacion), D;
       } catch (f) {
         return ae("error al listar", f), { status: !1, message: G(f).message };
       }
@@ -640,7 +640,7 @@ function Cr(e) {
     if (i === "crear")
       return v.post(F, w);
     if (i === "editar")
-      return _(f, "id"), v.put(`${F}/${f}`, w);
+      return g(f, "id"), v.put(`${F}/${f}`, w);
     throw new Error(`[crud] modo de formulario inválido: ${i}`);
   }
   function de(i, f) {
@@ -649,7 +649,7 @@ function Cr(e) {
       O("Todavía no hay definición de campos. Actualizá la tabla e intentá de nuevo.");
       return;
     }
-    const Q = i === "editar" ? f[n] : void 0, V = J({
+    const Q = i === "editar" ? f[n] : void 0, j = J({
       guardar: null,
       guardando: !1
     }), W = {
@@ -663,7 +663,7 @@ function Cr(e) {
       onGuardado: () => {
         O(`${N.value} guardado correctamente.`), $();
       },
-      _modalState: V
+      _modalState: j
     }, B = N.value.toLowerCase(), D = i === "crear" ? `Nuevo ${B}` : `Editar ${B}`;
     k({ body: $r, footer: Sr }, D, W, { size: "md" });
   }
@@ -671,12 +671,12 @@ function Cr(e) {
     b("crear") && de("crear");
   }
   function te(i) {
-    b("editar") && (_(i, "fila"), de("editar", i));
+    b("editar") && (g(i, "fila"), de("editar", i));
   }
   function ne(i) {
     if (!b("eliminar")) return;
-    _(i, "fila");
-    const f = _(i[n], `fila.${n}`);
+    g(i, "fila");
+    const f = g(i[n], `fila.${n}`);
     x({
       title: "Eliminar",
       text: `¿Eliminar ${N.value.toLowerCase()} (${n}: ${f})? Esta acción no se puede deshacer.`,
@@ -743,7 +743,7 @@ function Cr(e) {
       onClick: (f) => ne(f)
     }));
     for (const f of L())
-      _(f.key, "accionesExtra[].key"), !(f.permiso !== void 0 && !be(a.value, f.permiso)) && i.push(new I({
+      g(f.key, "accionesExtra[].key"), !(f.permiso !== void 0 && !be(a.value, f.permiso)) && i.push(new I({
         key: `extra-${f.key}`,
         icon: f.icon,
         severity: f.severity,
@@ -756,7 +756,7 @@ function Cr(e) {
     const i = d(e.elemento);
     return i == null || i.gender === void 0 ? "M" : i.gender;
   }
-  const Ve = S(() => {
+  const je = S(() => {
     const i = {
       lazy: !0,
       infiniteScroll: !1,
@@ -765,7 +765,7 @@ function Cr(e) {
       dataPipeline: {
         processFields: (f) => {
           const w = R.value;
-          return (w === null ? f : He(w)).map((V) => r.campos[V.field] === void 0 ? V : { ...V, helpKey: r.campos[V.field] });
+          return (w === null ? f : He(w)).map((j) => r.campos[j.field] === void 0 ? j : { ...j, helpKey: r.campos[j.field] });
         }
       },
       // Lookups (<campo>_etiqueta), multiselect (labels) y escapado de texto.
@@ -779,7 +779,7 @@ function Cr(e) {
   });
   return {
     api: Se,
-    tableConfig: Ve,
+    tableConfig: je,
     puede: b,
     permisosActuales: a,
     camposEfectivos: R,
@@ -806,13 +806,13 @@ const xr = { class: "crud-modulo" }, Nr = {
 }, Or = {
   key: 1,
   class: "crud-sin-permiso"
-}, Vr = {
+}, jr = {
   key: 0,
   class: "crud-filtros"
-}, jr = ["aria-expanded"], Fr = {
+}, Vr = ["aria-expanded"], Fr = {
   key: 0,
   class: "crud-filtros-panel"
-}, Dr = ["for"], Ur = ["id", "onUpdate:modelValue"], qr = ["value"], Pr = ["onUpdate:modelValue", "type", "aria-label"], Mr = ["onUpdate:modelValue", "type", "aria-label"], Tr = ["onUpdate:modelValue", "aria-label"], Rr = { value: "si" }, Lr = { value: "no" }, Ir = ["onUpdate:modelValue", "aria-label"], zr = ["value"], Hr = ["onUpdate:modelValue", "type", "placeholder", "aria-label"], Br = {
+}, Dr = ["for"], Ur = ["id", "onUpdate:modelValue"], Pr = ["value"], qr = ["onUpdate:modelValue", "type", "aria-label"], Mr = ["onUpdate:modelValue", "type", "aria-label"], Tr = ["onUpdate:modelValue", "aria-label"], Rr = { value: "si" }, Lr = { value: "no" }, Ir = ["onUpdate:modelValue", "aria-label"], zr = ["value"], Hr = ["onUpdate:modelValue", "type", "placeholder", "aria-label"], Br = {
   key: 0,
   class: "crud-error"
 }, Kr = { class: "crud-filtros-acciones" }, Wr = {
@@ -840,7 +840,7 @@ const xr = { class: "crud-modulo" }, Nr = {
       onRowSelected: k,
       setTabla: O,
       refresh: x,
-      filtrosDisponibles: q,
+      filtrosDisponibles: P,
       filtrosEstado: v,
       errorFiltros: F,
       aplicarFiltros: N,
@@ -857,7 +857,7 @@ const xr = { class: "crud-modulo" }, Nr = {
       preferencias: t.preferencias,
       ayuda: t.ayuda
     });
-    function P(s) {
+    function q(s) {
       return ee(s);
     }
     function M(s) {
@@ -872,48 +872,48 @@ const xr = { class: "crud-modulo" }, Nr = {
     return ye(r, (s) => O(s), { immediate: !0 }), ye(u, () => {
       r.value !== null && r.value.applyConfig();
     }), n({ refresh: x }), (s, y) => (p(), m("div", xr, [
-      e.titulo ? (p(), m("h2", Nr, E(e.titulo), 1)) : j("", !0),
+      e.titulo ? (p(), m("h2", Nr, E(e.titulo), 1)) : V("", !0),
       d(c) ? (p(), m(T, { key: 2 }, [
-        d(q).length > 0 ? (p(), m("div", Vr, [
-          g("button", {
+        d(P).length > 0 ? (p(), m("div", jr, [
+          _("button", {
             type: "button",
             class: "btn btn-sm btn-outline-secondary",
             "aria-expanded": o.value ? "true" : "false",
             onClick: y[0] || (y[0] = (a) => o.value = !o.value)
-          }, E(o.value ? "Ocultar filtros" : "Filtros avanzados"), 9, jr),
+          }, E(o.value ? "Ocultar filtros" : "Filtros avanzados"), 9, Vr),
           o.value ? (p(), m("div", Fr, [
-            (p(!0), m(T, null, z(d(q), (a) => (p(), m("div", {
+            (p(!0), m(T, null, z(d(P), (a) => (p(), m("div", {
               key: a.field,
               class: "crud-filtro-fila"
             }, [
-              g("label", {
+              _("label", {
                 for: `crud-filtro-op-${e.recurso}-${a.field}`,
                 class: "form-label small mb-0"
               }, E(a.headerName), 9, Dr),
-              C(g("select", {
+              C(_("select", {
                 id: `crud-filtro-op-${e.recurso}-${a.field}`,
                 "onUpdate:modelValue": (b) => d(v)[a.field].op = b,
                 class: "form-select form-select-sm"
               }, [
-                y[3] || (y[3] = g("option", { value: "" }, "Sin filtro", -1)),
-                (p(!0), m(T, null, z(P(a), (b) => (p(), m("option", {
+                y[3] || (y[3] = _("option", { value: "" }, "Sin filtro", -1)),
+                (p(!0), m(T, null, z(q(a), (b) => (p(), m("option", {
                   key: b,
                   value: b
-                }, E(M(b)), 9, qr))), 128))
+                }, E(M(b)), 9, Pr))), 128))
               ], 8, Ur), [
                 [X, d(v)[a.field].op]
               ]),
               d(v)[a.field].op === "rango" ? (p(), m(T, { key: 0 }, [
-                C(g("input", {
+                C(_("input", {
                   "onUpdate:modelValue": (b) => d(v)[a.field].desde = b,
                   type: A(a),
                   class: "form-control form-control-sm",
                   placeholder: "Desde",
                   "aria-label": `${a.headerName} desde`
-                }, null, 8, Pr), [
+                }, null, 8, qr), [
                   [Z, d(v)[a.field].desde]
                 ]),
-                C(g("input", {
+                C(_("input", {
                   "onUpdate:modelValue": (b) => d(v)[a.field].hasta = b,
                   type: A(a),
                   class: "form-control form-control-sm",
@@ -928,9 +928,9 @@ const xr = { class: "crud-modulo" }, Nr = {
                 class: "form-select form-select-sm",
                 "aria-label": `${a.headerName} valor`
               }, [
-                y[4] || (y[4] = g("option", { value: "" }, "—", -1)),
-                g("option", Rr, E(d(v)[a.field].op === "nulo" ? "Sí" : "Sí / verdadero"), 1),
-                g("option", Lr, E(d(v)[a.field].op === "nulo" ? "No" : "No / falso"), 1)
+                y[4] || (y[4] = _("option", { value: "" }, "—", -1)),
+                _("option", Rr, E(d(v)[a.field].op === "nulo" ? "Sí" : "Sí / verdadero"), 1),
+                _("option", Lr, E(d(v)[a.field].op === "nulo" ? "No" : "No / falso"), 1)
               ], 8, Tr)), [
                 [X, d(v)[a.field].valor]
               ]) : d(v)[a.field].op !== "" && d(v)[a.field].op !== "en" && h(a).length > 0 ? C((p(), m("select", {
@@ -939,7 +939,7 @@ const xr = { class: "crud-modulo" }, Nr = {
                 class: "form-select form-select-sm",
                 "aria-label": `${a.headerName} valor`
               }, [
-                y[5] || (y[5] = g("option", { value: "" }, "—", -1)),
+                y[5] || (y[5] = _("option", { value: "" }, "—", -1)),
                 (p(!0), m(T, null, z(h(a), (b) => (p(), m("option", {
                   key: String(b.value),
                   value: String(b.value)
@@ -955,23 +955,23 @@ const xr = { class: "crud-modulo" }, Nr = {
                 "aria-label": `${a.headerName} valor`
               }, null, 8, Hr)), [
                 [Z, d(v)[a.field].valor]
-              ]) : j("", !0)
+              ]) : V("", !0)
             ]))), 128)),
-            d(F) ? (p(), m("div", Br, E(d(F)), 1)) : j("", !0),
-            g("div", Kr, [
-              g("button", {
+            d(F) ? (p(), m("div", Br, E(d(F)), 1)) : V("", !0),
+            _("div", Kr, [
+              _("button", {
                 type: "button",
                 class: "btn btn-sm btn-primary",
                 onClick: y[1] || (y[1] = (...a) => d(N) && d(N)(...a))
               }, "Aplicar filtros"),
-              g("button", {
+              _("button", {
                 type: "button",
                 class: "btn btn-sm btn-outline-secondary",
                 onClick: y[2] || (y[2] = (...a) => d(L) && d(L)(...a))
               }, "Limpiar")
             ])
-          ])) : j("", !0)
-        ])) : j("", !0),
+          ])) : V("", !0)
+        ])) : V("", !0),
         De(d(Ue), {
           ref_key: "tabla",
           ref: r,
@@ -985,7 +985,7 @@ const xr = { class: "crud-modulo" }, Nr = {
   }
 };
 export {
-  qe as ACCIONES,
+  Pe as ACCIONES,
   Wr as CrudModulo,
   $e as ETIQUETAS_OPERADOR,
   rr as atributosAyuda,
