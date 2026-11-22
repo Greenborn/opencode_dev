@@ -1,9 +1,9 @@
 // pool.js - Pool de workers de mallado (hilo principal).
 //
 // Cada worker mantiene una caché de chunks crudos. Para mallar un chunk, el
-// worker necesita también sus 4 vecinos (culling de bordes), así que el pool
-// envía sólo los crudos que el worker todavía no conoce (igual que
-// `workerConoce` en el juego). Los datos se COPIAN antes de enviarlos: el
+// worker necesita los chunks hasta radio 2 (5 x 5 alrededor, ver mallador.js:
+// el borde compartido depende de los vecinos de cada vecino), así que el pool
+// envía sólo los crudos que el worker todavía no conoce. Los datos se COPIAN antes de enviarlos: el
 // hilo principal conserva los suyos para futuras ediciones.
 //
 // Uso:
@@ -65,7 +65,8 @@ export function crearPoolMallado({ url, config, cantidad = CANTIDAD_POR_DEFECTO(
             for (const k of claves) {
                 necesarios.add(k);
                 const [cx, cz] = k.split('_').map(Number);
-                for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+                // radio 2: el mallado de un borde usa los vecinos de cara de cada vecino (ver mallador.js)
+                for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
                     necesarios.add((cx + dx) + '_' + (cz + dz));
                 }
             }

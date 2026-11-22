@@ -3,9 +3,15 @@
 // Entrada: un chunk denso { cx, cz, ancho, alto, profundidad, datos, tintes? }
 //   * datos:  Uint8Array de tipos, índice (x*alto + y)*profundidad + z.
 //   * tintes: Uint16Array opcional con índices a `paletaTintes` (0 = sin tinte).
-// Los vecinos (4 lados) se consultan sólo para decidir la visibilidad de las
-// caras del borde: cada chunk emite únicamente las caras de SUS voxeles, así
-// que al cambiar un voxel de borde hay que remallar también al vecino.
+//
+// ACOPLAMIENTO ENTRE CHUNKS (versión 0.6): cada chunk se malla por separado, pero
+// sus aristas de borde deben coincidir con las del vecino. Por eso el mallado de
+// un chunk consulta a sus 4 vecinos (lados) y a los vecinos de éstos (radio 2 en
+// chunks, por el greedy merge global de cada plano): la función `vecinos(cx, cz)`
+// debe devolver los chunks crudos hasta radio 2 (en el worker, el pool envía
+// los 5 x 5 chunks alrededor). Un cambio de voxel en un chunk puede alterar el
+// mallado de los chunks a distancia <= 2: `MapaVoxel.setVoxel` remalla ese
+// entorno. Sin vecinos cargados, el borde se trata como aire (cara visible).
 //
 // Algoritmo:
 //   1. Se copia el chunk en un arreglo "padded" (+1 celda por lado) con los
@@ -14,12 +20,17 @@
 //      (tipo, tinte, sol, luz, orientación; ver codigos.js).
 //   3. Greedy merge 2D sobre la máscara: celdas idénticas se funden en rectángulos.
 //      Se guardan todos los rectángulos del chunk y se marcan sus esquinas.
-//   4. Cada rectángulo se emite con un contorno sin T-junctions pero mínimo:
-//      sus 4 esquinas más los puntos de sus aristas donde cae la esquina de
-//      otro rectángulo del chunk. Las aristas que están sobre un plano de borde
-//      del chunk (x o z de borde) llevan todos los enteros: así coinciden con
-//      las del vecino sin conocer su malla (cada chunk se malla por separado).
-//   5. Triangulación sin vértices extra: abanico desde una esquina libre, zigzag
+//   4. Esquinas de borde: para cada vecino de cara (4 lados) se recalculan, con
+//      sus datos, los rectángulos de sus planos que tocan el borde compartido y
+//      se marcan sus esquinas sobre ese borde. Así cada chunk conoce TODAS las
+//      esquinas que caen en el borde, sin forzar todos los enteros.
+//   5. Cada rectángulo se emite con un contorno sin T-junctions pero mínimo:
+//      sus 4 esquinas más los puntos de sus aristas marcados como esquina (de
+//      cualquiera de los dos lados). Las aristas verticales sobre una esquina
+//      del chunk (x y z de borde) llevan todos los enteros de su altura, porque
+//      esa arista se comparte con hasta cuatro chunks y no hay un vecino de cara
+//      que la determine.
+//   6. Triangulación sin vértices extra: abanico desde una esquina libre, zigzag
 //      entre aristas opuestas, o ear clipping del contorno convexo (n - 2
 //      triángulos en todos los casos). Los vértices con atributos idénticos se comparten.
 
@@ -79,7 +90,8 @@ function obtenerBuffer(mapa, clave, tipo, conTinte) {
  * Malla un chunk.
  *
  * @param {Object} chunk
- * @param {(cx:number, cz:number) => Object|undefined} vecinos  chunk vecino por coordenadas de chunk
+ * @param {(cx:number, cz:number) => Object|undefined} vecinos  chunk por coordenadas de chunk; debe
+ *        servir los chunks hasta radio 2 (los 4 vecinos de cara y los de éstos).
  * @param {Object} [opts]
  * @param {number} [opts.bloque=1]              tamaño de un voxel en unidades de mundo
  * @param {(tipo:number)=>boolean} [opts.esTransparente]  tipos que van al lado transparente
@@ -114,7 +126,6 @@ export function mallarChunk(chunk, vecinos, opts = {}) {
 
     const P = rellenarPadded(chunk, vecinos);
     const H = alto + 2, D = profundidad + 2;
-    const strides = [H * D, D, 1];
     const dims = [ancho, alto, profundidad];
 
     const ctx = {
@@ -122,77 +133,18 @@ export function mallarChunk(chunk, vecinos, opts = {}) {
         info: { x: 0, y: 0, z: 0, eje: 0, sentido: 0, tipo: 0 },
         origen, alto, profundidad,
         tintes,
-        esTransparente, atlasOn, tinteUltima: 0,
+        esTransparente, atlasOn, atlas, tinteUltima: 0, yMinCam,
     };
 
-    // ---- pasada 1: rectángulos de todos los planos y esquinas marcadas ----
+    // ---- pasada 1: rectángulos del chunk y sus esquinas ----
     // Esquinas en una grilla de puntos (ancho+1) x (alto+1) x (profundidad+1).
     const EH = alto + 1, ED = profundidad + 1;
     const esquinas = new Uint8Array((ancho + 1) * EH * ED);
-    const marcar = (d, au, av, plano, u, v) => {
-        _w[d] = plano; _w[au] = u; _w[av] = v;
-        esquinas[(_w[0] * EH + _w[1]) * ED + _w[2]] = 1;
-    };
-    const todos = [];   // d, plano, i, j, w, h, code, inicio en celdasTexel (aplanados, 8 por rectángulo)
-    const celdasTexel = [];   // modo atlas: índice de la variante (tipo, tinte) de cada celda de cada rectángulo
-    const rects = [];
-    for (let d = 0; d < 3; d++) {
-        const [au, av] = EJES_UV[d];
-        const nU = dims[au], nV = dims[av], nD = dims[d];
-        const stride = strides[d];
-        const mascara = new Int32Array(nU * nV);
-        const visitado = new Uint8Array(nU * nV);
-        // modo atlas: tipo y tinte del voxel dueño de cada celda de la máscara del plano
-        const duenoTipo = atlasOn ? new Uint8Array(nU * nV) : null;
-        const duenoTinte = atlasOn ? new Uint16Array(nU * nV) : null;
-
-        for (let p = -1; p < nD; p++) {
-            // ---- máscara de códigos para el plano entre p y p+1 ----
-            // La cara -Y de este plano nunca se ve si la cámara no baja de yMinCam.
-            const sinNegativa = d === 1 && p + 1 <= yMinCam;
-            let hayCaras = false;
-            for (let v = 0; v < nV; v++) {
-                for (let u = 0; u < nU; u++) {
-                    _c[d] = p; _c[au] = u; _c[av] = v;
-                    const iA = ((_c[0] + 1) * H + (_c[1] + 1)) * D + (_c[2] + 1);
-                    const iB = iA + stride;
-                    const a = P[iA], b = P[iB];
-                    let code = 0, tipoDueno = 0;
-                    // Dueño de la cara: el voxel de adentro del chunk. La cara
-                    // positiva la posee `a` (sólo si está en el chunk, p >= 0);
-                    // la negativa la posee `b` (sólo si p + 1 < nD).
-                    if (p >= 0 && a !== 0 && !ocultaCara(b, a, esTransparente)) {
-                        code = celda(d, p, u, v, au, av, true, a, ctx);
-                        tipoDueno = a;
-                    } else if (!sinNegativa && p + 1 < nD && b !== 0 && !ocultaCara(a, b, esTransparente)) {
-                        code = celda(d, p + 1, u, v, au, av, false, b, ctx);
-                        tipoDueno = b;
-                    }
-                    const k = v * nU + u;
-                    mascara[k] = code;
-                    if (code !== 0) hayCaras = true;
-                    if (atlasOn && code !== 0) { duenoTipo[k] = tipoDueno; duenoTinte[k] = ctx.tinteUltima; }
-                }
-            }
-            if (!hayCaras) continue;
-
-            fusionarMascara(mascara, visitado, nU, nV, rects);
-            const plano = p + 1;
-            for (let r = 0; r < rects.length; r += 5) {
-                const i = rects[r], j = rects[r + 1], w = rects[r + 2], h = rects[r + 3];
-                let inicioTexel = 0;
-                if (atlasOn) {
-                    inicioTexel = celdasTexel.length;
-                    for (let b = 0; b < h; b++) for (let a = 0; a < w; a++) {
-                        const c = (j + b) * nU + (i + a);
-                        celdasTexel.push(indiceVariante(atlas, duenoTipo[c], duenoTinte[c]));
-                    }
-                }
-                todos.push(d, plano, i, j, w, h, rects[r + 4], inicioTexel);
-                marcar(d, au, av, plano, i, j); marcar(d, au, av, plano, i + w, j);
-                marcar(d, au, av, plano, i + w, j + h); marcar(d, au, av, plano, i, j + h);
-            }
-        }
+    const { todos, celdasTexel } = rectangulos(P, H, D, dims, ctx, atlasOn, null);
+    marcarEsquinas(esquinas, EH, ED, todos);
+    // ---- bordes: esquinas que aportan los rectángulos de cada vecino de cara ----
+    for (const [dx, dz] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+        marcarVecinoEnBorde(esquinas, EH, ED, chunk, vecinos, dx, dz, ctx);
     }
 
     // ---- atlas de caras: bloque de texels por lado y origen de cada rectángulo ----
@@ -239,6 +191,144 @@ export function mallarChunk(chunk, vecinos, opts = {}) {
         opacos: serializar(mapaOpacos, planes?.bloques[0] ?? null),
         transparentes: serializar(mapaTransp, planes?.bloques[1] ?? null),
     };
+}
+
+/**
+ * Greedy merge de los planos de un chunk (o de un vecino, con `filtro`).
+ * @param {Uint8Array} P          arreglo padded (ver rellenarPadded)
+ * @param {number[]} dims         [ancho, alto, profundidad] del chunk dueño de P
+ * @param {Object} ctx            contexto de códigos (iluminación, origen, tintes, transparencia...)
+ * @param {boolean} conTexel      guardar la variante de cada celda (modo atlas)
+ * @param {Function|null} filtro  (d, plano) => boolean: qué planos calcular (null = todos)
+ * @returns {{ todos: number[], celdasTexel: number[] }}
+ *        `todos`: 8 valores por rectángulo (d, plano, i, j, w, h, código, inicio en celdasTexel).
+ */
+function rectangulos(P, H, D, dims, ctx, conTexel, filtro) {
+    const strides = [H * D, D, 1];
+    const { esTransparente, atlasOn } = ctx;
+    const todos = [];
+    const celdasTexel = [];
+    const rects = [];
+    for (let d = 0; d < 3; d++) {
+        const [au, av] = EJES_UV[d];
+        const nU = dims[au], nV = dims[av], nD = dims[d];
+        const stride = strides[d];
+        const mascara = new Int32Array(nU * nV);
+        const visitado = new Uint8Array(nU * nV);
+        // modo atlas: tipo y tinte del voxel dueño de cada celda de la máscara del plano
+        const duenoTipo = conTexel ? new Uint8Array(nU * nV) : null;
+        const duenoTinte = conTexel ? new Uint16Array(nU * nV) : null;
+
+        for (let p = -1; p < nD; p++) {
+            if (filtro !== null && !filtro(d, p + 1)) continue;
+            // ---- máscara de códigos para el plano entre p y p+1 ----
+            // La cara -Y de este plano nunca se ve si la cámara no baja de yMinCam.
+            const sinNegativa = d === 1 && p + 1 <= ctx.yMinCam;
+            let hayCaras = false;
+            for (let v = 0; v < nV; v++) {
+                for (let u = 0; u < nU; u++) {
+                    _c[d] = p; _c[au] = u; _c[av] = v;
+                    const iA = ((_c[0] + 1) * H + (_c[1] + 1)) * D + (_c[2] + 1);
+                    const iB = iA + stride;
+                    const a = P[iA], b = P[iB];
+                    let code = 0, tipoDueno = 0;
+                    // Dueño de la cara: el voxel de adentro del chunk. La cara
+                    // positiva la posee `a` (sólo si está en el chunk, p >= 0);
+                    // la negativa la posee `b` (sólo si p + 1 < nD).
+                    if (p >= 0 && a !== 0 && !ocultaCara(b, a, esTransparente)) {
+                        code = celda(d, p, u, v, au, av, true, a, ctx);
+                        tipoDueno = a;
+                    } else if (!sinNegativa && p + 1 < nD && b !== 0 && !ocultaCara(a, b, esTransparente)) {
+                        code = celda(d, p + 1, u, v, au, av, false, b, ctx);
+                        tipoDueno = b;
+                    }
+                    const k = v * nU + u;
+                    mascara[k] = code;
+                    if (code !== 0) hayCaras = true;
+                    if (conTexel && code !== 0) { duenoTipo[k] = tipoDueno; duenoTinte[k] = ctx.tinteUltima; }
+                }
+            }
+            if (!hayCaras) continue;
+
+            fusionarMascara(mascara, visitado, nU, nV, rects);
+            const plano = p + 1;
+            for (let r = 0; r < rects.length; r += 5) {
+                const i = rects[r], j = rects[r + 1], w = rects[r + 2], h = rects[r + 3];
+                let inicioTexel = 0;
+                if (conTexel) {
+                    inicioTexel = celdasTexel.length;
+                    for (let b = 0; b < h; b++) for (let a = 0; a < w; a++) {
+                        const c = (j + b) * nU + (i + a);
+                        celdasTexel.push(indiceVariante(ctx.atlas, duenoTipo[c], duenoTinte[c]));
+                    }
+                }
+                todos.push(d, plano, i, j, w, h, rects[r + 4], inicioTexel);
+            }
+        }
+    }
+    return { todos, celdasTexel };
+}
+
+/** Marca en `esquinas` las 4 esquinas de cada rectángulo de `todos` (8 valores por rectángulo). */
+function marcarEsquinas(esquinas, EH, ED, todos) {
+    for (let r = 0; r < todos.length; r += 8) {
+        const d = todos[r], plano = todos[r + 1];
+        const i = todos[r + 2], j = todos[r + 3], w = todos[r + 4], h = todos[r + 5];
+        const [au, av] = EJES_UV[d];
+        marcarPunto(esquinas, EH, ED, d, au, av, plano, i, j);
+        marcarPunto(esquinas, EH, ED, d, au, av, plano, i + w, j);
+        marcarPunto(esquinas, EH, ED, d, au, av, plano, i + w, j + h);
+        marcarPunto(esquinas, EH, ED, d, au, av, plano, i, j + h);
+    }
+}
+
+function marcarPunto(esquinas, EH, ED, d, au, av, plano, u, v) {
+    _w[d] = plano; _w[au] = u; _w[av] = v;
+    esquinas[(_w[0] * EH + _w[1]) * ED + _w[2]] = 1;
+}
+
+/**
+ * Marca las esquinas que el vecino de cara (dx, dz) aporta sobre el borde que
+ * comparte con `chunk`. Se recalculan sus rectángulos de los planos que tocan
+ * ese borde (los de la normal del eje del borde, sólo el plano de contacto, y
+ * los otros dos ejes completos) con sus propios datos, así que el resultado es
+ * el mismo que obtiene el vecino al mallarse. Ver la nota de acoplamiento arriba.
+ */
+function marcarVecinoEnBorde(esquinas, EH, ED, chunk, vecinos, dx, dz, ctx) {
+    const vec = vecinos(chunk.cx + dx, chunk.cz + dz);
+    if (!vec || !vec.datos) return;
+    const { ancho, alto, profundidad } = chunk;
+    const H = alto + 2, D = profundidad + 2;
+    const PV = rellenarPadded(vec, vecinos);
+    const eje = dx !== 0 ? 0 : 2;                  // eje normal al borde compartido
+    const sentido = dx !== 0 ? dx : dz;
+    const dimEje = eje === 0 ? ancho : profundidad;
+    const objetivo = sentido < 0 ? dimEje : 0;     // plano del vecino que toca el chunk
+    const desplazo = sentido * dimEje;             // coordenada del chunk = coordenada del vecino + desplazo
+    const ctxV = {
+        iluminacion: ctx.iluminacion,
+        info: { x: 0, y: 0, z: 0, eje: 0, sentido: 0, tipo: 0 },
+        origen: [vec.cx * ancho, 0, vec.cz * profundidad],
+        alto, profundidad,
+        tintes: vec.tintes ?? null,
+        esTransparente: ctx.esTransparente, atlasOn: ctx.atlasOn, atlas: ctx.atlas,
+        tinteUltima: 0, yMinCam: ctx.yMinCam,
+    };
+    const filtro = (d, plano) => d !== eje || plano === objetivo;
+    const { todos } = rectangulos(PV, H, D, [ancho, alto, profundidad], ctxV, false, filtro);
+    for (let r = 0; r < todos.length; r += 8) {
+        const d = todos[r], plano = todos[r + 1];
+        const i = todos[r + 2], j = todos[r + 3], w = todos[r + 4], h = todos[r + 5];
+        const [au, av] = EJES_UV[d];
+        const us = [i, i + w, i + w, i], vs = [j, j, j + h, j + h];
+        for (let k = 0; k < 4; k++) {
+            _w[d] = plano; _w[au] = us[k]; _w[av] = vs[k];
+            if (_w[eje] !== objetivo) continue;
+            const x = _w[0] + (eje === 0 ? desplazo : 0);
+            const z = _w[2] + (eje === 2 ? desplazo : 0);
+            esquinas[(x * EH + _w[1]) * ED + z] = 1;
+        }
+    }
 }
 
 /**
@@ -318,21 +408,24 @@ function celda(d, pLado, u, v, au, av, positivo, tipo, ctx) {
 }
 
 /**
- * ¿La recta con coordenada `valor` fija en el eje `eje` cae sobre un plano de
- * borde del chunk (x = 0 | ancho, z = 0 | profundidad)? Esas aristas llevan
- * todos los enteros para coincidir con las del chunk vecino.
+ * ¿La arista que sale de (u0, v0) a lo largo del eje `eje` (au o av) va sobre
+ * una esquina vertical del chunk (x y z de borde)? Esas aristas llevan todos los
+ * enteros de su altura: no hay un vecino de cara que defina sus puntos. En el
+ * modo `contornoCompleto` todas las aristas llevan todos los enteros.
  */
-function enBorde(eje, valor, geo) {
-    if (eje === 0) return valor === 0 || valor === geo.ancho;
-    if (eje === 2) return valor === 0 || valor === geo.profundidad;
-    return false;
+function aristaEsquina(geo, d, au, av, plano, u0, v0, eje) {
+    if (geo.completo) return true;
+    if (eje !== 1) return false;
+    _w[d] = plano; _w[au] = u0; _w[av] = v0;
+    const x = _w[0], z = _w[2];
+    return (x === 0 || x === geo.ancho) && (z === 0 || z === geo.profundidad);
 }
 
 /**
  * Agrega a (_pu, _pv) los puntos interiores de una arista que sale de (u0, v0)
  * en la dirección (du, dv) y mide n, sin los extremos: todos los enteros si
- * la arista está en un borde del chunk; si no, sólo donde cae la esquina de
- * otro rectángulo (T-junction). Devuelve cuántos agregó.
+ * `todosLosEnteros`; si no, sólo los marcados como esquina (de cualquier lado
+ * del borde). Devuelve cuántos agregó.
  */
 function puntosArista(geo, d, au, av, plano, u0, v0, du, dv, n, todosLosEnteros) {
     let k = 0;
@@ -355,20 +448,21 @@ function puntosArista(geo, d, au, av, plano, u0, v0, du, dv, n, todosLosEnteros)
 function emitirRectangulo(buf, geo, d, plano, i, j, w, h, code, s, rgb, sol, luz, reg) {
     const [au, av] = EJES_UV[d];
     const i1 = i + w, j1 = j + h;
-    const caraEnBorde = geo.completo || enBorde(d, plano, geo);
     // las aristas a lo largo de u tienen fija la coordenada v (eje av), y viceversa
-    const bordeAbajo = caraEnBorde || enBorde(av, j, geo), bordeArriba = caraEnBorde || enBorde(av, j1, geo);
-    const bordeDer = caraEnBorde || enBorde(au, i1, geo), bordeIzq = caraEnBorde || enBorde(au, i, geo);
+    const forzInf = aristaEsquina(geo, d, au, av, plano, i, j, au);
+    const forzDer = aristaEsquina(geo, d, au, av, plano, i1, j, av);
+    const forzSup = aristaEsquina(geo, d, au, av, plano, i1, j1, au);
+    const forzIzq = aristaEsquina(geo, d, au, av, plano, i, j1, av);
 
     _pu.length = 0; _pv.length = 0;
     _pu.push(i); _pv.push(j);
-    const nb = puntosArista(geo, d, au, av, plano, i, j, 1, 0, w, bordeAbajo);
+    const nb = puntosArista(geo, d, au, av, plano, i, j, 1, 0, w, forzInf);
     _pu.push(i1); _pv.push(j);
-    const nr = puntosArista(geo, d, au, av, plano, i1, j, 0, 1, h, bordeDer);
+    const nr = puntosArista(geo, d, au, av, plano, i1, j, 0, 1, h, forzDer);
     _pu.push(i1); _pv.push(j1);
-    const nt = puntosArista(geo, d, au, av, plano, i1, j1, -1, 0, w, bordeArriba);
+    const nt = puntosArista(geo, d, au, av, plano, i1, j1, -1, 0, w, forzSup);
     _pu.push(i); _pv.push(j1);
-    const nl = puntosArista(geo, d, au, av, plano, i, j1, 0, -1, h, bordeIzq);
+    const nl = puntosArista(geo, d, au, av, plano, i, j1, 0, -1, h, forzIzq);
     const n = _pu.length;
 
     const nx = d === 0 ? s : 0, ny = d === 1 ? s : 0, nz = d === 2 ? s : 0;

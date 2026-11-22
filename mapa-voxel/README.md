@@ -44,10 +44,37 @@ for (const region of regionesVisibles) {
 }
 ```
 
-Al editar un voxel con `mapa.setVoxel(x, y, z, tipo, tinte)`, el chunk queda
-sucio y, si el voxel está en un borde, también el vecino (sus caras de borde
-dependen de ambos lados). El siguiente `mallarPendientes` o `mallarConPool`
-lo remalla.
+Al editar un voxel con `mapa.setVoxel(x, y, z, tipo, tinte)`, el chunk y su
+entorno de radio 2 (5 × 5 chunks) quedan sucios: el borde compartido de cada
+chunk depende de sus vecinos y de los vecinos de éstos (ver "Acoplamiento entre
+chunks"). El siguiente `mallarPendientes` o `mallarConPool` los remalla.
+
+## Acoplamiento entre chunks (0.6)
+
+Desde la 0.6 el mallado de un chunk depende de sus vecinos. Cada chunk se malla
+por separado, pero sus aristas de borde deben coincidir con las del vecino: en
+lugar de forzar todos los enteros del borde (0.5), se calculan las esquinas que
+aporta cada vecino de cara. Para eso el mallador recalcula, con los datos del
+vecino, sus rectángulos de los planos que tocan el borde compartido; el
+resultado es el mismo que obtiene el vecino al mallarse, así que ambos lados
+subdividen la arista igual. Las aristas verticales sobre una esquina del chunk
+(x y z de borde) siguen llevando todos los enteros, porque se comparten con
+hasta cuatro chunks.
+
+Consecuencias para quien usa el paquete:
+
+- **Radio 2**: el greedy merge de un plano es global, así que el borde de un
+  chunk puede depender de chunks a distancia 2. `vecinos(cx, cz)` debe servir
+  los chunks hasta radio 2 (el pool de workers envía los 5 × 5 alrededor).
+- **Remallado**: un cambio de voxel marca como sucio el entorno de radio 2
+  (`MapaVoxel.setVoxel` y `setChunk`). Una edición remalla unos 16 chunks en
+  lugar de 1 (en el benchmark de abajo, ~12 ms frente a ~0.5 ms en el hilo principal).
+- **Coste**: el mallado completo de un chunk cuesta ~50 % más (recalcular los
+  planos de los vecinos de cara). A cambio, el relieve con tipos y tintes
+  mezclados baja poco vértices y el modo atlas baja mucho (ver abajo).
+- **Mismo resultado**: el resultado no depende del orden de mallado ni de qué
+  chunk se malla primero; el test `test/bordes.test.js` compara un remallado
+  incremental con un mapa construido de cero.
 
 ## Modo estático
 
@@ -167,7 +194,8 @@ los bordes), contorno mínimo con la misma superficie que el completo, vértices
 compartidos, `alturaMinimaCamara`, `omitir`, culling entre chunks, tintes, vidrio, hook de
 iluminación, combinación de buffers, invalidación de vecinos, modo estático, y
 equivalencia entre mallado síncrono y por worker (con el worker simulado en
-proceso).
+proceso), y acoplamiento entre chunks (aristas abiertas en mapas aleatorios,
+T-junction entre chunks y remallado frente a un mapa construido de cero).
 
 Rendimiento de referencia (Node 24, chunk 16×48×16 con relieve): ~1.1 ms por chunk (0.2: ~0.7 ms, con un 37 % más de vértices). El contorno mínimo y los vértices compartidos cuestan ~0.4 ms por chunk; en el mapa completo se recupera al subir y combinar menos datos.
 

@@ -1,8 +1,9 @@
 // mapa.js - Almacén de chunks voxel, mallado incremental y modos dinámico/estático.
 //
 // Modo 'dinamico' (por defecto): el mapa puede editarse. Cada cambio marca como
-// "sucio" al chunk editado y, si el voxel está en el borde, también a su vecino
-// (las caras del borde pertenecen a cada lado). El remallado se hace por lotes
+// "sucio" al chunk editado y a su entorno de radio 2 (5 x 5 chunks): el borde
+// compartido de cada chunk depende de sus vecinos de cara y de los vecinos de éstos
+// (ver mallador.js, "acoplamiento entre chunks"). El remallado se hace por lotes
 // con presupuesto de tiempo (`mallarPendientes`) o en workers (`mallarConPool`),
 // de modo que una edición nunca bloquea el frame.
 //
@@ -113,11 +114,7 @@ export class MapaVoxel {
             c.tintes[idx] = tinte;
         }
         c.version = ++_versionChunk;
-        this._marcar(cx, cz);
-        if (lx === 0) this._marcar(cx - 1, cz);
-        if (lx === this.ancho - 1) this._marcar(cx + 1, cz);
-        if (lz === 0) this._marcar(cx, cz - 1);
-        if (lz === this.profundidad - 1) this._marcar(cx, cz + 1);
+        this._marcarEntorno(cx, cz);
     }
 
     /** Marca un chunk para remallado (y bumpea su versión). */
@@ -128,11 +125,18 @@ export class MapaVoxel {
         this.versiones.set(k, (this.versiones.get(k) ?? 0) + 1);
     }
 
+    /**
+     * Marca para remallado el entorno de radio 2 de un chunk. El borde compartido de
+     * un chunk depende de sus vecinos de cara y de los vecinos de éstos (ver mallador.js),
+     * así que cualquier cambio de datos afecta a los 5 x 5 chunks alrededor.
+     */
+    _marcarEntorno(cx, cz) {
+        for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) this._marcar(cx + dx, cz + dz);
+    }
+
     _marcarConVecinos(cx, cz) {
-        // al cargar un chunk, sus vecinos (ya cargados) deben remallarse: ven su borde nuevo
-        this._marcar(cx, cz);
-        this._marcar(cx - 1, cz); this._marcar(cx + 1, cz);
-        this._marcar(cx, cz - 1); this._marcar(cx, cz + 1);
+        // al cargar un chunk, su entorno (ya cargado) debe remallarse: ve su borde nuevo
+        this._marcarEntorno(cx, cz);
     }
 
     _verEditable() {

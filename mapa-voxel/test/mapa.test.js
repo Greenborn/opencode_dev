@@ -20,12 +20,12 @@ test('dinámico: editar un voxel de borde marca también al vecino', () => {
     assert.ok(m.sucios.has('1_0'), 'el vecino debe remallarse');
 });
 
-test('dinámico: editar un voxel interior sólo marca su chunk', () => {
+test('dinámico: editar un voxel marca el entorno de radio 2 (el borde depende de vecinos de vecinos)', () => {
     const m = new MapaVoxel({ tamanoChunk: T, alto: ALTO });
-    llenar(m, [0, 1], [0]);
+    llenar(m, [0, 1, 2, 3], [0]);
     m.mallarPendientes();
     m.setVoxel(1, 1, 1, 0);
-    assert.deepEqual([...m.sucios], ['0_0']);
+    assert.deepEqual([...m.sucios].sort(), ['0_0', '1_0', '2_0']);
 });
 
 test('presupuesto de tiempo: con 0 ms procesa al menos un chunk', () => {

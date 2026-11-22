@@ -62,7 +62,7 @@ test('piso plano de un solo tipo se funde en un único rectángulo superior', ()
     const arriba = todas(s).find(e => e.tipo === 1);
     let vArriba = 0;
     for (let i = 0; i < arriba.normal.length / 3; i++) if (arriba.normal[i * 3 + 1] === 1) vArriba++;
-    assert.equal(vArriba, 2 * (A + P), 'rectángulo pegado a los bordes del chunk: todos los enteros (coinciden con el vecino), sin vértice central');
+    assert.equal(vArriba, 4, 'sin vecinos el rectángulo sólo lleva sus 4 esquinas: los enteros de borde no se fuerzan');
 });
 
 test('el winding coincide con la normal declarada en todas las caras', () => {
