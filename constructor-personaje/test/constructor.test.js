@@ -76,3 +76,26 @@ test('la canasta es obligatoria: defecto, azar y normalizar la fuerzan y el pane
     assert.equal(normalizarConfig({ mano: 0 }).mano, 1);
     assert.ok(!categorias().some(c => c.key === 'mano'));
 });
+
+test('categorias de color (pelo, remera, pantalón, calzado) son libres: aceptan #rrggbb además de la paleta', () => {
+    const libres = categorias().filter(c => c.libre).map(c => c.key);
+    assert.deepEqual(libres.sort(), ['calzado', 'pantalon', 'pelocolor', 'remera']);
+});
+
+test('normalizarConfig conserva un color libre en las categorías de color', () => {
+    const out = normalizarConfig({ remera: '#AABBCC', pantalon: '#102030', calzado: '#ffffff', pelocolor: '#123abc' });
+    assert.equal(out.remera, '#aabbcc');
+    assert.equal(out.pantalon, '#102030');
+    assert.equal(out.calzado, '#ffffff');
+    assert.equal(out.pelocolor, '#123abc');
+});
+
+test('gorra de accesorio y peinado "Gorra" no conviven: gana la gorra (el color de gorra se ve)', () => {
+    assert.equal(normalizarConfig({ cabeza: 1, pelo: 4 }).pelo, 0);
+    assert.equal(normalizarConfig({ cabeza: 1, pelo: 4 }).cabeza, 1);
+    assert.equal(normalizarConfig({ cabeza: 2, pelo: 4 }).pelo, 4);   // el sombrero no pisa al peinado
+    for (let s = 1; s < 40; s++) {
+        const a = azarPersonaje(generadorSembrado(s));
+        assert.ok(!(a.cabeza === 1 && a.pelo === 4), `semilla ${s}`);
+    }
+});

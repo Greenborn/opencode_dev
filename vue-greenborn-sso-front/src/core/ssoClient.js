@@ -28,6 +28,7 @@ export function createSsoClient(config = {}) {
     nodeApiBaseUrl = '',
     meEndpoint = '/user/me',
     loginEndpoint = '/login',
+    preferenciasEndpoint = '/user/preferencias',
   } = config
 
   const keys = resolveStorageKeys(config)
@@ -300,6 +301,62 @@ export function createSsoClient(config = {}) {
     safeSet(keys.uniqueId, null)
   }
 
+  // ---- Preferencias de usuario (requiere el router de preferencias del back) ----
+
+  function urlPreferencias(clave) {
+    const base = normUrl(nodeApiBaseUrl)
+    if (!base) {
+      throw new Error('Sin nodeApiBaseUrl configurado para preferencias')
+    }
+    const sufijo = clave === undefined ? '' : `/${encodeURIComponent(clave)}`
+    return `${base}${preferenciasEndpoint}${sufijo}`
+  }
+
+  function cabecerasPreferencias() {
+    const token = getToken()
+    if (!token) {
+      throw new Error('Sin sesión SSO para preferencias')
+    }
+    return { Authorization: `Bearer ${token}` }
+  }
+
+  async function respuestaPreferencias(response, operacion) {
+    const body = await response.json().catch((err) => {
+      console.error(`SSO preferencias (${operacion}): respuesta no JSON`, err)
+      return {}
+    })
+    if (!response.ok || body.success !== true) {
+      const mensaje = typeof body.message === 'string' ? body.message : `Error en preferencias (${operacion}): ${response.status}`
+      throw new Error(mensaje)
+    }
+    return body.data
+  }
+
+  /** Devuelve { clave: valor } con todas las preferencias del usuario. */
+  async function obtenerPreferencias() {
+    const response = await fetch(urlPreferencias(), { headers: cabecerasPreferencias() })
+    return respuestaPreferencias(response, 'listar')
+  }
+
+  /** Guarda una preferencia del usuario. */
+  async function guardarPreferencia(clave, valor) {
+    const response = await fetch(urlPreferencias(clave), {
+      method: 'PUT',
+      headers: { ...cabecerasPreferencias(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ valor }),
+    })
+    return respuestaPreferencias(response, 'guardar')
+  }
+
+  /** Elimina una preferencia del usuario. */
+  async function eliminarPreferencia(clave) {
+    const response = await fetch(urlPreferencias(clave), {
+      method: 'DELETE',
+      headers: cabecerasPreferencias(),
+    })
+    return respuestaPreferencias(response, 'eliminar')
+  }
+
   return {
     login,
     loginLocal,
@@ -313,5 +370,8 @@ export function createSsoClient(config = {}) {
     getUniqueId,
     getAndClearRedirectUrl,
     clearSession,
+    obtenerPreferencias,
+    guardarPreferencia,
+    eliminarPreferencia,
   }
 }

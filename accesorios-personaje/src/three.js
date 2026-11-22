@@ -7,22 +7,21 @@
 // accesorio cae en la misma posición que en el personaje.
 
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { rigVoxel } from '@greenborn/modelos-personajes/geometria';
-import { materialUnido, cuboVoxel } from '@greenborn/modelos-personajes/three';
+import { materialUnido, geometriaVoxel } from '@greenborn/modelos-personajes/three';
 import { voxelesAccesorios } from './voxeles.js';
 
 const ORIGEN = [0, 0, 0];
 
-/** Geometría fusionada de los voxels de una parte (cubos de cuboVoxel), en el espacio de su pivote. null si no hay voxels. */
+/**
+ * Geometría de los voxels de una parte, en el espacio de su pivote. null si no hay voxels.
+ * Usa geometriaVoxel (greedy meshing de modelos-personajes >= 0.8.0): sólo caras expuestas, caras contiguas
+ * del mismo color fundidas y vértices indexados. Mismo aspecto que un cubo por voxel (mismos atributos,
+ * color por cara, silueta y límites), con muchos menos vértices.
+ */
 function geometriaParte(vox, marco, pivote) {
     if (!vox.length) return null;
-    const cubos = vox.map(v => cuboVoxel(v, marco, pivote));
-    const g = mergeGeometries(cubos, false);
-    cubos.forEach(c => c.dispose());
-    if (!g) throw new Error('accesorios: mergeGeometries falló');
-    g.computeBoundingSphere();
-    return g;
+    return geometriaVoxel(vox, marco, pivote);
 }
 
 /**

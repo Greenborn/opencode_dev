@@ -1,0 +1,21 @@
+{
+  "name": "crud-demo-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "migrate": "knex migrate:latest --knexfile knexfile.js",
+    "seed": "knex seed:run --knexfile knexfile.js",
+    "setup": "npm run migrate && npm run seed",
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@greenborn/express-greenborn-crud": "file:../../express-greenborn-crud",
+    "@greenborn/express-greenborn-sso-back": "file:../../express-greenborn-sso-back",
+    "better-sqlite3": "^11.0.0",
+    "express": "^4.21.2",
+    "knex": "^3.3.0",
+    "axios": "^1.7.0"
+  }
+}

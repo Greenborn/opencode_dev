@@ -1,0 +1,64 @@
+{
+  "name": "@greenborn/vue-greenborn-crud",
+  "version": "0.3.0",
+  "description": "Módulo CRUD genérico para Vue 3: tabla lazy (@greenborn/vue-table-editor), formularios y confirmaciones (@greenborn/vue-greenborn-modal-manager) y botones habilitados según permisos RBAC.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/vue-greenborn-crud.umd.cjs",
+  "module": "./dist/vue-greenborn-crud.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-crud.js",
+      "require": "./dist/vue-greenborn-crud.umd.cjs"
+    },
+    "./style.css": "./dist/vue-greenborn-crud.css",
+    "./dist/style.css": "./dist/vue-greenborn-crud.css"
+  },
+  "style": "./dist/vue-greenborn-crud.css",
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "node --test test/helpers.test.js test/preferencias_filtros_ayuda.test.js",
+    "prepublishOnly": "npm run build && npm test",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "crud",
+    "rbac",
+    "permisos",
+    "table",
+    "modal"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-crud",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0",
+    "@greenborn/vue-table-editor": "^1.4.9",
+    "@greenborn/vue-greenborn-modal-manager": "^1.7.1"
+  },
+  "devDependencies": {
+    "@greenborn/vue-greenborn-modal-manager": "file:../vue-greenborn-modal-manager",
+    "@greenborn/vue-table-editor": "file:../vue-table-editor",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0"
+  }
+}

@@ -14,6 +14,7 @@
 import { mallarChunk } from './mallador.js';
 import { combinarLado } from './combinar.js';
 import { MAX_TINTES } from './codigos.js';
+import { construirAtlas } from './atlas.js';
 
 const CLAVE = (cx, cz) => cx + '_' + cz;
 // Versión global de chunk: cada cambio de datos recibe un número nuevo (lo usa el pool de workers).
@@ -31,6 +32,13 @@ export class MapaVoxel {
      * @param {Function} [opts.iluminacion]        hook de luz horneada, ver mallarChunk
      * @param {'dinamico'|'estatico'} [opts.modo='dinamico']
      * @param {number} [opts.regionTamano=2]       chunks por lado de una región combinada
+     * @param {number} [opts.alturaMinimaCamara]   plano Y bajo el que nunca está la cámara: omite las caras -Y
+     *        que quedan en o por debajo de él (nunca se ven de frente). Ver mallarChunk.
+     * @param {boolean} [opts.contornoCompleto=false] contorno con todos los enteros (salida de la 0.2)
+     * @param {boolean} [opts.atlas=false]         modo atlas de caras (ver atlas.js): la máscara no tiene tipo
+     *        ni tinte y cada voxel de una cara fundida lleva su color en un texel; sin atributo color.
+     *        `colorTipos` (RGB por tipo para tinte 0) opcional, por defecto blanco.
+     * @param {Array<number[]>} [opts.colorTipos]
      */
     constructor(opts) {
         this.ancho = opts.tamanoChunk;
@@ -43,6 +51,7 @@ export class MapaVoxel {
         this.paletaTintes = opts.paletaTintes ?? [];
         this.iluminacion = opts.iluminacion ?? null;
         this.regionTamano = opts.regionTamano ?? 2;
+        this.atlas = opts.atlas ? construirAtlas({ paletaTintes: this.paletaTintes, colorTipos: opts.colorTipos }) : null;
 
         const setT = new Set(this.tiposTransparentes);
         this._esTransparente = tipo => setT.has(tipo);
@@ -59,6 +68,9 @@ export class MapaVoxel {
             esTransparente: this._esTransparente,
             paletaTintes: this.paletaTintes,
             iluminacion: this.iluminacion,
+            alturaMinimaCamara: opts.alturaMinimaCamara,
+            contornoCompleto: opts.contornoCompleto === true,
+            atlas: this.atlas,
         };
     }
 

@@ -100,6 +100,29 @@ app.listen(3000);
 ['password_hash', 'access_token', 'password_reset_token', 'sign_up_verif_code', 'sign_up_verif_token', 'updated_at']
 ```
 
+## Preferencias de usuario (`sso.preferencias` y `/preferencias`)
+
+Almacén clave/valor por usuario (tabla `gb_sso_preferencias`, migración `20260822000000_create_gb_sso_preferencias.js`; ejecutar `knex migrate:latest`). Los valores se guardan como JSON.
+
+Rutas del router (requieren `authMiddleware`; el usuario sale de `req.user`):
+
+| Método | Ruta | Cuerpo | Respuesta |
+|--------|------|--------|-----------|
+| GET | `/preferencias` | — | `{ success, data: { clave: valor, ... } }` |
+| PUT | `/preferencias/:clave` | `{ valor }` | `{ success, data: { clave, valor } }` (400 si falta `valor`) |
+| DELETE | `/preferencias/:clave` | — | `{ success, data: { clave, eliminada } }` |
+
+Uso en servidor:
+
+```js
+await sso.preferencias.guardar(userId, 'tabla.productos', { columnas: [] });
+const valor = await sso.preferencias.leer(userId, 'tabla.productos'); // undefined si no existe
+const todas = await sso.preferencias.obtenerTodas(userId);
+await sso.preferencias.eliminar(userId, 'tabla.productos');
+```
+
+Opción `preferencesTable` para cambiar el nombre de la tabla. Las claves admiten hasta 191 caracteres.
+
 ## Middlewares
 
 ### `authMiddleware`

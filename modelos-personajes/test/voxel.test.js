@@ -92,3 +92,20 @@ function generadorSemillaTest(s) {
   let a = s >>> 0;
   return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
+
+test('pelocolor, remera, pantalon y calzado aceptan un #rrggbb libre (como piel)', () => {
+  const base = { piel: '#e0a878', pelo: 0, pelocolor: 0, remera: 0, pantalon: 0, calzado: 0 };
+  const libre = { ...base, pelocolor: '#123456', remera: '#abcdef', pantalon: '#010203', calzado: '#fedcba' };
+  const colores = new Set(voxelesPersonaje(libre).map(v => v.c));
+  for (const c of ['#123456', '#abcdef', '#010203', '#fedcba']) assert.ok(colores.has(c), c);
+  // un color libre no altera el resto de las categorías (sólo cambia el color que le toca)
+  assert.notEqual(norm(voxelesPersonaje(libre)), norm(voxelesPersonaje(base)));
+});
+
+test('normalizarPersonaje conserva colores libres en minúscula y acota pelo', () => {
+  const n = normalizarPersonaje({ remera: '#ABCDEF', pelocolor: '#00ff00', pelo: '#ffffff', calzado: 'rojo' });
+  assert.equal(n.remera, '#abcdef');
+  assert.equal(n.pelocolor, '#00ff00');
+  assert.equal(n.pelo, 0);
+  assert.equal(n.calzado, 0);
+});

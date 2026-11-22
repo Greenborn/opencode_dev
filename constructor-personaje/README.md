@@ -12,10 +12,10 @@ el **panel** y la **vista previa**.
 ## Instalación
 
 ```bash
-npm install @greenborn/constructor-personaje@^0.1.0
+npm install @greenborn/constructor-personaje@^0.4.0
 ```
 
-Peers: `@greenborn/modelos-personajes` (>=0.6.0 <1.0.0), `@greenborn/accesorios-personaje` (>=0.2.0 <1.0.0)
+Peers: `@greenborn/modelos-personajes` (>=0.8.0 <1.0.0), `@greenborn/accesorios-personaje` (>=0.2.0 <1.0.0)
 y `three` (>=0.170.0). Para la vista 3D, `three` debe resolver a la build **WebGPU** (`three.webgpu.js`),
 porque el paquete de personajes usa `NodeMaterial`.
 
@@ -24,7 +24,7 @@ porque el paquete de personajes usa `NodeMaterial`.
 | Subruta | Contenido | Requiere |
 |---|---|---|
 | `.` | Config, categorías, aleatorios, normalización. Lógica pura. | modelos y accesorios |
-| `./ui` | `crearPanel(contenedor, categorias, eventos)`: panel DOM de chips, nombre y piel. | DOM |
+| `./ui` | `crearPanel(contenedor, categorias, eventos)`: panel DOM de chips, nombre, piel y selector de color libre (pelo, remera, pantalón, calzado). | DOM |
 | `./three` | `construirMuneco(cfg, {alto})`, `animarMuneco(root, p)`, `crearVistaPrevia({...})`. | three |
 | `./constructor` | `montarConstructorPersonaje({...})`: une todo. Carga `./three` aparte. | DOM |
 
@@ -61,7 +61,7 @@ animarMuneco(muneco, { fase, fuerza, corre, dt });      // poses de caminata
 ```js
 {
   piel: '#e0a878', nombre: 'Lucas', rot: 0,            // rot: vista previa 0..3
-  pelo, pelocolor, remera, pantalon, calzado,          // índices de @greenborn/modelos-personajes
+  pelo, pelocolor, remera, pantalon, calzado,          // índices de @greenborn/modelos-personajes, o #rrggbb libre en los color
   cabeza, cabezaColor, lentes, mano, semillaCanasta,   // índices de @greenborn/accesorios-personaje
 }
 ```
@@ -84,3 +84,8 @@ npm test
 
 Cubren la lógica pura (config, categorías, aleatorios reproducibles, normalización). La vista 3D
 y el panel DOM se prueban en la página que los usa.
+
+## Versiones
+
+- **0.4.0**: requiere `@greenborn/modelos-personajes` >=0.8.0, que arma el muñeco voxel con greedy meshing
+  (~55 veces menos vértices en el cuerpo de `construirMuneco`, mismo aspecto). Sin cambios de API.

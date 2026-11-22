@@ -50,10 +50,13 @@ export function pivotesVoxel(vox) {
  * Ángulos (rad, sobre X) de cada parte en la caminata. Misma forma que animarCaminata del
  * muñeco articulado: piernas en contrafase, brazos en contrafase con su pierna, amplitud × fuerza.
  * El muñeco voxel no tiene rodillas ni codos.
+ * `out` (opcional): objeto a reutilizar. Con cientos de personajes por cuadro evita crear
+ * basura (y pausas del GC); se devuelve el mismo objeto, sobrescrito en cada llamada.
  */
-export function angulosVoxelCaminata(fase, fuerza = 1) {
+export function angulosVoxelCaminata(fase, fuerza = 1, out = {}) {
     const s = Math.sin(fase) * fuerza;
-    return { body: 0, legA: -s * 0.8, legB: s * 0.8, armA: s * 0.7, armB: -s * 0.7 };
+    out.body = 0; out.legA = -s * 0.8; out.legB = s * 0.8; out.armA = s * 0.7; out.armB = -s * 0.7;
+    return out;
 }
 
 /** Escala para que el personaje mida `alto` unidades. */

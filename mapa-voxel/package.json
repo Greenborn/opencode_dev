@@ -1,7 +1,7 @@
 {
   "name": "@greenborn/mapa-voxel",
-  "version": "0.2.0",
-  "description": "Visualización cliente de mapas voxel: greedy meshing por plano con códigos de máscara (tipo, tinte, sol, luz), culling entre chunks con bordes sin T-junctions, fusión por región, pool de Web Workers con caché de chunks crudos, y modo estático para mapas no destructibles. Núcleo sin dependencias; adaptador opcional a three.js.",
+  "version": "0.5.0",
+  "description": "Visualización cliente de mapas voxel: greedy meshing por plano con códigos de máscara (tipo, tinte, sol, luz), culling entre chunks sin T-junctions con contorno mínimo y vértices compartidos, omisión de caras nunca visibles, fusión por región, pool de Web Workers con caché de chunks crudos, y modo estático para mapas no destructibles. Núcleo sin dependencias; adaptador opcional a three.js.",
   "type": "module",
   "files": [
     "src",
@@ -24,7 +24,7 @@
     }
   },
   "scripts": {
-    "test": "node --test test/mallador.test.js test/mapa.test.js test/pool.test.js test/three.test.js"
+    "test": "node --test test/mallador.test.js test/mapa.test.js test/pool.test.js test/three.test.js test/optimizacion.test.js test/atlas.test.js test/atlas_caras.test.js"
   },
   "keywords": [
     "voxel",

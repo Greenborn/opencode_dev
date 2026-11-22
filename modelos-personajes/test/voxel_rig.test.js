@@ -36,6 +36,15 @@ test('caminata: piernas y brazos en contrafase, nula con fuerza 0', () => {
   assert.ok(PARTES_VOXEL.every(k => Math.abs(quieto[k]) < 1e-12));
 });
 
+test('caminata: reutiliza el objeto out con los mismos valores', () => {
+  const out = {};
+  const r = angulosVoxelCaminata(0.9, 0.6, out);
+  assert.equal(r, out);
+  assert.deepEqual({ ...out }, angulosVoxelCaminata(0.9, 0.6));
+  angulosVoxelCaminata(2.1, 1, out);
+  assert.deepEqual({ ...out }, angulosVoxelCaminata(2.1, 1));
+});
+
 test('escala: alto deseado se obtiene con escalaVoxelParaAlto', () => {
   assert.equal(escalaVoxelParaAlto(ALTO_VOXEL) * ALTO_VOXEL, ALTO_VOXEL);
   assert.ok(Math.abs(escalaVoxelParaAlto(1.8) * ALTO_VOXEL - 1.8) < 1e-9);

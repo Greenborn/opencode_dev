@@ -46,3 +46,24 @@ export function cuantizar(valor) {
     const n = Math.round(valor * NIVELES);
     return n < 0 ? 0 : n > NIVELES ? NIVELES : n;
 }
+
+/**
+ * Código de máscara para el modo atlas (ver atlas.js): sin tipo ni tinte. Sólo
+ * distinguen la cara la transparencia (bit 0, el lado al que va), el sentido, el
+ * sol y la luz. El tipo y el tinte de cada voxel viajan en el atlas de texels.
+ */
+export function codificarCaraAtlas(transparente, positivo, sol, luz) {
+    const code = 1 + (transparente ? 1 : 0) + (sol << SHIFT_SOL) + (luz << SHIFT_LUZ);
+    return positivo ? code : -code;
+}
+
+/** Inverso de `codificarCaraAtlas`. */
+export function decodificarCaraAtlas(code) {
+    const v = (code < 0 ? -code : code) - 1;
+    return {
+        transparente: (v & 1) === 1,
+        sol: (v >>> SHIFT_SOL) & NIVELES,
+        luz: (v >>> SHIFT_LUZ) & NIVELES,
+        positivo: code > 0,
+    };
+}

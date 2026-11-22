@@ -3,6 +3,7 @@ import { createSsoClient } from './ssoClient.js';
 import { createService } from './service.js';
 import { createMiddleware } from './middleware.js';
 import { createRouter } from './router.js';
+import { createPreferencesService } from './preferences.js';
 import { createSsoSocket } from './socket.js';
 import { normalizeRbacConfig } from './rbac.js';
 import { createUserManagement } from './userManagement.js';
@@ -108,6 +109,7 @@ export function createSsoAuth(options = {}) {
     cache,
     activityLog,
     rateLimiter,
+    preferencesTable: options.preferencesTable,
     findLocalUserByToken: options.findLocalUserByToken,
     createUserFromSso: options.createUserFromSso,
     adminRoles,
@@ -121,6 +123,7 @@ export function createSsoAuth(options = {}) {
   const middleware = createMiddleware(ctx, service);
   const router = createRouter(ctx, service, middleware);
   const userManagement = createUserManagement(ctx);
+  const preferencias = createPreferencesService(ctx);
 
   function attachSocket(httpServer, socketOptions = {}) {
     return createSsoSocket({ sso: api, httpServer, ...socketOptions });
@@ -150,6 +153,12 @@ export function createSsoAuth(options = {}) {
     suspendUser: userManagement.suspendUser,
     reactivateUser: userManagement.reactivateUser,
     getSuspension: service.getSuspension,
+    preferencias: {
+      obtenerTodas: preferencias.obtenerTodas,
+      leer: preferencias.leer,
+      guardar: preferencias.guardar,
+      eliminar: preferencias.eliminar,
+    },
     normalizeUniqueId,
     rbac,
     localLogin,

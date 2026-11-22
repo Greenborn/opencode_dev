@@ -1,5 +1,6 @@
 import express from 'express';
 import { getBearerToken, filterSensitive } from './utils.js';
+import { createPreferencesService } from './preferences.js';
 
 export function createRouter(ctx, service, middleware) {
   const router = express.Router();
@@ -191,6 +192,58 @@ export function createRouter(ctx, service, middleware) {
     } catch (error) {
       (ctx.logger?.error || console.error)('[Register] Error:', error);
       return res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+  });
+
+  // Preferencias de usuario (clave/valor). Requiere authMiddleware.
+  const preferencias = createPreferencesService(ctx);
+  const userIdOf = (user) => {
+    const id = user?.[ctx.tables.userPkField];
+    if (id === undefined || id === null) {
+      throw new Error('preferencias: el usuario autenticado no tiene id');
+    }
+    return id;
+  };
+
+  // GET /preferencias — Devuelve todas las preferencias del usuario como { clave: valor }.
+  router.get('/preferencias', authMiddleware, async (req, res) => {
+    try {
+      const data = await preferencias.obtenerTodas(userIdOf(req.user));
+      res.json({ success: true, data });
+    } catch (error) {
+      log.error('[Preferencias] Error al listar:', error);
+      res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+  });
+
+  // PUT /preferencias/:clave — Guarda el valor. Body: { valor }.
+  router.put('/preferencias/:clave', authMiddleware, async (req, res) => {
+    if (!req.body || !Object.prototype.hasOwnProperty.call(req.body, 'valor')) {
+      return res.status(400).json({ success: false, message: 'El campo "valor" es obligatorio' });
+    }
+    try {
+      const valor = await preferencias.guardar(userIdOf(req.user), req.params.clave, req.body.valor);
+      res.json({ success: true, data: { clave: req.params.clave, valor } });
+    } catch (error) {
+      if (error?.message?.startsWith('preferencias:')) {
+        return res.status(400).json({ success: false, message: error.message });
+      }
+      log.error('[Preferencias] Error al guardar:', error);
+      res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+  });
+
+  // DELETE /preferencias/:clave — Elimina una preferencia.
+  router.delete('/preferencias/:clave', authMiddleware, async (req, res) => {
+    try {
+      const eliminada = await preferencias.eliminar(userIdOf(req.user), req.params.clave);
+      res.json({ success: true, data: { clave: req.params.clave, eliminada } });
+    } catch (error) {
+      if (error?.message?.startsWith('preferencias:')) {
+        return res.status(400).json({ success: false, message: error.message });
+      }
+      log.error('[Preferencias] Error al eliminar:', error);
+      res.status(500).json({ success: false, message: 'Error interno del servidor' });
     }
   });
 

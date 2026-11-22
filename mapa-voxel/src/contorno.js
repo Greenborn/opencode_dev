@@ -13,6 +13,7 @@ export class BufferCara {
         this.nor = new Float32Array(this.cap * 3);
         this.uv = new Float32Array(this.cap * 2);
         this.col = null;                       // se crea con el primer tinte
+        this.reg = null;                       // región de atlas de caras (ox, oy, w, h); se crea con la primera
         this.sol = new Float32Array(this.cap);
         this.luz = new Float32Array(this.cap);
         this.idxCap = 1536;
@@ -28,6 +29,7 @@ export class BufferCara {
         const nor = new Float32Array(cap * 3); nor.set(this.nor); this.nor = nor;
         const uv = new Float32Array(cap * 2); uv.set(this.uv); this.uv = uv;
         if (this.col) { const col = new Float32Array(cap * 3); col.fill(1); col.set(this.col); this.col = col; }
+        if (this.reg) { const reg = new Float32Array(cap * 4); reg.set(this.reg); this.reg = reg; }
         const sol = new Float32Array(cap); sol.set(this.sol); this.sol = sol;
         const luz = new Float32Array(cap); luz.set(this.luz); this.luz = luz;
         this.cap = cap;
@@ -41,8 +43,25 @@ export class BufferCara {
         this.idxCap = cap;
     }
 
-    /** Añade un vértice y devuelve su índice. `rgb` puede ser null (sin tinte). */
-    vertex(x, y, z, nx, ny, nz, tu, tv, rgb, sol, luz) {
+    /**
+     * Como `vertex`, pero reutiliza el vértice si ya se emitió uno con la misma
+     * `clave` (posición + normal + código de cara: todos sus atributos iguales).
+     * Así dos rectángulos vecinos del mismo código comparten sus vértices.
+     */
+    verticeCompartido(clave, x, y, z, nx, ny, nz, tu, tv, rgb, sol, luz) {
+        if (this.vistos === undefined) this.vistos = new Map();
+        const i = this.vistos.get(clave);
+        if (i !== undefined) return i;
+        const n = this.vertex(x, y, z, nx, ny, nz, tu, tv, rgb, sol, luz);
+        this.vistos.set(clave, n);
+        return n;
+    }
+
+    /**
+     * Añade un vértice y devuelve su índice. `rgb` puede ser null (sin tinte).
+     * `reg` (opcional) = [ox, oy, w, h] del bloque de atlas de la cara (ver atlas.js).
+     */
+    vertex(x, y, z, nx, ny, nz, tu, tv, rgb, sol, luz, reg = null) {
         this._ensureV(1);
         const i = this.n;
         const p = i * 3;
@@ -55,6 +74,10 @@ export class BufferCara {
             if (this.col === null) { this.col = new Float32Array(this.cap * 3); this.col.fill(1); }
             this.col[p] = rgb[0]; this.col[p + 1] = rgb[1]; this.col[p + 2] = rgb[2];
         }
+        if (reg !== null) {
+            if (this.reg === null) this.reg = new Float32Array(this.cap * 4);
+            this.reg[i * 4] = reg[0]; this.reg[i * 4 + 1] = reg[1]; this.reg[i * 4 + 2] = reg[2]; this.reg[i * 4 + 3] = reg[3];
+        }
         this.n = i + 1;
         return i;
     }
@@ -65,8 +88,11 @@ export class BufferCara {
         this.idxN += 3;
     }
 
-    /** Buffers exactos, listos para transferir (transferables) al hilo principal. */
-    serializar(tipo, conTinte) {
+    /**
+     * Buffers exactos, listos para transferir (transferables) al hilo principal.
+     * `atlas` (opcional) = bloque de texels del chunk para este lado (modo atlas de caras).
+     */
+    serializar(tipo, conTinte, atlas = null) {
         const verts = this.n;
         if (verts === 0 || this.idxN === 0) return null;
         const IndexCtor = verts > 65535 ? Uint32Array : Uint16Array;
@@ -79,6 +105,8 @@ export class BufferCara {
             normal: this.nor.slice(0, verts * 3),
             uv: this.uv.slice(0, verts * 2),
             color: this.col ? this.col.slice(0, verts * 3) : null,
+            region: this.reg ? this.reg.slice(0, verts * 4) : null,
+            atlas,
             sol: this.sol.slice(0, verts),
             luz: this.luz.slice(0, verts),
             index,
@@ -87,6 +115,8 @@ export class BufferCara {
 }
 
 /**
+ * Contorno completo (todos los enteros de las aristas). El mallador usa ahora
+ * sólo los puntos necesarios (ver mallador.js); se conserva como referencia.
  * Puntos del contorno de un rectángulo (i,j,w,h) en coordenadas de plano, con
  * todos los enteros de sus cuatro aristas. Devuelve la cantidad de puntos; los
  * pares (u,v) quedan en `pts` (aplanados).

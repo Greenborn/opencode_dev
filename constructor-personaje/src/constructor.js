@@ -1,7 +1,7 @@
 // Constructor del personaje: une la config (./index), el panel DOM (./ui) y la vista 3D (./three).
 // La vista se carga aparte: si three.js no está disponible, el panel funciona igual y muestra un aviso.
 
-import { configDefecto, normalizarConfig, azarPersonaje, girar, categorias, NOMBRE_MAX } from './index.js';
+import { configDefecto, normalizarConfig, azarPersonaje, girar, categorias, resolverGorra, NOMBRE_MAX } from './index.js';
 import { crearPanel } from './ui.js';
 
 /**
@@ -16,7 +16,7 @@ export async function montarConstructorPersonaje({ contenedor, configInicial = {
     let motor = null;
 
     function aplicar(parcial) {
-        cfg = { ...cfg, ...parcial };
+        cfg = resolverGorra({ ...cfg, ...parcial });
         panel.pintar(cfg);
         motor?.mostrar(cfg);
         alCambiar(cfg);
@@ -25,7 +25,12 @@ export async function montarConstructorPersonaje({ contenedor, configInicial = {
     const panel = crearPanel(contenedor, categorias(), {
         onNombre: texto => aplicar({ nombre: texto.slice(0, NOMBRE_MAX) }),
         onPiel: hex => aplicar({ piel: hex.toLowerCase() }),
-        onElegir: (clave, idx) => aplicar({ [clave]: idx }),
+        onColor: (clave, hex) => aplicar({ [clave]: hex.toLowerCase() }),
+        onElegir: (clave, idx) => {
+            // Peinado "Gorra" y gorra de accesorio se excluyen: el último que se elige gana.
+            if (clave === 'pelo' && idx === 4 && cfg.cabeza === 1) aplicar({ pelo: 4, cabeza: 0 });
+            else aplicar({ [clave]: idx });
+        },
         onGirar: () => aplicar(girar(cfg)),
         onAzar: () => aplicar(azarPersonaje()),
         onReiniciar: () => aplicar(configDefecto()),

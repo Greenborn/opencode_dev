@@ -401,3 +401,19 @@ Genera `dist/` con los formatos ES y UMD (listo para publicar en npm; `prepublis
 ## Licencia
 
 MIT
+
+## Preferencias de usuario
+
+El cliente expone las preferencias guardadas en el back (`/user/preferencias`, requiere `nodeApiBaseUrl`):
+
+- `obtenerPreferencias()` → `{ clave: valor }`
+- `guardarPreferencia(clave, valor)`
+- `eliminarPreferencia(clave)`
+
+`useSsoAuth()` devuelve además `preferencias: { leer, guardar, eliminar }`, compatible con la prop `preferencias` de `@greenborn/vue-greenborn-crud` para guardar anchos, orden y columnas visibles por usuario:
+
+```vue
+<CrudModulo :preferencias="sso.preferencias" ... />
+```
+
+Opción de configuración `preferenciasEndpoint` (default `/user/preferencias`).

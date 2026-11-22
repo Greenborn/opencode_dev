@@ -25,12 +25,15 @@ export const COLOR_PLACA_POLICIA = '#d4a017';
 
 /**
  * Construye los voxels de un personaje.
- * cfg: { piel, pelo (0..4), pelocolor, remera, pantalon, calzado } (índices en las paletas).
+ * cfg: { piel, pelo (0..4), pelocolor, remera, pantalon, calzado }: los cuatro últimos son índices en las paletas
+ * o un #rrggbb libre (como piel).
  * Los índices fuera de rango caen en el 0; un `piel` que no sea #rrggbb cae en PIEL_DEFECTO.
  * Devuelve [{ x, y, z, c }] con c en #rrggbb.
  */
 export function voxelesPersonaje(cfg = {}) {
     const idx = (lista, i) => lista[Number.isInteger(i) && i >= 0 && i < lista.length ? i : 0];
+    // pelocolor, remera, pantalon y calzado: un #rrggbb libre gana; si no, índice de la paleta (fuera de rango -> 0).
+    const color = (lista, v) => (HEX.test(v) ? v : idx(lista, v));
     const pelo = Number.isInteger(cfg.pelo) && cfg.pelo >= 0 && cfg.pelo < PEINADOS.length ? cfg.pelo : 0;
     const M = new Map();
     const put = (x, y, z, c) => M.set(x + ',' + y + ',' + z, { x, y, z, c });
@@ -41,10 +44,10 @@ export function voxelesPersonaje(cfg = {}) {
     const skin = HEX.test(cfg.piel) ? cfg.piel : PIEL_DEFECTO;
     // cfg.policia: uniforme fijo (camisa y pantalón de policía) en lugar de las paletas de prendas.
     const policia = cfg.policia === true;
-    const hair = idx(COLORES_PELO, cfg.pelocolor);
-    const shirt = policia ? COLOR_UNIFORME_POLICIA : idx(COLORES_REMERA, cfg.remera);
-    const pants = policia ? COLOR_PANTALON_POLICIA : idx(COLORES_PANTALON, cfg.pantalon);
-    const shoe = idx(COLORES_CALZADO, cfg.calzado);
+    const hair = color(COLORES_PELO, cfg.pelocolor);
+    const shirt = policia ? COLOR_UNIFORME_POLICIA : color(COLORES_REMERA, cfg.remera);
+    const pants = policia ? COLOR_PANTALON_POLICIA : color(COLORES_PANTALON, cfg.pantalon);
+    const shoe = color(COLORES_CALZADO, cfg.calzado);
     const contraste = hex => tint(hex, luz(hex) > 140 ? .55 : 2.4);   // cordones y detalles legibles sobre el calzado
     const piel2 = tint(skin, .84), pielOsc = tint(skin, .7), rubor = mezclar(skin, '#e0605a', .35);
     const remOsc = tint(shirt, .8), remSombra = tint(shirt, .65);

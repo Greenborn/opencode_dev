@@ -1,0 +1,53 @@
+import CrudModulo from './components/CrudModulo.vue'
+import { useCrud } from './composables/useCrud.js'
+import {
+  ACCIONES,
+  permisosDeRecurso,
+  tienePermiso,
+  formTypeDeCampo,
+  camposFormulario,
+  fieldsDefDesdeCampos,
+  valoresIniciales,
+  validarFormulario,
+  construirPayload,
+  extraerError,
+  ETIQUETAS_OPERADOR,
+  operadoresDeFiltro,
+  construirFiltrosAvanzados,
+  combinarFiltros,
+  opcionesTamanoPagina,
+  pageSizeAceptado,
+  resolverAyuda,
+  atributosAyuda,
+  clavePreferenciasTabla,
+  crearPreferenciasLocales,
+  crearAdaptadorPreferencias,
+} from './helpers.js'
+import './styles/crud.css'
+
+export {
+  CrudModulo,
+  useCrud,
+  ACCIONES,
+  permisosDeRecurso,
+  tienePermiso,
+  formTypeDeCampo,
+  camposFormulario,
+  fieldsDefDesdeCampos,
+  valoresIniciales,
+  validarFormulario,
+  construirPayload,
+  extraerError,
+  ETIQUETAS_OPERADOR,
+  operadoresDeFiltro,
+  construirFiltrosAvanzados,
+  combinarFiltros,
+  opcionesTamanoPagina,
+  pageSizeAceptado,
+  resolverAyuda,
+  atributosAyuda,
+  clavePreferenciasTabla,
+  crearPreferenciasLocales,
+  crearAdaptadorPreferencias,
+}
+export default CrudModulo

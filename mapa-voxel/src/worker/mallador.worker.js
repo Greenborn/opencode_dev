@@ -1,7 +1,8 @@
 // mallador.worker.js - Worker que malla chunks fuera del hilo principal.
 //
 // Protocolo (mensajes con `tipo`):
-//   'config'  { config: { bloque, paletaTintes, tiposTransparentes, moduloIluminacion? } }
+//   'config'  { config: { bloque, paletaTintes, tiposTransparentes, moduloIluminacion?,
+//                         alturaMinimaCamara?, contornoCompleto?, atlas? } }
 //   'datos'   { chunks: [{ cx, cz, ancho, alto, profundidad, datos, tintes }] }  (se cachean)
 //   'olvidar' { claves: string[] }
 //   'mallar'  { id, claves: string[] }  -> responde { tipo:'salida', id, salidas }
@@ -28,6 +29,9 @@ self.onmessage = async (e) => {
             paletaTintes: c.paletaTintes ?? [],
             esTransparente: tipo => setTransp.has(tipo),
             iluminacion: null,
+            alturaMinimaCamara: c.alturaMinimaCamara,
+            contornoCompleto: c.contornoCompleto === true,
+            atlas: c.atlas ?? null,   // { K, ancho, alto, ... } de construirAtlas (sólo datos)
         };
         if (c.moduloIluminacion) {
             const mod = await import(c.moduloIluminacion);
@@ -45,7 +49,7 @@ self.onmessage = async (e) => {
     }
     if (m.tipo === 'mallar') {
         const salidas = [];
-        const transfer = [];
+        const transfer = new Set();   // sin duplicados: un bloque de atlas se comparte entre entradas
         for (const k of m.claves) {
             const ch = crudos.get(k);
             if (!ch) continue;
@@ -53,11 +57,13 @@ self.onmessage = async (e) => {
             salidas.push(s);
             for (const lado of [s.opacos, s.transparentes]) {
                 for (const e2 of lado) {
-                    transfer.push(e2.position.buffer, e2.normal.buffer, e2.uv.buffer, e2.sol.buffer, e2.luz.buffer, e2.index.buffer);
-                    if (e2.color) transfer.push(e2.color.buffer);
+                    for (const arr of [e2.position, e2.normal, e2.uv, e2.sol, e2.luz, e2.index, e2.color, e2.region]) {
+                        if (arr) transfer.add(arr.buffer);
+                    }
+                    if (e2.atlas) transfer.add(e2.atlas.datos.buffer);
                 }
             }
         }
-        self.postMessage({ tipo: 'salida', id: m.id, salidas }, transfer);
+        self.postMessage({ tipo: 'salida', id: m.id, salidas }, [...transfer]);
     }
 };

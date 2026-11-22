@@ -19,3 +19,4 @@ export {
     PARTES_VOXEL, ALTO_VOXEL, rigVoxel, parteDeVoxel, marcoVoxel, posModeloVoxel, pivotesVoxel,
     angulosVoxelCaminata, escalaVoxelParaAlto, claveVoxel,
 } from './voxel_rig.js';
+export { mallaVoxelGreedy } from './voxel_malla.js';

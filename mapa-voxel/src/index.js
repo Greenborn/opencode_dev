@@ -6,4 +6,5 @@ export { MapaVoxel } from './mapa.js';
 export { mallarChunk } from './mallador.js';
 export { combinarLado } from './combinar.js';
 export { crearPoolMallado } from './worker/pool.js';
+export { construirAtlas, uvDeTexel, TIPO_ATLAS, LADO_MAX_ATLAS } from './atlas.js';
 export { codificar, decodificar, cuantizar, NIVELES, BITS_TIPO, BITS_SOL, BITS_LUZ, BITS_TINTE, MAX_TINTES } from './codigos.js';

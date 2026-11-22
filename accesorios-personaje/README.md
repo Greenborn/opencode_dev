@@ -6,10 +6,10 @@ constructor de `vendedores_capital`.
 ## Instalación
 
 ```bash
-npm install @greenborn/accesorios-personaje@^0.2.0
+npm install @greenborn/accesorios-personaje@^0.3.0
 ```
 
-Requiere `@greenborn/modelos-personajes` (>=0.6.0 <1.0.0; usa `cuboVoxel`) y `three` (>=0.170.0) como peer.
+Requiere `@greenborn/modelos-personajes` (>=0.8.0 <1.0.0; usa `geometriaVoxel`) y `three` (>=0.170.0) como peer.
 
 ## Slots y valores de la cfg
 
@@ -39,6 +39,19 @@ const personaje = adjuntarAccesorios(crearPersonajeVoxel(cfg), cfg);   // { grou
 - `src/voxeles.js`: voxels de cada accesorio, en el mismo espacio que `voxelesPersonaje`. Lógica pura.
 - `src/aleatorio.js`: `generarCanasta(rnd)`, `accesoriosAleatorios(rnd)`, `personajeConAccesorios(rnd)`. Usa el mismo `rnd` que `personajeAleatorio`.
 - `src/three.js`: geometría three.js (cubos fusionados con el mismo acabado que el cuerpo) y enganche a `partes.body` / `partes.armB`.
+
+## Geometría (0.3.0)
+
+Cada parte (cuerpo y brazo derecho) es una sola malla con greedy meshing (`geometriaVoxel` de
+`@greenborn/modelos-personajes` >= 0.8.0): sólo las caras expuestas, las caras contiguas del mismo color
+fundidas y vértices indexados. El aspecto es el mismo que un cubo por voxel (mismos atributos, color por
+cara, silueta y límites; lo verifica `test/geometria.test.js` comparando el área visible por normal y color).
+
+| Accesorios | Vértices 0.2.0 | Vértices 0.3.0 | Triángulos 0.2.0 | Triángulos 0.3.0 |
+|---|---|---|---|---|
+| Canasta | 5.760 | 495 | 2.880 | 354 |
+| Gorra + lentes + canasta | 10.080 | 615 | 5.040 | 420 |
+| Sombrero + lentes + canasta | 12.192 | 632 | 6.096 | 430 |
 
 ## Limitaciones conocidas
 

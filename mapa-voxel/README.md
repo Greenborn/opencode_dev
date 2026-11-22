@@ -67,6 +67,32 @@ const comb = mapa.combinarTodo();      // una geometría por lado, un grupo por 
 - `combinarTodo()` reduce al mínimo los draw calls, pero es una sola malla: three.js no puede hacer frustum culling y dibuja todo el mapa en cada frame.
 - Para mapas grandes use `crearMallasPorRegion(THREE, mapa, { materialDe })` (`/three`): una malla por región (`regionTamano`² chunks), con culling y material compartido.
 
+## Caras que nunca se ven
+
+Si la cámara nunca baja de cierto plano (por ejemplo, un juego en tercera
+persona sobre el suelo), las caras que miran hacia abajo en ese plano o por
+debajo nunca se ven de frente: la cara inferior del suelo, el fondo del agua.
+`alturaMinimaCamara` (plano Y en voxeles, coordenadas del mapa) las omite y
+tampoco evalúa su iluminación:
+
+```js
+// suelo en la capa 1: su cara superior es el plano 2, la cámara siempre está por encima
+const mapa = new MapaVoxel({ tamanoChunk: 32, alto: 32, alturaMinimaCamara: 2 });
+```
+
+Las caras -Y más altas (voladizos, puentes, objetos colgantes) se siguen emitiendo.
+Con workers va en `config.alturaMinimaCamara`.
+
+## Atributos que el material no usa
+
+La salida trae `position`, `normal`, `uv`, `color`, `sol` y `luz`. Si el
+material no usa textura ni luz horneada, `omitir` evita subirlos a la GPU
+(menos memoria por vértice; la geometría es la misma):
+
+```js
+crearMallasPorRegion(THREE, mapa, { materialDe, omitir: ['uv', 'luz'] });
+```
+
 ## Iluminación horneada (hook)
 
 `iluminacion(info)` se llama una vez por cara. `info` es un objeto reutilizable
@@ -101,12 +127,33 @@ Con workers, el hook se pasa como URL de módulo en `config.moduloIluminacion`
 
 ### Geometría
 
-El contorno de cada rectángulo incluye **todos** los enteros de sus aristas, así
-que las caras vecinas comparten vértices de borde y no hay T-junctions: la malla
-no tiene agujeros (cada arista aparece en un número par de triángulos). Cada
-rectángulo se triangula con un vértice central interior (dos triángulos si es
-1×1). Sol y luz son constantes por cara, así que el centro no introduce
-artefactos de sombreado.
+La malla no tiene T-junctions ni agujeros (cada arista aparece en un número par
+de triángulos), con el mínimo de vértices:
+
+- **Contorno mínimo**: cada rectángulo lleva sus 4 esquinas y, en sus aristas,
+  sólo los puntos donde cae la esquina de otra cara del chunk (de cualquier
+  orientación). Las aristas que están sobre un plano de borde del chunk
+  (x o z de borde) llevan todos los enteros: así coinciden con las del vecino
+  sin conocer su malla, y cada chunk se sigue mallando por separado (workers,
+  edición dinámica).
+- **Triangulación sin vértice extra**: abanico desde una esquina cuyas dos
+  aristas no tienen puntos, o zigzag entre dos aristas opuestas (n - 2
+  triángulos). Sólo si tres o cuatro aristas tienen puntos se usa un vértice
+  central (n triángulos).
+- **Vértices compartidos**: dentro de un chunk, los vértices con la misma
+  posición, eje y código de cara (tipo, tinte, sol, luz, sentido) se reutilizan.
+
+Sol y luz son constantes por cara, así que nada de esto cambia el sombreado: la
+superficie por (normal, color, sol) es la misma que con el contorno completo de
+la 0.2 (`contornoCompleto: true` la reproduce, para comparar).
+
+Tamaño de chunk: rectángulos más grandes y menos aristas de borde con chunks
+más grandes. Para un mapa estático, `tamanoChunk: 32, regionTamano: 1` da las
+mismas regiones de culling que `16` con `regionTamano: 2` y menos vértices.
+
+Medido en una ciudad de 600×600×32 (vendedores_capital, 361 regiones): 0.2 →
+2.39 M vértices / 1.90 M triángulos; 0.3 → 1.52 M / 1.02 M con la misma
+configuración, y 1.30 M / 0.85 M con `alturaMinimaCamara` y chunk 32.
 
 ## Pruebas
 
@@ -115,12 +162,14 @@ npm test
 ```
 
 Cubren: codificación de caras, conteo y winding de triángulos, malla sin
-agujeros sobre voxeles aleatorios, culling entre chunks, tintes, vidrio, hook de
+agujeros sobre voxeles aleatorios y entre chunks (relieve con T-junctions en
+los bordes), contorno mínimo con la misma superficie que el completo, vértices
+compartidos, `alturaMinimaCamara`, `omitir`, culling entre chunks, tintes, vidrio, hook de
 iluminación, combinación de buffers, invalidación de vecinos, modo estático, y
 equivalencia entre mallado síncrono y por worker (con el worker simulado en
 proceso).
 
-Rendimiento de referencia (Node 24, chunk 16×48×16 con relieve): ~1 ms por chunk.
+Rendimiento de referencia (Node 24, chunk 16×48×16 con relieve): ~1.1 ms por chunk (0.2: ~0.7 ms, con un 37 % más de vértices). El contorno mínimo y los vértices compartidos cuestan ~0.4 ms por chunk; en el mapa completo se recupera al subir y combinar menos datos.
 
 ## Qué NO incluye (todavía)
 

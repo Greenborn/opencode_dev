@@ -1,10 +1,10 @@
 // Personaje voxel en three.js: mismo esquema que el muñeco articulado (partes con pivote, pose de
 // caminata, inclinación, PoolInstanciado y matrices de instancia), con geometría de cubos.
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {
     PARTES_VOXEL, rigVoxel, posModeloVoxel, parteDeVoxel, angulosVoxelCaminata, claveVoxel,
 } from '../geometria/voxel_rig.js';
+import { mallaVoxelGreedy } from '../geometria/voxel_malla.js';
 import { materialUnido } from './materiales.js';
 
 // Acabado por defecto, igual que ConstructorPiezas: metalness, roughness, brillo (emisión).
@@ -33,7 +33,51 @@ export function cuboVoxel(v, marco, pivote) {
 }
 
 /**
- * Geometría de cada parte (en el espacio de su pivote), en orden de PARTES_VOXEL.
+ * Geometría de una lista de voxels en el espacio del pivote `pivote`, con greedy meshing
+ * (mallaVoxelGreedy): sólo caras expuestas, caras contiguas del mismo color fundidas y vértices
+ * indexados. Mismos atributos que cuboVoxel (position, normal, color, acabado), sin uv (el material
+ * no lo usa), y mismo volumen, silueta, límites y color por cara que fusionar un cuboVoxel por voxel.
+ * Las caras sólo se quitan contra vecinos de la MISMA lista: cada parte del rig rota por separado.
+ * Pública (subruta /three) para armar otras piezas voxel (p. ej. accesorios) con el mismo acabado.
+ * @returns {THREE.BufferGeometry}
+ */
+export function geometriaVoxel(vox, marco, pivote) {
+    const n = vox.length;
+    const celdas = new Int32Array(n * 3), claves = new Int32Array(n);
+    const paleta = [], idx = new Map();
+    for (let i = 0; i < n; i++) {
+        const v = vox[i];
+        // ejes del modelo (posModeloVoxel): X = v.x, Y = v.z (altura), Z = v.y (frente)
+        celdas[i * 3] = v.x; celdas[i * 3 + 1] = v.z; celdas[i * 3 + 2] = v.y;
+        let k = idx.get(v.c);
+        if (k === undefined) { paleta.push(new THREE.Color(v.c)); k = paleta.length; idx.set(v.c, k); }
+        claves[i] = k;
+    }
+    const m = mallaVoxelGreedy(celdas, claves);
+    // la celda entera (x, z, y) va de posModeloVoxel - 0.5 a + 0.5: origen = esquina menos el pivote
+    const o = [-marco.mx - pivote[0], -pivote[1], -marco.my - pivote[2]];
+    const nv = m.claves.length;
+    const pos = new Float32Array(nv * 3), color = new Float32Array(nv * 3), acabado = new Float32Array(nv * 3);
+    for (let i = 0; i < nv; i++) {
+        for (let e = 0; e < 3; e++) pos[i * 3 + e] = m.posiciones[i * 3 + e] + o[e];
+        const c = paleta[m.claves[i] - 1];
+        color[i * 3] = c.r; color[i * 3 + 1] = c.g; color[i * 3 + 2] = c.b;
+        acabado.set(ACABADO, i * 3);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(m.normales, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(color, 3));
+    g.setAttribute('acabado', new THREE.BufferAttribute(acabado, 3));
+    g.setIndex(new THREE.BufferAttribute(m.indices, 1));
+    g.computeBoundingBox();
+    g.computeBoundingSphere();
+    return g;
+}
+
+/**
+ * Geometría de cada parte (en el espacio de su pivote), en orden de PARTES_VOXEL, con greedy
+ * meshing (geometriaVoxel): en un peatón típico ~20 veces menos vértices que un cubo por voxel.
  * Cacheada por cfg: mismo cfg, misma geometría (como geometriaSkin en el muñeco articulado).
  * @returns {{ geometrias: THREE.BufferGeometry[], pivotes: number[][] }}
  */
@@ -42,13 +86,7 @@ export function piezasVoxelRigidas(cfg = {}) {
     let r = cacheRig.get(clave);
     if (r) return r;
     const { marco, pivotes, porParte } = rigVoxel(cfg);
-    const geometrias = PARTES_VOXEL.map(k => {
-        const lista = porParte[k].map(v => cuboVoxel(v, marco, pivotes[k]));
-        const g = mergeGeometries(lista, false);
-        if (!g) throw new Error(`voxel: mergeGeometries falló en ${k}`);
-        g.computeBoundingSphere();
-        return g;
-    });
+    const geometrias = PARTES_VOXEL.map(k => geometriaVoxel(porParte[k], marco, pivotes[k]));
     r = { geometrias, pivotes: PARTES_VOXEL.map(k => pivotes[k]) };
     cacheRig.set(clave, r);
     return r;

@@ -216,7 +216,11 @@ const vox = reconstruirVoxeles(datos);   // [{ x, y, z, c }] con c en #rrggbb
 
 Para que un personaje aleatorio sea reproducible, guardá su `semilla` o su `cfg` (objeto plano):
 `{ nombre, piel, pelo (0..4), pelocolor, remera, pantalon, calzado }`. Los índices apuntan a
-`CATALOGO_PERSONAJE`; `pelo` es `corto`, `rulos`, `trenza`, `rapado` o `gorra`.
+`CATALOGO_PERSONAJE`; `pelo` es `corto`, `rulos`, `trenza`, `rapado` o `gorra`. `pelocolor`, `remera`, `pantalon`
+y `calzado` también aceptan un `#rrggbb` libre (como `piel`), en lugar del índice (desde 0.7.0).
+
+Con muchos personajes por cuadro, `angulosVoxelCaminata(fase, fuerza, out)` acepta un objeto `out` para
+reutilizar y no crear basura (desde 0.7.1): `const ang = {}; ... angulosVoxelCaminata(p.fase, p.fuerza, ang)`.
 
 #### E. Precalcular paletas fijas en un Worker al arrancar
 
@@ -241,7 +245,7 @@ Lo que no llegó a tiempo se construye en el hilo principal con el mismo resulta
 - `configurar(valores)`, `ref`
 - Muñeco: `construirMuneco`, `geometriasRigidas`, `poseCaminataRigida`, `calcularHumanoide`, `sembrarHumanoide`, `claveHumanoide`, `HUESOS`, `IDX_HUESO`, `PADRE_HUESO`, `INVERSAS_HUESO`, `REPOSO`, `BASE_MODELO`, `TOPE_MODELO`, `ALTO_MODELO`, `escalaParaAlto(alto)`, `offsetPies(escala)`
 - Serialización: `serializarGeometria`, `reconstruirGeometria`, `serializarHumanoide(colores)`, `reconstruirHumanoide({skin, rigidas})`, `serializarVoxeles(vox)`, `reconstruirVoxeles({pos, col})`
-- Voxel: `voxelesPersonaje(cfg)`, `PIEL_DEFECTO`, `PEINADOS`, `COLORES_PELO`, `COLORES_REMERA`, `COLORES_PANTALON`, `COLORES_CALZADO`, `COLOR_GORRA`
+- Voxel: `voxelesPersonaje(cfg)`, `mallaVoxelGreedy(celdas, claves) → {posiciones, normales, claves, indices}` (greedy meshing puro, apto para Worker), `PIEL_DEFECTO`, `PEINADOS`, `COLORES_PELO`, `COLORES_REMERA`, `COLORES_PANTALON`, `COLORES_CALZADO`, `COLOR_GORRA`
 - Aleatorios: `personajeAleatorio(rnd?, {piel})`, `personajeDesdeSemilla(semilla, {piel})`, `generadorSembrado(semilla)`, `normalizarPersonaje(cfg)`, `CATALOGO_PERSONAJE`, `NOMBRES`, `PIELES_NATURALES`
 - Color: `tint`, `mezclar`, `luz`
 - `ConstructorPiezas`
@@ -255,7 +259,7 @@ Lo que no llegó a tiempo se construye en el hilo principal con el mismo resulta
 - `poseCadaver(t, cfg?) → {angulo, hundimiento, terminado}`
 
 **`@greenborn/modelos-personajes/three`**
-- Voxel: `crearPersonajeVoxel(cfg, {material}) → {group, partes}`, `animarCaminataVoxel(partes, fase, fuerza)`, `piezasVoxelRigidas(cfg)`, `cuboVoxel(voxel, marco, pivote) → BufferGeometry` (un cubo con color y acabado por vértice, en el espacio del pivote)
+- Voxel: `crearPersonajeVoxel(cfg, {material}) → {group, partes}`, `animarCaminataVoxel(partes, fase, fuerza)`, `piezasVoxelRigidas(cfg)` (geometría por parte con greedy meshing, cacheada por cfg), `geometriaVoxel(vox, marco, pivote) → BufferGeometry` (greedy meshing de una lista de voxels, en el espacio del pivote: caras expuestas, caras contiguas del mismo color fundidas, indexada, atributos `position`, `normal`, `color`, `acabado`), `cuboVoxel(voxel, marco, pivote) → BufferGeometry` (un cubo con color y acabado por vértice, en el espacio del pivote)
 - Muñeco: `crearMuneco({colores, sombras, proyecta, emisivo}) → {group, partes}`, `animarCaminata(partes, fase, fuerza, conBrazos)`, `apuntarBrazo(partes, 'Izq'|'Der', objetivo)`, `materialUnido(opciones)`
 - Animación: `aplicarMuerte(modelo, raiz, yOriginal, t, altoImpacto)`, `aplicarInclinacion(modelo, corriendo, dt)`, `aplicarAgachado(modelo, escalaYObjetivo, dt)`
 - Instancing: `PoolInstanciado(scene, geometria, material, {nombre, capacidadInicial, atributos})` con `reservar`, `poner`, `escribirAtributo(id, nombre, valores)`, `liberar`, `subir`, `slotDeId`, `vivos`, `destruir`
@@ -283,6 +287,13 @@ Migrar el juego a las funciones de la 0.3.0 es un cambio aparte.
 
 ## Versiones
 
+- **0.8.0**: greedy meshing del personaje voxel. `piezasVoxelRigidas` (y por lo tanto `crearPersonajeVoxel`)
+  ya no fusiona un cubo completo por voxel: emite sólo las caras expuestas dentro de cada parte, funde las
+  caras coplanares contiguas del mismo color y comparte vértices con índice (~55 veces menos vértices y ~50
+  menos triángulos por personaje: de ~48 000 a ~870 vértices). Mismo aspecto: mismos colores y acabado por
+  cara, misma silueta, mismos pivotes, origen y límites; `matrizParteVoxel`, las poses y `PoolInstanciado`
+  no cambian. La geometría ya no trae `uv` (el material no lo usa). Nuevas: `geometriaVoxel` (`/three`) y
+  `mallaVoxelGreedy` (`/geometria`). `cuboVoxel` sigue igual.
 - **0.6.0**: exporta `cuboVoxel` (subruta `/three` y raíz). Cambio aditivo: la API anterior no cambia.
 - **0.5.0**: policía a pie. `cfg.policia = true` cambia la camisa y el pantalón por el uniforme fijo
   (`COLOR_UNIFORME_POLICIA`, `COLOR_PANTALON_POLICIA`), agrega la placa dorada en el pecho y usa la gorra

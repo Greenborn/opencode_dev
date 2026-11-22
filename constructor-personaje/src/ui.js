@@ -17,7 +17,8 @@ function el(tag, props = {}, hijos = []) {
 
 /**
  * Monta el panel dentro de `contenedor` (se vacía antes).
- * `eventos`: onNombre(texto), onPiel(hex), onElegir(clave, indice), onGirar(), onAzar(), onReiniciar().
+ * `eventos`: onNombre(texto), onPiel(hex), onColor(clave, hex), onElegir(clave, indice), onGirar(), onAzar(), onReiniciar().
+ *   Las categorías con `libre: true` muestran además un selector de color (cualquier #rrggbb) que emite onColor.
  * Devuelve { canvas, pie, pintar(cfg), sinVista(mensaje), destruir() }.
  *   - canvas: donde dibuja la vista 3D.
  *   - pie: bloque bajo los botones de la izquierda, para que la página agregue su botón de acción.
@@ -55,6 +56,7 @@ export function crearPanel(contenedor, categorias, eventos) {
     inputPiel.addEventListener('input', () => eventos.onPiel(inputPiel.value));
 
     const chips = [];
+    const libres = [];   // selectores de color libre: { key, items, inp }
     const contCategorias = el('div', { clase: 'cp-cats' });
     for (const cat of categorias) {
         const chipsCat = el('div', { clase: 'chips' });
@@ -66,7 +68,14 @@ export function crearPanel(contenedor, categorias, eventos) {
             chips.push({ key: cat.key, idx, b });
             chipsCat.append(b);
         });
-        contCategorias.append(el('div', { clase: 'cat' }, [el('div', { clase: 'cat-h', texto: cat.label }), chipsCat]));
+        const cabecera = el('div', { clase: 'cat-h', texto: cat.label });
+        if (cat.libre) {
+            const inp = el('input', { type: 'color', 'aria-label': `${cat.label}: color libre` });
+            inp.addEventListener('input', () => eventos.onColor(cat.key, inp.value));
+            libres.push({ key: cat.key, items: cat.items, inp });
+            cabecera.append(' ', inp);
+        }
+        contCategorias.append(el('div', { clase: 'cat' }, [cabecera, chipsCat]));
     }
 
     const derecha = el('div', { clase: 'col' }, [
@@ -89,6 +98,12 @@ export function crearPanel(contenedor, categorias, eventos) {
         pie,
         pintar(cfg) {
             for (const { key, idx, b } of chips) b.classList.toggle('on', cfg[key] === idx);
+            // Color libre (#rrggbb) o índice de paleta: el selector muestra el color que está en uso.
+            for (const { key, items, inp } of libres) {
+                const v = cfg[key];
+                if (typeof v === 'string') inp.value = v;
+                else if (items[v]?.c) inp.value = items[v].c;
+            }
             inputPiel.value = cfg.piel;
             hexPiel.textContent = cfg.piel;
             inputNombre.value = cfg.nombre;

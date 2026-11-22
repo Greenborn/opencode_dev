@@ -7,6 +7,8 @@
 
 import { COLORES_PELO, COLORES_REMERA, COLORES_PANTALON, COLORES_CALZADO, PEINADOS, PIEL_DEFECTO } from './voxel.js';
 
+const HEX = /^#[0-9a-f]{6}$/i;
+
 /** Nombres de muestra (no afectan la geometría). */
 export const NOMBRES = Object.freeze([
     'Lucas', 'Mateo', 'Santiago', 'Thiago', 'Facundo', 'Nicolás', 'Matías', 'Juan', 'Diego', 'Gonzalo',
@@ -92,7 +94,8 @@ export function normalizarPersonaje(cfg = {}) {
     const out = { nombre: typeof cfg.nombre === 'string' ? cfg.nombre : NOMBRES[0] };
     for (const cat of CATEGORIAS) {
         const n = CATALOGO_PERSONAJE[cat].length;
-        out[cat] = Number.isInteger(cfg[cat]) && cfg[cat] >= 0 && cfg[cat] < n ? cfg[cat] : 0;
+        if (cat !== 'pelo' && HEX.test(cfg[cat])) out[cat] = cfg[cat].toLowerCase();   // color libre (#rrggbb)
+        else out[cat] = Number.isInteger(cfg[cat]) && cfg[cat] >= 0 && cfg[cat] < n ? cfg[cat] : 0;
     }
     out.piel = /^#[0-9a-f]{6}$/i.test(cfg.piel) ? cfg.piel : PIEL_DEFECTO;
     if (cfg.policia === true) out.policia = true;

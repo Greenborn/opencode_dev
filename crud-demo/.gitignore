@@ -1,0 +1,4 @@
+node_modules/
+dist/
+backend/data/*.sqlite3
+frontend/.dev.log

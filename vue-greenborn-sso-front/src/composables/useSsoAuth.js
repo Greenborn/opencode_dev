@@ -177,6 +177,16 @@ function makeStore(config) {
     isSSOSession: () => client.isSSOSession(),
     getUniqueId: () => client.getUniqueId(),
     getAndClearRedirectUrl: () => client.getAndClearRedirectUrl(),
+    // Adaptador { leer, guardar, eliminar } para inyectar en @greenborn/vue-greenborn-crud
+    // (prop `preferencias`). leer(clave) devuelve el valor o undefined.
+    preferencias: {
+      leer: async (clave) => {
+        const todas = await client.obtenerPreferencias()
+        return todas[clave]
+      },
+      guardar: (clave, valor) => client.guardarPreferencia(clave, valor),
+      eliminar: (clave) => client.eliminarPreferencia(clave),
+    },
     refreshState,
     socketClient,
     connected,

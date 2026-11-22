@@ -1,6 +1,6 @@
 {
   "name": "@greenborn/modelos-arboles",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Modelos procedurales de trece especies de árbol para three.js. Núcleo puro (especificación de piezas, apto para Web Worker) y adaptador three.js. Agnóstico del juego: las semillas y el alto del cuerpo se pasan por parámetro.",
   "type": "module",
   "files": [
@@ -36,5 +36,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "three": "^0.187.0"
   }
 }
