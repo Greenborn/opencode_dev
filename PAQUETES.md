@@ -1,6 +1,6 @@
 # Paquetes del monorepo Greenborn
 
-Listado de todos los paquetes npm del monorepo (38, todos bajo el scope `@greenborn/`) con una breve descripción de para qué sirve cada uno.
+Listado de todos los paquetes npm del monorepo (42, todos bajo el scope `@greenborn/`) con una breve descripción de para qué sirve cada uno.
 
 > Fuente de verdad de versiones: `package.json` de cada paquete. Los proyectos que consumen estos paquetes están en `PROYECTOS_PAQUETES_GREENBORN.md` (no versionado).
 
@@ -8,7 +8,7 @@ Listado de todos los paquetes npm del monorepo (38, todos bajo el scope `@greenb
 
 | Paquete | Versión | Para qué sirve |
 |---|---|---|
-| `@greenborn/express-greenborn-sso-back` | 1.11.0 | Autenticación SSO para Express contra el servidor de auth Greenborn: middlewares `authMiddleware`/`authMiddlewareOptional` y router (`/me`, `/sso-profile`, `/register`), con rate limiting. |
+| `@greenborn/express-greenborn-sso-back` | 1.13.0 | Autenticación SSO para Express contra el servidor de auth Greenborn: middlewares `authMiddleware`/`authMiddlewareOptional` y router (`/me`, `/sso-profile`, `/register`), con rate limiting. |
 | `@greenborn/express-greenborn-crud` | 0.4.0 | Router CRUD genérico (listar, ver, crear, editar, eliminar) para cualquier tabla Knex, protegido con permisos del SSO. Joins de lectura, filtros con operadores, búsqueda parametrizable y paginación configurable. |
 | `@greenborn/express-greenborn-galeria-image` | 1.0.1 | Galería de imágenes para Express: subida (multer), thumbnails y metadatos (sharp), almacenamiento en disco y paginación. |
 | `@greenborn/express-greenborn-mercado-pago` | 1.0.1 | Integración con Mercado Pago: cliente de la API y receptor de webhooks con deduplicación. |
@@ -16,6 +16,8 @@ Listado de todos los paquetes npm del monorepo (38, todos bajo el scope `@greenb
 | `@greenborn/greenborn-memory-cache` | 1.0.1 | Caché en memoria para Node.js con TTL por entrada, eventos y limpieza periódica. Sin dependencias. |
 | `@greenborn/motor-multijugador` | 0.1.0 | Núcleo multijugador para Node: salas con `worker_thread`, puente socket.io ↔ worker y registro de sistemas con hooks. |
 | `@greenborn/mapa-voxel-back` | 0.1.1 | Generador de mapas voxel del lado del servidor (terreno, edificios, chunks, luces, salas) con plugins de datos de juego. |
+| `@greenborn/express-greenborn-perfil` | 0.1.0 | Perfil de usuario editable y perfil público: endpoints propio y público, lista blanca de salida con interruptor de privacidad por campo (apagado por defecto), migración idempotente. Término de la entidad configurable (por defecto `negocio`). Sin publicar todavía. |
+| `@greenborn/express-greenborn-locales` | 0.1.0 | Locales con dirección y ubicación: CRUD propio con verificación de propietario, listado público sólo de locales publicados, coordenadas validadas. Término configurable. Sin publicar todavía. |
 
 ## Frontend Vue 3
 
@@ -33,6 +35,8 @@ Listado de todos los paquetes npm del monorepo (38, todos bajo el scope `@greenb
 | `@greenborn/vue-greenborn-webcam-viewer` | 1.0.3 | Visor de webcam: permisos, selección de cámara, captura de frames y bounding boxes. |
 | `@greenborn/vue-greenborn-map-viewer` | 1.3.1 | Visor de mapa Leaflet con múltiples puntos (ubicaciones de profesionales, servicios o recursos). |
 | `@greenborn/vue-greenborn-map-selector` | 1.1.1 | Selector de ubicación en mapa Leaflet dentro de un modal, con opción de usar la ubicación GPS. |
+| `@greenborn/vue-greenborn-perfil` | 0.1.0 | Perfil editable y vista pública para Vue 3: formulario generado desde el esquema de campos, interruptor de privacidad por dato, composable de carga y guardado. Término configurable. Sin publicar todavía. |
+| `@greenborn/vue-greenborn-locales-mapa` | 0.1.0 | Listado de locales con mapa (envuelve `vue-greenborn-map-viewer`), enlace "Cómo llegar" con coordenadas válidas, composable de CRUD. Término configurable. Sin publicar todavía. |
 | `@greenborn/vue-greenborn-line-chart` | 1.0.1 | Gráfico de líneas en SVG puro (series, leyenda, grilla y tooltips) para métricas simples. |
 | `@greenborn/vue-greenborn-markdown-viewer` | 1.0.1 | Convierte Markdown (GFM) en HTML sanitizado con DOMPurify y estilos tipográficos propios. |
 | `@greenborn/vue-greenborn-money-input` | 1.0.1 | Campo de moneda con formato argentino que emite siempre un `Number` apto para columnas monetarias. |

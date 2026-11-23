@@ -78,6 +78,7 @@ app.listen(3000);
 | `activityLog` | boolean \| object | `false` | Habilita el **registro de actividad** en todas las rutas autenticadas. Ver abajo. |
 | `rateLimit` | boolean \| object | `true` | Rate limit por IP de intentos fallidos de login y de tokens. Ver abajo. |
 | `security` | object | `{}` | Configuración de `securityMiddleware` (Helmet). Ver abajo. |
+| `loginAlerts` | boolean \| object | `false` | Envía una alerta a SGI por cada login inválido. Ver "Alertas de login inválido". |
 
 ### `tables` por defecto
 
@@ -425,6 +426,54 @@ sso.rateLimiter.clear();                     // limpia todo
 - **No** habilites `trustProxy` si la app recibe tráfico directo sin proxy: un cliente podría falsificar `X-Forwarded-For` y evadir el límite.
 
 > **Alcance**: el rate limiter es **en memoria y por proceso**. Con múltiples instancias/PM2 en cluster cada proceso lleva su propio contador; para un límite global hace falta un store compartido (Redis), fuera del alcance del paquete.
+
+## Alertas de login inválido (`loginAlerts`) — opcional
+
+Cuando un intento de login falla con credenciales inválidas (401) o un token SSO es rechazado de forma definitiva, el paquete reporta el evento al **Sistema de Gestión Interno (SGI)**, que lo guarda en el panel de reportes de alertas de login. Está **desactivado por defecto**.
+
+El envío es *fire-and-forget*: no retrasa ni altera la respuesta al cliente. Si SGI no responde, el error se registra en el logger (`console.error` por defecto) y el login sigue respondiendo 401.
+
+### Configuración
+
+Se activa con la opción o con variables de entorno. Si está activo y falta alguno de los datos, `createSsoAuth` lanza un error al iniciar.
+
+| Opción | Variable de entorno | Descripción |
+|--------|---------------------|-------------|
+| `loginAlerts.enabled` | `SSO_LOGIN_ALERTS_ENABLED=true` | Activa las alertas. |
+| `loginAlerts.url` | `SGI_ALERTS_URL` | URL base de SGI (por ejemplo `https://sgi.ejemplo.com`). |
+| `loginAlerts.projectSlug` | `SGI_ALERTS_PROJECT_SLUG` | SLUG del proyecto registrado en SGI. |
+| `loginAlerts.apiKey` | `SGI_ALERTS_API_KEY` | API_KEY específica para alertas, generada en SGI. |
+| `loginAlerts.timeoutMs` | — | Timeout del envío (default `3000`). |
+
+```js
+const sso = createSsoAuth({
+  knex,
+  localLogin: true,
+  loginAlerts: true, // toma url, projectSlug y apiKey de las variables SGI_ALERTS_*
+});
+```
+
+### Contrato con SGI
+
+`POST {SGI_ALERTS_URL}/api/public/alertas-login`, con headers `x-project-slug` y `x-api-key`:
+
+```json
+{
+  "usuario_intentado": "lucho",
+  "ip": "10.0.0.5",
+  "user_agent": "Mozilla/5.0 ...",
+  "motivo": "CREDENCIALES_INVALIDAS | TOKEN_SSO_INVALIDO",
+  "endpoint": "/api/user/login",
+  "ocurrido_en": "2026-11-23T10:00:00.000Z"
+}
+```
+
+`TOKEN_SSO_INVALIDO` se reporta solo cuando el SSO rechaza el token sin posibilidad de renovar la sesión (no las sesiones expiradas). En ese caso `usuario_intentado` contiene el `unique_id`. La contraseña **nunca** se envía. La IP respeta `rateLimit.trustProxy`.
+
+### Seguridad
+
+- SGI guarda la API_KEY hasheada y la compara con tiempo constante; la clave en claro se muestra una sola vez al generarla.
+- Mejoras previstas (firma HMAC, anti-replay, umbrales y reintentos): ver `docs/PLAN_MEJORAS_ALERTAS_HMAC.md`.
 
 ## Registro de actividad (`activityLog`)
 

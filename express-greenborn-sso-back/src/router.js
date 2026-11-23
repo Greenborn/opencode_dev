@@ -1,10 +1,11 @@
 import express from 'express';
 import { getBearerToken, filterSensitive } from './utils.js';
 import { createPreferencesService } from './preferences.js';
+import { getClientIp } from './rateLimit.js';
 
 export function createRouter(ctx, service, middleware) {
   const router = express.Router();
-  const { sensitiveFields, rbac, localLogin, ssoClient, logger, rateLimiter } = ctx;
+  const { sensitiveFields, rbac, localLogin, ssoClient, logger, rateLimiter, loginAlerter, rateLimitTrustProxy } = ctx;
   const { verifySsoToken, syncSsoUser, findLocalUserByToken, normalizeUniqueId, resolveUserRoles, resolveUserPermissions, localLoginUser, deactivateToken } = service;
   const { authMiddleware } = middleware;
   const log = logger && typeof logger.error === 'function' ? logger : console;
@@ -19,6 +20,14 @@ export function createRouter(ctx, service, middleware) {
       try {
         const result = await localLoginUser(username, password);
         if (!result) {
+          loginAlerter.notify({
+            usuario_intentado: username,
+            ip: getClientIp(req, rateLimitTrustProxy),
+            user_agent: req.get('user-agent'),
+            motivo: 'CREDENCIALES_INVALIDAS',
+            endpoint: req.originalUrl,
+            ocurrido_en: new Date().toISOString(),
+          });
           return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
         }
         return res.status(200).json({

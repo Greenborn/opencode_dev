@@ -9,8 +9,9 @@ import { normalizeRbacConfig } from './rbac.js';
 import { createUserManagement } from './userManagement.js';
 import { normalizeUniqueId, parseSsoRoleMap } from './utils.js';
 import { ensureActivityTable, DEFAULT_ACTIVITY_TABLE } from './activityLog.js';
-import { createRateLimiter } from './rateLimit.js';
+import { createRateLimiter, normalizeRateLimitConfig } from './rateLimit.js';
 import { createSecurityMiddleware } from './security.js';
+import { normalizeLoginAlertsConfig, createLoginAlerter } from './loginAlerts.js';
 
 const DEFAULT_TABLES = {
   user: 'user',
@@ -77,7 +78,12 @@ export function createSsoAuth(options = {}) {
       });
   }
 
+  const rateLimitConfig = normalizeRateLimitConfig(options.rateLimit === undefined ? true : options.rateLimit);
   const rateLimiter = createRateLimiter(options.rateLimit === undefined ? true : options.rateLimit);
+
+  // Alertas de login inválido hacia el Sistema de Gestión Interno (desactivadas por defecto)
+  const loginAlertsConfig = normalizeLoginAlertsConfig(options.loginAlerts);
+  const loginAlerter = createLoginAlerter(loginAlertsConfig, { logger, httpClient: options.loginAlertsHttpClient });
 
   let localLogin = options.localLogin;
   if (localLogin && localLogin !== true) {
@@ -109,6 +115,8 @@ export function createSsoAuth(options = {}) {
     cache,
     activityLog,
     rateLimiter,
+    rateLimitTrustProxy: rateLimitConfig.trustProxy,
+    loginAlerter,
     preferencesTable: options.preferencesTable,
     findLocalUserByToken: options.findLocalUserByToken,
     createUserFromSso: options.createUserFromSso,

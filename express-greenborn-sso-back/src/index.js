@@ -34,4 +34,5 @@ export {
   DEFAULT_RATE_LIMIT,
 } from './rateLimit.js';
 export { createSecurityMiddleware } from './security.js';
+export { createLoginAlerter, normalizeLoginAlertsConfig, LOGIN_ALERTS_ENDPOINT } from './loginAlerts.js';
 export { createPreferencesService, DEFAULT_PREFERENCES_TABLE } from './preferences.js';

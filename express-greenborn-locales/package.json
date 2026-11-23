@@ -1,0 +1,56 @@
+{
+  "name": "@greenborn/express-greenborn-locales",
+  "version": "0.1.0",
+  "description": "Locales (direcciones y ubicación en mapa) para Express/Knex: CRUD propio con verificación de propietario, listado público que sólo expone locales publicados y coordenadas únicamente de locales publicados. Genérico: los campos y el término de la entidad (por defecto 'negocio') se configuran por parámetro.",
+  "type": "module",
+  "files": [
+    "src"
+  ],
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "perfil",
+    "profile",
+    "privacidad",
+    "express",
+    "knex",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/express-greenborn-locales",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "peerDependencies": {
+    "express": "^4.21.0 || ^5.0.0",
+    "knex": "^2.0.0 || ^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    },
+    "knex": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "express": "^4.21.2"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name": "@greenborn/vue-greenborn-perfil",
+  "version": "0.1.0",
+  "description": "Perfil de usuario editable y vista pública para Vue 3: formulario generado desde un esquema de campos, interruptor de privacidad por dato, composable de carga/guardado contra @greenborn/express-greenborn-perfil y término configurable de la entidad (por defecto 'negocio').",
+  "type": "module",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "main": "./dist/vue-greenborn-perfil.cjs",
+  "module": "./dist/vue-greenborn-perfil.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-perfil.js",
+      "require": "./dist/vue-greenborn-perfil.cjs"
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "node --test",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["vue", "vue3", "perfil", "profile", "privacidad", "greenborn"],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-perfil",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0"
+  }
+}

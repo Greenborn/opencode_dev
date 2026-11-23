@@ -1,0 +1,55 @@
+{
+  "name": "@greenborn/vue-greenborn-locales-mapa",
+  "version": "0.1.0",
+  "description": "Locales y mapa para Vue 3: listado de locales publicados, visor Leaflet (envuelve @greenborn/vue-greenborn-map-viewer), enlace 'cómo llegar', resaltado de punto y composable de CRUD contra @greenborn/express-greenborn-locales. Término de la entidad configurable (por defecto 'negocio').",
+  "type": "module",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "main": "./dist/vue-greenborn-locales-mapa.cjs",
+  "module": "./dist/vue-greenborn-locales-mapa.js",
+  "exports": {
+    ".": {
+      "import": "./dist/vue-greenborn-locales-mapa.js",
+      "require": "./dist/vue-greenborn-locales-mapa.cjs"
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "node --test",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "locales",
+    "mapa",
+    "leaflet",
+    "map",
+    "greenborn"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "2012lucho",
+    "email": "lucho.2012.tandil@gmail.com"
+  },
+  "homepage": "https://github.com/Greenborn/opencode_dev/tree/main/vue-greenborn-locales-mapa",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Greenborn/opencode_dev.git"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0",
+    "@greenborn/vue-greenborn-map-viewer": "^1.3.1"
+  },
+  "devDependencies": {
+    "@greenborn/vue-greenborn-map-viewer": "^1.3.1",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "vue": "^3.4.0"
+  }
+}

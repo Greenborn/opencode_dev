@@ -1,4 +1,5 @@
 import { getBearerToken, tokenPreview } from './utils.js';
+import { getClientIp } from './rateLimit.js';
 import { createActivityLogger } from './activityLog.js';
 
 function loadFromCache(service, cache, token) {
@@ -9,7 +10,7 @@ function loadFromCache(service, cache, token) {
 }
 
 export function createMiddleware(ctx, service) {
-  const { cache, logger, sendReauthHeader, rbac, activityLog, rateLimiter } = ctx;
+  const { cache, logger, sendReauthHeader, rbac, activityLog, rateLimiter, loginAlerter, rateLimitTrustProxy } = ctx;
   const { verifySsoToken, syncSsoUser, findLocalUserByToken, extendSsoSession, normalizeUniqueId } = service;
   const tokenRateLimit = rateLimiter?.tokenMiddleware;
 
@@ -24,6 +25,19 @@ export function createMiddleware(ctx, service) {
     if (!activity) return;
     res.on('finish', () => {
       if (req.user) activity.logActivity(req, req.user);
+    });
+  }
+
+  // Alerta de token SSO rechazado de forma definitiva (no sesiones expiradas, que son normales).
+  function reportarTokenRechazado(req, normalizedId) {
+    if (!loginAlerter?.enabled) return;
+    loginAlerter.notify({
+      usuario_intentado: normalizedId,
+      ip: getClientIp(req, rateLimitTrustProxy),
+      user_agent: req.get('user-agent'),
+      motivo: 'TOKEN_SSO_INVALIDO',
+      endpoint: req.originalUrl,
+      ocurrido_en: new Date().toISOString(),
     });
   }
 
@@ -100,6 +114,7 @@ export function createMiddleware(ctx, service) {
     }
 
     if (cache) cache.delete(token);
+    reportarTokenRechazado(req, normalizedId);
     return { ok: false, status: 401, body: { success: false, message: 'Token inválido' } };
   }
 
